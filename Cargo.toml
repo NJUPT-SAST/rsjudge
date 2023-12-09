@@ -1,0 +1,17 @@
+[package]
+name = "rsjudge"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.7.2"
+serde = { version = "1.0.193", features = ["derive"] }
+tokio = { version = "1.35.0", features = ["fs"] }
+toml = "0.8.8"
+utoipa = { version = "4.1.0", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "5.0.0", features = ["axum"] }
+
+[dev-dependencies]
+tokio = { version = "1.35.0", features = ["rt-multi-thread", "macros"] }

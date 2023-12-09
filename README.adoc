@@ -1,0 +1,15 @@
+= RsJudge
+:toc: preamble
+
+An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for SAST OJ.
+
+== Features
+
+* Multi-language support
+* Supporting both self-testing and final submission
+* Customizable compilation and execution command with TOML config file
+* Customizable time and memory limit using cgroups
+* Asynchronously report test results
+* Fully supporting SAST OJ
+* Highly extensible with plugins
+* Blazingly fast and secured with Rust🦀
