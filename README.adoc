@@ -11,5 +11,43 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 * Customizable time and memory limit using cgroups
 * Asynchronously report test results
 * Fully supporting SAST OJ
+* RESTful API and gRPC support
 * Highly extensible with plugins
 * Blazingly fast and secured with Rust🦀
+
+== Build from source
+
+=== Prerequisites
+
+* Rust latest stable toolchain
+* Linux kernel >= 4.5
+* For gRPC support, the `protoc` Protocol Buffers compiler, along with Protocol Buffers resource files (under `grpc` feature):
+
+==== Debian/Ubuntu
+[,sh]
+----
+sudo apt install -y protobuf-compiler libprotobuf-dev
+----
+
+==== Alpine
+[,sh]
+----
+sudo apk add protoc protobuf-dev
+----
+
+=== Build
+
+Clone the repository:
+
+[,sh]
+----
+git clone https://github.com/NJUPT-SAST/rsjudge.git
+cd rsjudge
+----
+
+Build the project with Cargo:
+
+[,sh]
+----
+cargo build --release
+----
