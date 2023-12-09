@@ -1,0 +1,23 @@
+= rsjudge(1)
+NJUPT-SAST
+v0.1.0
+:doctype: manpage
+:manmanual: RSJUDGE
+:mansource: RSJUDGE
+
+== Name
+
+rsjudge - an online judge sandbox server in Rust
+
+== Synopsis
+
+*rsjudge* [_OPTIONS_]...
+
+== Options
+
+*-c, --config* _FOLDER_
+    Specify the configuration folder.
+
+== Resources
+
+*Repository:* https://github.com/NJUPT-SAST/rsjudge

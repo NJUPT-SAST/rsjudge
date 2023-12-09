@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+RSJUDGE_HOME="/var/lib/rsjudge/"
+RSJUDGE_USER="rsjudge"
+
+case "$1" in
+configure)
+    if ! id ${RSJUDGE_USER} >/dev/null 2>&1; then
+        adduser --system --home "${RSJUDGE_HOME}" --group "${RSJUDGE_USER}"
+    fi
+    ;;
+esac
+
+#DEBHELPER#

@@ -1,0 +1,10 @@
+[Unit]
+Description=RsJudge autostart service.
+
+[Service]
+ExecStart=/usr/bin/rsjudge --config /etc/rsjudge/
+User=rsjudge
+Group=rsjudge
+
+[Install]
+WantedBy=multi-user.target

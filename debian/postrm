@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+
+RSJUDGE_CONF="/etc/rsjudge/*.conf"
+
+case "$1" in
+purge)
+    if [ -f "${RSJUDGE_CONF}" ]; then
+        rm "${RSJUDGE_CONF}"
+    fi
+
+    if [ -n "${RSJUDGE_USER}" ]; then
+        deluser --system --remove-home --group "${RSJUDGE_USER}" || true
+    fi
+    ;;
+esac
+
+#DEBHELPER#

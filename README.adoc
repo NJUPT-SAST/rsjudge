@@ -21,16 +21,17 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 
 * Rust latest stable toolchain
 * Linux kernel >= 4.5
+* `dpkg`, `dpkg-dev` and `liblzma-dev` to generate `.deb` package.
 * For gRPC support, the `protoc` Protocol Buffers compiler, along with Protocol Buffers resource files (under `grpc` feature):
 
 ==== Debian/Ubuntu
-[,sh]
+[,bash]
 ----
 sudo apt install -y protobuf-compiler libprotobuf-dev
 ----
 
 ==== Alpine
-[,sh]
+[,bash]
 ----
 sudo apk add protoc protobuf-dev
 ----
@@ -39,7 +40,7 @@ sudo apk add protoc protobuf-dev
 
 Clone the repository:
 
-[,sh]
+[,bash]
 ----
 git clone https://github.com/NJUPT-SAST/rsjudge.git
 cd rsjudge
@@ -47,7 +48,14 @@ cd rsjudge
 
 Build the project with Cargo:
 
-[,sh]
+[,bash]
 ----
 cargo build --release
+----
+
+Generate `.deb` package:
+
+[,bash]
+----
+cargo deb
 ----
