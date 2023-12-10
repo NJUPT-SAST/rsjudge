@@ -1,3 +1,6 @@
+[bash]
+execute = "/bin/bash {src_file}"
+
 [c]
 compile = "/usr/bin/gcc -Wall --std=c99 -O2 -o {out_file} {src_file} -lm"
 
@@ -31,15 +34,25 @@ compile = "/usr/bin/g++ -Wall --std=c++20 -o {out_file} {src_file} -lm -I/includ
 [cpp20o2]
 compile = "/usr/bin/g++ -Wall --std=c++20 -O2 -o {out_file} {src_file} -lm -I/include"
 
+[csharp]
+out_rename = "Main.exe"
+compile = "/usr/bin/mcs -optimize+ -out:{out_file} {src_file}"
+execute = "/usr/bin/mono {out_file}"
+
 [java17]
 src_rename = "Main.java"
+out_rename = "Main.jar"
 compile = "/usr/lib/jvm/java-17-openjdk-amd64/bin/javac Main.java && /usr/lib/jvm/java-17-openjdk-amd64/bin/jar -cvfe Main.jar Main ./*.class && rm -rf ./*.class"
 execute = "/usr/lib/jvm/java-17-openjdk-amd64/bin/java -jar Main.jar"
 
 [java21]
 src_rename = "Main.java"
+out_rename = "Main.jar"
 compile = "/usr/lib/jvm/java-21-openjdk-amd64/bin/javac Main.java && /usr/lib/jvm/java-21-openjdk-amd64/bin/jar -cvfe Main.jar Main ./*.class && rm -rf ./*.class"
 execute = "/usr/lib/jvm/java-21-openjdk-amd64/bin/java -jar Main.jar"
+
+[nodejs]
+execute = "/usr/bin/node {src_file}"
 
 [python3]
 execute = "/usr/bin/python3 {src_file}"
@@ -48,4 +61,4 @@ execute = "/usr/bin/python3 {src_file}"
 execute = "/usr/bin/pypy3 {src_file}"
 
 [rust]
-compile = "/usr/bin/rustc -o {out_file} {src_file}"
+compile = "/usr/bin/rustc -O -o {out_file} {src_file}"
