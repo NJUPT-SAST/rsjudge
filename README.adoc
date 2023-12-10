@@ -21,7 +21,8 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 
 * Rust latest stable toolchain
 * Linux kernel >= 4.5
-* `dpkg`, `dpkg-dev` and `liblzma-dev` to generate `.deb` package.
+* `asciidoctor` to generate manpages
+* `dpkg`, `dpkg-dev` and `liblzma-dev` to generate `.deb` package
 * For gRPC support, the `protoc` Protocol Buffers compiler, along with Protocol Buffers resource files (under `grpc` feature):
 
 ==== Debian/Ubuntu

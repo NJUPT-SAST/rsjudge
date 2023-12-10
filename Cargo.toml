@@ -23,6 +23,11 @@ assets = [
         "/etc/rsjudge/server.toml",
         "644",
     ],
+    [
+        "docs/manpages/rsjudge.1",
+        "/usr/share/man/man1/rsjudge.1",
+        "644",
+    ],
 ]
 maintainer-scripts = "debian/"
 depends = "$auto, libc6, libgcc-s1, libstdc++6, libssl1.1, libzstd1, libzstd-dev"
