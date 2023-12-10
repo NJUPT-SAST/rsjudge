@@ -33,4 +33,4 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
       - name: Build Debian package
-        run: cargo deb --verbose
+        run: cargo deb && dpkg-deb -c target/debian/*.deb
