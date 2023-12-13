@@ -27,7 +27,7 @@ jobs:
           sudo apt update && sudo apt upgrade -y && \
           sudo apt install -y asciidoctor protobuf-compiler libprotobuf-dev
       - name: Build manpages
-        run: asciidoctor -b manpage docs/manpages/*.adoc
+        run: asciidoctor -b manpage --safe docs/manpages/*.adoc
       - name: Build
         run: cargo build --verbose
       - name: Run tests

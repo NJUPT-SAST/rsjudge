@@ -15,9 +15,13 @@ rsjudge - an online judge sandbox server in Rust
 
 == Options
 
-*-c, --config* _FOLDER_
-    Specify the configuration folder.
+*-c, --config*=_DIR_::
+    Specify the configuration directory.
 
-== Resources
+== Author
 
-*Repository:* https://github.com/NJUPT-SAST/rsjudge
+See the repository for RsJudge at <https://github.com/NJUPT-SAST/rsjudge> for a full list of contributors.
+
+== Copyright
+
+Copyright (c) 2023 NJUPT-SAST
