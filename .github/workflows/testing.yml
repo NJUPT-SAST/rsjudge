@@ -34,3 +34,7 @@ jobs:
         run: cargo test --verbose
       - name: Build Debian package
         run: cargo deb && dpkg-deb -c target/debian/*.deb
+      - uses: actions/upload-artifact@v3
+        with:
+          name: rsjudge-deb
+          path: target/debian/*.deb
