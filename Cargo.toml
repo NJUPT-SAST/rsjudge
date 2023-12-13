@@ -3,7 +3,7 @@ name = "rsjudge"
 description = "An online judge sandbox server in Rust."
 version = "0.1.0"
 edition = "2021"
-license = "MIT"
+license = "Unknown"
 authors = ["NJUPT-SAST"]
 
 [package.metadata.deb]
