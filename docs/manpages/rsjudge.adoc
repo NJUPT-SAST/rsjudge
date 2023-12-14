@@ -15,8 +15,12 @@ rsjudge - an online judge sandbox server in Rust
 
 == Options
 
-*-c, --config*=_DIR_::
-    Specify the configuration directory.
+*-c, --config*=<DIR>::
+    Specify the configuration directory [default: ./config]
+*-h, --help*::
+    Print help
+*-V, --version*::
+    Print version
 
 == Author
 

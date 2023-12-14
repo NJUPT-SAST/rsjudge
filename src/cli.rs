@@ -5,7 +5,7 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 #[command(author, about, version)]
 pub(crate) struct Args {
-    #[arg(short, long, default_value = "config")]
-    /// The path to the configuration files directory.
+    #[arg(short, long, default_value = "./config", value_name = "DIR")]
+    /// Specify the configuration directory
     pub(crate) config: PathBuf,
 }
