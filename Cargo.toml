@@ -50,6 +50,7 @@ axum = { version = "0.7.2", optional = true }
 tonic = { version = "0.10.2", optional = true }
 utoipa = { version = "4.1.0", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "5.0.0", features = ["axum"], optional = true }
+nix = { version = "0.27.1", features = ["fs"] }
 
 [dev-dependencies]
 tokio = { version = "1.35.0", features = ["rt-multi-thread", "macros"] }

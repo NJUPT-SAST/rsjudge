@@ -26,10 +26,10 @@ execute = "{java_home}/bin/java -jar Main.jar"
 execute = "{node_path}/node {src_file}"
 
 [python3]
-execute = "/usr/bin/python3 {src_file}"
+execute = "/usr/bin/python3 -OO {src_file}"
 
 [pypy3]
-execute = "/usr/bin/pypy3 {src_file}"
+execute = "/usr/bin/pypy3 -OO {src_file}"
 
 [rust]
 compile = "{rustc_path}/rustc -O -o {out_file} {src_file}"
