@@ -1,10 +1,10 @@
 [package]
 name = "rsjudge"
-description = "An online judge sandbox server in Rust."
 version = "0.1.0"
+authors = ["NJUPT-SAST"]
 edition = "2021"
 license = "Unknown"
-authors = ["NJUPT-SAST"]
+description = "An online judge sandbox server in Rust."
 
 [package.metadata.deb]
 assets = [
@@ -39,10 +39,11 @@ systemd-units = { enable = false }
 [dependencies]
 cgroups = "0.1.0"
 clap = { version = "4.4.11", features = ["derive"] }
+nix = { version = "0.27.1", features = ["fs"] }
 serde = { version = "1.0.193", features = ["derive"] }
 shadow-rs = "0.25.0"
 strfmt = "0.2.4"
-tokio = { version = "1.35.0", features = ["fs"] }
+tokio = { version = "1.35.1", features = ["fs"] }
 toml = "0.8.8"
 
 # Optional dependencies
@@ -50,10 +51,9 @@ axum = { version = "0.7.2", optional = true }
 tonic = { version = "0.10.2", optional = true }
 utoipa = { version = "4.1.0", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "5.0.0", features = ["axum"], optional = true }
-nix = { version = "0.27.1", features = ["fs"] }
 
 [dev-dependencies]
-tokio = { version = "1.35.0", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.35.1", features = ["rt-multi-thread", "macros"] }
 
 [features]
 grpc = ["dep:tonic"]
