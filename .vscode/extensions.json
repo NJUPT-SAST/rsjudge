@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "asciidoctor.asciidoctor-vscode",
+    "dprint.dprint",
+    "rust-lang.rust-analyzer",
+    "seaql.firedbg-rust",
+    "serayuzgur.crates"
+  ]
+}

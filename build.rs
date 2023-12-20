@@ -10,7 +10,8 @@ use std::{
 
 use clap::CommandFactory;
 use clap_mangen::Man;
-use cli::Args;
+
+use crate::cli::Args;
 
 fn main() -> io::Result<()> {
     shadow_rs::new().unwrap();
