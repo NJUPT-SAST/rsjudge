@@ -3,5 +3,11 @@
   "editor.defaultFormatter": "dprint.dprint",
   "[dockerfile]": {
     "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "dprint.dprint"
   }
 }

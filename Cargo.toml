@@ -47,7 +47,7 @@ tokio = { version = "1.35.1", features = ["fs"] }
 toml = "0.8.8"
 
 # Optional dependencies
-axum = { version = "0.7.2", optional = true }
+axum = { version = "0.7.3", optional = true }
 tonic = { version = "0.10.2", optional = true }
 utoipa = { version = "4.1.0", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "5.0.0", features = ["axum"], optional = true }

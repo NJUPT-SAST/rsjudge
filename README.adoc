@@ -38,6 +38,12 @@ sudo apt install -y protobuf-compiler libprotobuf-dev
 sudo apk add protoc protobuf-dev
 ----
 
+==== Arch Linux
+[,bash]
+----
+sudo pacman -S --needed protobuf
+----
+
 === Build
 
 Clone the repository:
