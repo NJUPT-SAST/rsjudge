@@ -1,5 +1,9 @@
 {
-  "conventionalCommits.scopes": ["deps", "config"],
+  "conventionalCommits.scopes": [
+    "deps",
+    "config",
+    "xtask"
+  ],
   "editor.defaultFormatter": "dprint.dprint",
   "[dockerfile]": {
     "editor.defaultFormatter": "dprint.dprint"
