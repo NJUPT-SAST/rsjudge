@@ -17,6 +17,7 @@ execute = "/usr/bin/mono {out_file}"
 
 [java]
 # $java_home should be set to the directory containing the bin/ directory of the target java version
+message = "主类需命名为 `Main`。"
 src_rename = "Main.java"
 out_rename = "Main.jar"
 compile = "{java_home}/bin/javac Main.java && {java_home}/bin/jar -cvfe Main.jar Main ./*.class && rm -rf ./*.class"
@@ -36,6 +37,7 @@ compile = "{rustc_path}/rustc -O -o {out_file} {src_file}"
 
 [scala]
 # $scala_home and $java_home should be set to the directory containing the bin/ directory of the target scala version
+message = "主类需命名为 `Main`。"
 src_rename = "Main.scala"
 out_rename = "Main.jar"
 compile = "{scala_home}/bin/scalac Main.scala && {java_home}/bin/jar -cvfe Main.jar Main ./*.class && rm -rf ./*.class"
