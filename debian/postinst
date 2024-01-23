@@ -1,13 +1,19 @@
 #!/bin/sh
 set -e
 
-RSJUDGE_HOME="/var/lib/rsjudge/"
+RSJUDGE_HOME_BASE="/var/lib/rsjudge"
 RSJUDGE_USER="rsjudge"
 
 case "$1" in
 configure)
-    if ! id ${RSJUDGE_USER} >/dev/null 2>&1; then
-        adduser --system --home "${RSJUDGE_HOME}" --group "${RSJUDGE_USER}"
+    if ! id ${RSJUDGE_USER}-supervisor >/dev/null 2>&1; then
+        adduser --system --home "${RSJUDGE_HOME_BASE}-supervisor" --group "${RSJUDGE_USER}-supervisor"
+    fi
+    if ! id ${RSJUDGE_USER}-builder >/dev/null 2>&1; then
+        adduser --system --home "${RSJUDGE_HOME_BASE}-builder" --group "${RSJUDGE_USER}-builder"
+    fi
+    if ! id ${RSJUDGE_USER}-runner >/dev/null 2>&1; then
+        adduser --system --home "${RSJUDGE_HOME_BASE}-runner" --group "${RSJUDGE_USER}-runner"
     fi
     ;;
 esac

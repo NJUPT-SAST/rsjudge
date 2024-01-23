@@ -3,25 +3,32 @@ mod cli;
 
 use std::{
     env::var_os,
-    fs,
-    io::{self, ErrorKind},
+    fs::File,
+    io::{self, ErrorKind, Write},
     path::PathBuf,
 };
 
 use clap::CommandFactory;
+use clap_complete::{generate_to, shells::Shell};
 use clap_mangen::Man;
 
 use crate::cli::Args;
 
-fn main() -> io::Result<()> {
+fn main() -> anyhow::Result<()> {
     shadow_rs::new().unwrap();
-    let out_dir = PathBuf::from(var_os("OUT_DIR").ok_or(ErrorKind::NotFound)?);
+    let out_dir = PathBuf::from(var_os("OUT_DIR").ok_or(io::Error::from(ErrorKind::NotFound))?);
 
-    let mut buffer: Vec<u8> = Vec::new();
+    let mut cmd = Args::command();
 
-    Man::new(Args::command()).render(&mut buffer)?;
+    for shell in [Shell::Bash, Shell::Fish, Shell::Zsh] {
+        generate_to(shell, &mut cmd, "rsjudge", &out_dir)?;
+    }
 
-    fs::write(out_dir.join("rsjudge.1"), buffer)?;
+    let mut manpage = File::create(out_dir.join("rsjudge.1"))?;
+    Man::new(cmd).render(&mut manpage)?;
+    manpage.flush()?;
+
+    println!("cargo:rerun-if-changed=src/cli.rs");
 
     Ok(())
 }

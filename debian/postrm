@@ -9,9 +9,10 @@ purge)
         rm "${RSJUDGE_CONF}"
     fi
 
-    if [ -n "${RSJUDGE_USER}" ]; then
-        deluser --system --remove-home --group "${RSJUDGE_USER}" || true
-    fi
+    deluser --system --remove-home --group "${RSJUDGE_USER}-supervisor" || true
+    deluser --system --remove-home --group "${RSJUDGE_USER}-builder" || true
+    deluser --system --remove-home --group "${RSJUDGE_USER}-runner" || true
+
     ;;
 esac
 

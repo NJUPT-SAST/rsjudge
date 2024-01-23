@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
       - name: Build Debian package
-        run: cargo deb && dpkg-deb -c target/debian/*.deb
+        run: cargo xtask dist deb && dpkg-deb -c target/debian/*.deb
       - uses: actions/upload-artifact@v3
         with:
           name: rsjudge-deb

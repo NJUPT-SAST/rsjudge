@@ -4,32 +4,55 @@ name = "rsjudge"
 version = "0.1.0"
 authors = ["NJUPT-SAST"]
 edition = "2021"
-license = "Unknown"
+license = "Apache-2.0"
 description = "An online judge sandbox server in Rust."
 
 [package.metadata.deb]
 assets = [
     [
         "target/release/rsjudge",
-        "/usr/bin/rsjudge",
+        "usr/bin/rsjudge",
         "755",
     ],
     [
         "templates/executors.toml",
-        "/etc/rsjudge/executors.toml",
+        "etc/rsjudge/executors.toml",
         "644",
     ],
     [
         "templates/server.toml",
-        "/etc/rsjudge/server.toml",
+        "etc/rsjudge/server.toml",
         "644",
     ],
     [
         "docs/manpages/rsjudge.1",
-        "/usr/share/man/man1/rsjudge.1",
+        "usr/share/man/man1/rsjudge.1",
+        "644",
+    ],
+    [
+        "README.adoc",
+        "usr/share/doc/rsjudge/README",
+        "644",
+    ],
+    [
+        "target/release/out/rsjudge.bash",
+        "usr/share/bash-completion/completions/rsjudge",
+        "644",
+    ],
+    [
+        "target/release/out/rsjudge.fish",
+        "usr/share/fish/vendor_completions.d/rsjudge.fish",
+        "644",
+    ],
+    [
+        "target/release/out/_rsjudge",
+        "usr/share/zsh/vendor-completions/_rsjudge",
         "644",
     ],
 ]
+copyright = "2023-2024 NJUPT-SAST"
+features = ["default"]
+conf-files = ["/etc/rsjudge/server.toml", "/etc/rsjudge/executors.toml"]
 maintainer-scripts = "debian/"
 depends = "$auto, libc6, libgcc-s1, libstdc++6, libssl1.1, libzstd1, libzstd-dev"
 recommends = "gcc, g++, python3"
@@ -39,20 +62,20 @@ systemd-units = { enable = false }
 
 [dependencies]
 cgroups = "0.1.0"
-clap = { version = "4.4.13", features = ["derive"] }
+clap = { version = "4.4.18", features = ["derive"] }
 nix = { version = "0.27.1", features = ["fs"] }
 serde = { version = "1.0.194", features = ["derive"] }
-shadow-rs = "0.26.0"
+shadow-rs = "0.26.1"
 strfmt = "0.2.4"
 tokio = { version = "1.35.1", features = ["fs"] }
 toml = "0.8.8"
 
 # Optional dependencies
-axum = { version = "0.7.3", optional = true }
-tonic = { version = "0.10.2", optional = true }
-utoipa = { version = "4.1.0", features = ["axum_extras"], optional = true }
-utoipa-swagger-ui = { version = "5.0.0", features = ["axum"], optional = true }
+axum = { version = "0.7.4", optional = true }
 duct = "0.13.7"
+tonic = { version = "0.10.2", optional = true }
+utoipa = { version = "4.2.0", features = ["axum_extras"], optional = true }
+utoipa-swagger-ui = { version = "6.0.0", features = ["axum"], optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.35.1", features = ["rt-multi-thread", "macros"] }
@@ -61,9 +84,11 @@ tokio = { version = "1.35.1", features = ["rt-multi-thread", "macros"] }
 grpc = ["dep:tonic"]
 rest = ["dep:axum"]
 openapi = ["rest", "dep:utoipa", "dep:utoipa-swagger-ui"]
-default = []
+default = ["grpc"]
 
 [build-dependencies]
-clap = { version = "4.4.13", features = ["derive"] }
-clap_mangen = "0.2.16"
-shadow-rs = "0.26.0"
+anyhow = "1.0.79"
+clap = { version = "4.4.18", features = ["derive"] }
+clap_complete = "4.4.7"
+clap_mangen = "0.2.17"
+shadow-rs = "0.26.1"

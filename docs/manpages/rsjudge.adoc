@@ -9,13 +9,13 @@ v0.1.0
 
 rsjudge - an online judge sandbox server in Rust
 
-== Synopsis
+== Usage
 
 *rsjudge* [_OPTIONS_]...
 
 == Options
 
-*-c, --config*=<DIR>::
+*-c, --config-dir* <DIR>::
     Specify the configuration directory [default: ./config]
 *-h, --help*::
     Print help
@@ -28,4 +28,8 @@ See the repository for RsJudge at <https://github.com/NJUPT-SAST/rsjudge> for a 
 
 == Copyright
 
-Copyright (c) 2023 NJUPT-SAST
+Copyright (c) 2023-2024 NJUPT-SAST
+
+== License
+
+RsJudge is licensed under the Apache License, Version 2.0. See LICENSE for the full license text.

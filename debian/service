@@ -3,8 +3,8 @@ Description=RsJudge autostart service.
 
 [Service]
 ExecStart=/usr/bin/rsjudge --config /etc/rsjudge/
-User=rsjudge
-Group=rsjudge
+User=rsjudge-supervisor
+Group=rsjudge-supervisor
 
 [Install]
 WantedBy=multi-user.target
