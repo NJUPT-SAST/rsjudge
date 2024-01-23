@@ -15,7 +15,6 @@ use clap_mangen::Man;
 use crate::cli::Args;
 
 fn main() -> anyhow::Result<()> {
-    shadow_rs::new().unwrap();
     let out_dir = PathBuf::from(var_os("OUT_DIR").ok_or(io::Error::from(ErrorKind::NotFound))?);
 
     let mut cmd = Args::command();
