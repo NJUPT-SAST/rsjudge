@@ -44,14 +44,12 @@ mod tests {
         let builder_output = Command::new("id")
             .uid(builder_uid().ok_or_else(|| anyhow!("No such user: rsjudge-builder"))?)
             .gid(builder_gid().ok_or_else(|| anyhow!("No such group: rsjudge-builder"))?)
-            .spawn()?
-            .wait_with_output()?;
+            .output()?;
         println!("{}", String::from_utf8_lossy(&builder_output.stdout));
         let runner_output = Command::new("id")
             .uid(runner_uid().ok_or_else(|| anyhow!("No such user: rsjudge-runner"))?)
             .gid(runner_gid().ok_or_else(|| anyhow!("No such group: rsjudge-runner"))?)
-            .spawn()?
-            .wait_with_output()?;
+            .output()?;
         println!("{}", String::from_utf8_lossy(&runner_output.stdout));
         Ok(())
     }
