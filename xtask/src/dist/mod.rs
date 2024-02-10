@@ -63,7 +63,9 @@ fn prepare_out_dir(sh: &Shell) -> Result<(), anyhow::Error> {
     use std::{fs::remove_dir_all, os::unix::fs::symlink};
 
     let build_script_out_dir = build_script_out_dir(sh, Profile::Release)?;
-    remove_dir_all(OUT_DIR)?;
+
+    let _ = remove_dir_all(OUT_DIR);
+
     symlink(build_script_out_dir, OUT_DIR)?;
     Ok(())
 }
