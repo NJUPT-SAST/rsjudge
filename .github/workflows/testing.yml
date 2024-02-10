@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -34,7 +34,7 @@ jobs:
         run: cargo test --verbose
       - name: Build Debian package
         run: cargo xtask dist deb && dpkg-deb -c target/debian/*.deb
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: rsjudge-deb
           path: target/debian/*.deb
