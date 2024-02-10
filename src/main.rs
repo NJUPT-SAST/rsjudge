@@ -4,7 +4,12 @@ use crate::cli::Args;
 
 mod cli;
 
-fn main() {
-    let args = Args::parse();
+/// For future use.
+pub mod user;
+
+fn main() -> anyhow::Result<()> {
+    let args = Args::try_parse()?;
     println!("{:?}", args);
+
+    Ok(())
 }
