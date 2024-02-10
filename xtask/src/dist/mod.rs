@@ -6,6 +6,7 @@ use serde_json::from_str;
 use xshell::{cmd, Shell};
 
 pub(crate) mod deb;
+pub(crate) mod rpm;
 
 #[derive(Deserialize, Debug, Serialize)]
 #[serde(tag = "reason", rename_all = "kebab-case")]
@@ -25,10 +26,10 @@ pub(crate) enum Profile {
 }
 
 impl Profile {
-    fn flag(self) -> &'static str {
+    fn flag(self) -> Option<&'static str> {
         match self {
-            Profile::Release => "--release",
-            Profile::Debug => "",
+            Profile::Release => Some("--release"),
+            Profile::Debug => None,
         }
     }
 }
@@ -39,7 +40,7 @@ pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Resu
     // dbg!(&pkgid);
     let flag = profile.flag();
 
-    cmd!(sh, "cargo check {flag} --message-format=json")
+    cmd!(sh, "cargo check {flag...} --message-format=json")
         .read()?
         .lines()
         .find_map(|line| {
@@ -53,4 +54,16 @@ pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Resu
             }
         })
         .ok_or(anyhow!("No build script executed."))
+}
+
+#[cfg(unix)]
+fn prepare_out_dir(sh: &Shell) -> Result<(), anyhow::Error> {
+    const OUT_DIR: &'static str = "target/release/out";
+
+    use std::{fs::remove_dir_all, os::unix::fs::symlink};
+
+    let build_script_out_dir = build_script_out_dir(sh, Profile::Release)?;
+    remove_dir_all(OUT_DIR)?;
+    symlink(build_script_out_dir, OUT_DIR)?;
+    Ok(())
 }
