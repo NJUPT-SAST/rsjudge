@@ -2,33 +2,25 @@ use std::sync::OnceLock;
 
 use uzers::{get_group_by_name, get_user_by_name};
 
-const BUILDER_UID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
-const BUILDER_GID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
-const RUNNER_UID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
-const RUNNER_GID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
+static BUILDER_UID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
+static BUILDER_GID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
+static RUNNER_UID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
+static RUNNER_GID_LOCK: OnceLock<Option<u32>> = OnceLock::new();
 
 pub fn builder_uid() -> Option<u32> {
-    BUILDER_UID_LOCK
-        .get_or_init(|| get_user_by_name("rsjudge-builder").map(|u| u.uid()))
-        .clone()
+    *BUILDER_UID_LOCK.get_or_init(|| get_user_by_name("rsjudge-builder").map(|u| u.uid()))
 }
 
 pub fn builder_gid() -> Option<u32> {
-    BUILDER_GID_LOCK
-        .get_or_init(|| get_group_by_name("rsjudge-builder").map(|g| g.gid()))
-        .clone()
+    *BUILDER_GID_LOCK.get_or_init(|| get_group_by_name("rsjudge-builder").map(|g| g.gid()))
 }
 
 pub fn runner_uid() -> Option<u32> {
-    RUNNER_UID_LOCK
-        .get_or_init(|| get_user_by_name("rsjudge-runner").map(|u| u.uid()))
-        .clone()
+    *RUNNER_UID_LOCK.get_or_init(|| get_user_by_name("rsjudge-runner").map(|u| u.uid()))
 }
 
 pub fn runner_gid() -> Option<u32> {
-    RUNNER_GID_LOCK
-        .get_or_init(|| get_group_by_name("rsjudge-runner").map(|g| g.gid()))
-        .clone()
+    *RUNNER_GID_LOCK.get_or_init(|| get_group_by_name("rsjudge-runner").map(|g| g.gid()))
 }
 
 #[cfg(all(test, unix))]
