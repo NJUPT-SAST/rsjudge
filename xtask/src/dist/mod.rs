@@ -34,13 +34,17 @@ impl Profile {
     }
 }
 
+/// Get the `OUT_DIR` directory path of a specified build profile. This will run `cargo build` under the hood.
+// TODO: This function should be run only once during CI build process.
 pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Result<PathBuf> {
     let pkgid = cmd!(sh, "cargo pkgid").read()?;
-    let pkgid: Vec<_> = pkgid.split("#").collect();
-    // dbg!(&pkgid);
+    let pkgid = pkgid
+        .split_once("#")
+        .expect(&format!("Unexpected pkgid: {:?}", pkgid));
+
     let flag = profile.flag();
 
-    cmd!(sh, "cargo check {flag...} --message-format=json")
+    cmd!(sh, "cargo build --locked {flag...} --message-format=json")
         .read()?
         .lines()
         .find_map(|line| {
@@ -49,7 +53,7 @@ pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Resu
                 CargoCheckMessage::BuildScriptExecuted {
                     package_id,
                     out_dir,
-                } if package_id.contains(pkgid[0]) => Some(out_dir),
+                } if package_id.contains(pkgid.0) => Some(out_dir),
                 _ => None,
             }
         })

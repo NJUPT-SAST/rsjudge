@@ -6,8 +6,6 @@ pub(crate) fn deb_package(sh: Shell) -> anyhow::Result<()> {
 
     use crate::dist::prepare_out_dir;
 
-    cmd!(sh, "cargo build --release").run()?;
-
     prepare_out_dir(&sh)?;
 
     cmd!(sh, "cargo deb -v").run()?;
