@@ -1,10 +1,17 @@
-workspace = { members = ["xtask"] }
-[package]
-name = "rsjudge"
+[workspace]
+members = ["crates/rsjudge-runner", "xtask"]
+
+[workspace.package]
 version = "0.1.0"
 authors = ["NJUPT-SAST"]
-edition = "2021"
 license = "Apache-2.0"
+
+[package]
+name = "rsjudge"
+version.workspace = true
+authors.workspace = true
+edition = "2021"
+license.workspace = true
 description = "An online judge sandbox server in Rust."
 
 [package.metadata.deb]
@@ -74,6 +81,7 @@ uzers = "0.11.3"
 
 # Optional dependencies
 axum = { version = "0.7.4", optional = true }
+rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
 tonic = { version = "0.11.0", optional = true }
 utoipa = { version = "4.2.0", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "6.0.0", features = ["axum"], optional = true }

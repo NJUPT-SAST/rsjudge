@@ -1021,6 +1021,7 @@ dependencies = [
  "clap_mangen",
  "duct",
  "nix",
+ "rsjudge-runner",
  "serde",
  "strfmt",
  "tokio",
@@ -1028,6 +1029,15 @@ dependencies = [
  "tonic",
  "utoipa",
  "utoipa-swagger-ui",
+ "uzers",
+]
+
+[[package]]
+name = "rsjudge-runner"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "nix",
  "uzers",
 ]
 

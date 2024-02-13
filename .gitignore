@@ -1,4 +1,2 @@
 /firedbg
 /target
-/docs/manpages/*
-!/docs/manpages/*.adoc
