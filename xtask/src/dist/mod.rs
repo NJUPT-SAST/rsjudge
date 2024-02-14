@@ -53,7 +53,7 @@ pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Resu
                 CargoCheckMessage::BuildScriptExecuted {
                     package_id,
                     out_dir,
-                } if package_id.contains(pkgid.0) => Some(out_dir),
+                } if package_id.ends_with(&format!("({})", pkgid.0)) => Some(out_dir),
                 _ => None,
             }
         })
