@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package rsjudge.v1;
+
+// The judging service definition.
+service JudgeService {
+  // Sends a self-test request.
+  rpc SelfTest(SelfTestRequest) returns (stream SelfTestResponse);
+  // Sends a judge request.
+  rpc Submit(SubmitRequest) returns (stream SubmitResponse);
+}
+
+// The request of self-test info, containing user's code and input.
+message SelfTestRequest {
+  // The language of the code.
+  string language = 1;
+  // The code to be tested.
+  string code = 2;
+  // The input of the program.
+  string stdin = 3;
+}
+
+// The response message containing the self-test results.
+message SelfTestResponse {
+  // The type of the response.
+  oneof self_test_response_type {
+    // Message indicating the compile result.
+    CompileInfo compile_info = 1;
+    // Message indicating the self-test result.
+    SelfTestSummary summary = 2;
+  }
+}
+
+// Message indicating the compile result.
+message CompileInfo {
+  // Compiler exit status.
+  //
+  // 0 indicates the compiler exited normally.
+  // For interpreted languages, a non-zero exit status indicates semantic errors found in the code.
+  // For compiled languages, it means compilation errors.
+  int32 exit_status = 1;
+  // Compiler stdout.
+  string stdout = 2;
+  // Compiler stderr.
+  string stderr = 3;
+}
+
+// Message indicating the self-test result.
+message SelfTestSummary {
+  // The exit status of the user's program.
+  //
+  // 0 indicates the program exited normally.
+  int32 exit_status = 1;
+  // The stdout of the program.
+  string stdout = 2;
+  // The stderr of the program.
+  //
+  // This is not used by the judge system, but may be useful for debugging.
+  string stderr = 3;
+}
+
+// The request containing the user's code and judge info.
+//
+// We only showed part of the fields.
+message SubmitRequest {
+  // The language of the code.
+  string language = 1;
+  // The code to be judged.
+  string code = 2;
+  // The test case id.
+  //
+  // If the test case is updated, the test case id MUST be changed, so that the judger can request the latest test case.
+  int32 test_case_id = 3;
+}
+
+// The response message containing the judge results.
+message SubmitResponse {
+  // The type of the response.
+  oneof submit_response_type {
+    // Message indicating the compile result.
+    CompileInfo compile_info = 1;
+    // Message indicating the single case judge result.
+    //
+    // Case info may not be sent in order, so case id SHOULD be checked.
+    CaseInfo case_info = 2;
+    // Message indicating the judge result of all cases.
+    CasesSummary cases_summary = 3;
+  }
+}
+
+// Message indicating the single case judge result.
+message CaseInfo {
+  // The ID of the test case, usually starting from 1.
+  int32 case_id = 1;
+  // The exit status of the user's program.
+  int32 exit_status = 2;
+  // The judge result of the program.
+  JudgeResult result = 3;
+  // The score of the case.
+  int32 score = 4;
+}
+
+// Message indicating the judge result of all cases.
+message CasesSummary {
+  // The judge result of the program.
+  JudgeResult result = 1;
+  // The score of the program.
+  int32 score = 2;
+}
+
+// The judge result.
+enum JudgeResult {
+  // The judge result is unspecified.
+  //
+  // This is considered error and SHOULD NOT happen.
+  JUDGE_RESULT_UNSPECIFIED = 0;
+  // The judge result is Accepted (AC).
+  JUDGE_RESULT_ACCEPTED = 1;
+  // The judge result is Wrong Answer (WA).
+  JUDGE_RESULT_WRONG_ANSWER = 2;
+  // The judge result is Runtime Error (RE).
+  JUDGE_RESULT_RUNTIME_ERROR = 3;
+}

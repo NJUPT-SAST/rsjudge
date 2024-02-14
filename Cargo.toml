@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/rsjudge-runner", "xtask"]
+members = ["crates/rsjudge-grpc", "crates/rsjudge-rest", "crates/rsjudge-runner", "xtask"]
 
 [workspace.package]
 version = "0.1.0"
@@ -73,6 +73,7 @@ cgroups = "0.1.0"
 clap = { version = "4.5.0", features = ["derive"] }
 duct = "0.13.7"
 nix = { version = "0.27.1", features = ["fs"] }
+rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
 serde = { version = "1.0.196", features = ["derive"] }
 strfmt = "0.2.4"
 tokio = { version = "1.36.0", features = ["fs"] }
@@ -80,19 +81,15 @@ toml = "0.8.10"
 uzers = "0.11.3"
 
 # Optional dependencies
-axum = { version = "0.7.4", optional = true }
-rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
-tonic = { version = "0.11.0", optional = true }
-utoipa = { version = "4.2.0", features = ["axum_extras"], optional = true }
-utoipa-swagger-ui = { version = "6.0.0", features = ["axum"], optional = true }
+rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
+rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
 
 [features]
-grpc = ["dep:tonic"]
-rest = ["dep:axum"]
-openapi = ["rest", "dep:utoipa", "dep:utoipa-swagger-ui"]
+grpc = ["dep:rsjudge-grpc"]
+rest = ["dep:rsjudge-rest"]
 default = ["grpc"]
 
 [build-dependencies]
