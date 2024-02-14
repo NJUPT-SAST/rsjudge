@@ -42,6 +42,8 @@ pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Resu
         .split_once("#")
         .expect(&format!("Unexpected pkgid: {:?}", pkgid));
 
+    let pkg_pattern = format!("({})", pkgid.0);
+
     let flag = profile.flag();
 
     cmd!(sh, "cargo build --locked {flag...} --message-format=json")
@@ -53,7 +55,7 @@ pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Resu
                 CargoCheckMessage::BuildScriptExecuted {
                     package_id,
                     out_dir,
-                } if package_id.ends_with(&format!("({})", pkgid.0)) => Some(out_dir),
+                } if package_id.ends_with(&pkg_pattern) => Some(out_dir),
                 _ => None,
             }
         })
