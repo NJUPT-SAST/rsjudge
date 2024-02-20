@@ -1,4 +1,4 @@
-use std::env::set_current_dir;
+use std::{env::set_current_dir, path::Path};
 
 use anyhow::anyhow;
 use clap::{Parser, ValueEnum};
@@ -39,7 +39,7 @@ fn main() -> anyhow::Result<()> {
 
     // chdir to the workspace root so that the xtask can be invoked from anywhere.
     // Assume that the xtask is in {project_root}/xtask
-    set_current_dir(format!("{}/..", env!("CARGO_MANIFEST_DIR")))?;
+    set_current_dir(Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap())?;
 
     let sh = Shell::new()?;
     {
@@ -53,7 +53,7 @@ fn main() -> anyhow::Result<()> {
             Command::Debug => {
                 return Ok(println!(
                     "{:#?}",
-                    build_script_out_dir(&sh, Profile::Debug)?
+                    build_script_out_dir(&sh, Profile::Debug, false)?
                 ))
             }
         }

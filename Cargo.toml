@@ -68,10 +68,17 @@ systemd-units = { enable = false }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.79"
-clap = { version = "4.5.0", features = ["derive"] }
+# Workspace dependencies
 rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
-serde = { version = "1.0.196", features = ["derive"] }
+
+# Optional dependencies
+rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
+rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
+
+anyhow = "1.0.80"
+clap = { version = "4.5.1", features = ["derive"] }
+serde = { version = "1.0.197", features = ["derive"] }
+tokio = { version = "1.36.0", features = ["fs", "rt-multi-thread", "macros"] }
 toml = "0.8.10"
 
 # Unused for now:
@@ -79,12 +86,7 @@ toml = "0.8.10"
 # duct = "0.13.7"
 # nix = { version = "0.27.1", features = ["fs"] }
 # strfmt = "0.2.4"
-# tokio = { version = "1.36.0", features = ["fs"] }
 # uzers = "0.11.3"
-
-# Optional dependencies
-rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
-rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
@@ -95,9 +97,9 @@ rest = ["dep:rsjudge-rest"]
 default = ["grpc"]
 
 [build-dependencies]
-anyhow = "1.0.79"
-clap = { version = "4.5.0", features = ["derive"] }
-clap_complete = "4.5.0"
+anyhow = "1.0.80"
+clap = { version = "4.5.1", features = ["derive"] }
+clap_complete = "4.5.1"
 clap_mangen = "0.2.20"
 
 [profile.release]

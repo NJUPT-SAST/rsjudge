@@ -36,7 +36,11 @@ impl Profile {
 
 /// Get the `OUT_DIR` directory path of a specified build profile. This will run `cargo build` under the hood.
 // TODO: This function should be run only once during CI build process.
-pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Result<PathBuf> {
+pub(crate) fn build_script_out_dir(
+    sh: &Shell,
+    profile: Profile,
+    build: bool,
+) -> anyhow::Result<PathBuf> {
     let pkgid = cmd!(sh, "cargo pkgid").read()?;
     let pkgid = pkgid
         .split_once("#")
@@ -45,21 +49,24 @@ pub(crate) fn build_script_out_dir(sh: &Shell, profile: Profile) -> anyhow::Resu
     let pkg_pattern = format!("({})", pkgid.0);
 
     let flag = profile.flag();
-
-    cmd!(sh, "cargo build --locked {flag...} --message-format=json")
-        .read()?
-        .lines()
-        .find_map(|line| {
-            let msg = from_str::<CargoCheckMessage>(line).expect("Not a valid message");
-            match msg {
-                CargoCheckMessage::BuildScriptExecuted {
-                    package_id,
-                    out_dir,
-                } if package_id.ends_with(&pkg_pattern) => Some(out_dir),
-                _ => None,
-            }
-        })
-        .ok_or(anyhow!("No build script executed."))
+    if build {
+        cmd!(sh, "cargo build --locked {flag...} --message-format=json")
+    } else {
+        cmd!(sh, "cargo check --locked {flag...} --message-format=json")
+    }
+    .read()?
+    .lines()
+    .find_map(|line| {
+        let msg = from_str::<CargoCheckMessage>(line).expect("Not a valid message");
+        match msg {
+            CargoCheckMessage::BuildScriptExecuted {
+                package_id,
+                out_dir,
+            } if package_id.ends_with(&pkg_pattern) => Some(out_dir),
+            _ => None,
+        }
+    })
+    .ok_or(anyhow!("No build script executed."))
 }
 
 #[cfg(unix)]
@@ -68,7 +75,7 @@ fn prepare_out_dir(sh: &Shell) -> Result<(), anyhow::Error> {
 
     use std::{fs::remove_dir_all, os::unix::fs::symlink};
 
-    let build_script_out_dir = build_script_out_dir(sh, Profile::Release)?;
+    let build_script_out_dir = build_script_out_dir(sh, Profile::Release, true)?;
 
     let _ = remove_dir_all(OUT_DIR);
 
