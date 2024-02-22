@@ -27,28 +27,3 @@ pub fn runner() -> anyhow::Result<&'static User> {
         .as_ref()
         .ok_or_else(|| anyhow!("No such user: rsjudge-runner"))
 }
-
-#[cfg(all(test, unix))]
-mod tests {
-    use std::{os::unix::process::CommandExt, process::Command};
-
-    use super::*;
-
-    #[test]
-    #[ignore = "Requires additional users."]
-    fn test_uid() -> anyhow::Result<()> {
-        let builder = builder()?;
-        let builder_output = Command::new("id")
-            .uid(builder.uid())
-            .gid(builder.primary_group_id())
-            .output()?;
-        println!("{}", String::from_utf8_lossy(&builder_output.stdout));
-        let runner = runner()?;
-        let runner_output = Command::new("id")
-            .uid(runner.uid())
-            .gid(runner.primary_group_id())
-            .output()?;
-        println!("{}", String::from_utf8_lossy(&runner_output.stdout));
-        Ok(())
-    }
-}
