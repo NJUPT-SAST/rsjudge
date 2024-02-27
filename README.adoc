@@ -65,5 +65,5 @@ Generate `.deb` package:
 
 [,bash]
 ----
-cargo deb
+cargo xtask dist deb
 ----
