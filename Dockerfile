@@ -20,6 +20,11 @@ RUN cargo build --release
 # Create a new container for running the build executable
 FROM debian:stable-slim
 
+# Create required users
+RUN useradd -m -s /sbin/nologin rsjudge-supervisor
+RUN useradd -m -s /sbin/nologin rsjudge-builder
+RUN useradd -m -s /sbin/nologin rsjudge-runner
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -27,6 +32,9 @@ WORKDIR /app
 COPY --from=builder /app/target/release/rsjudge .
 
 COPY templates/* config/
+
+# Set the user
+USER rsjudge-supervisor
 
 # Set the entry point for the container
 CMD ["./rsjudge", "-c", "config"]

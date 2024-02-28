@@ -10,5 +10,6 @@ description = "Command runner for rsjudge"
 
 [dependencies]
 anyhow = "1.0.79"
-nix = { version = "0.27.1", features = ["user"] }
+nix = { version = "0.28.0", features = ["user"] }
+once_cell = "1.19.0"
 uzers = "0.11.3"
