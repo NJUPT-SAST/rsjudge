@@ -1,0 +1,16 @@
+[package]
+name = "rsjudge-judger"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+async-trait = "0.1.77"
+tokio = { version = "1.36.0", features = ["io-util", "fs"] }
+tokio-stream = { version = "0.1.14", features = ["io-util", "tokio-util"] }
+
+[dev-dependencies]
+temp-dir = "0.1.12"
+tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }

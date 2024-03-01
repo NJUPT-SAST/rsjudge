@@ -19,7 +19,7 @@ jobs:
         uses: moonrepo/setup-rust@v1
         with:
           channel: stable
-          bins: cargo-deb
+          bins: cargo-deb, cargo-hack
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install dependencies
@@ -36,3 +36,5 @@ jobs:
         with:
           name: rsjudge-deb
           path: target/debian/*.deb
+      - name: Check for MSRV compliance
+        run: cargo hack check --rust-version --workspace --all-targets

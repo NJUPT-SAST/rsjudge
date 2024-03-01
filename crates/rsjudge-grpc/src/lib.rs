@@ -1,14 +1,16 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use std::net::SocketAddr;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+use tonic::transport::{Error, Server};
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+use crate::{proto::judge_service_server::JudgeServiceServer, server::JudgeServerImpl};
+
+mod proto;
+mod server;
+
+pub async fn serve(addr: SocketAddr) -> Result<(), Error> {
+    Server::builder()
+        .add_service(JudgeServiceServer::new(JudgeServerImpl::default()))
+        .serve(addr)
+        .await?;
+    Ok(())
 }

@@ -5,14 +5,14 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 
 == Features
 
-* Multi-language support
-* Support for multiple compiler versions -- use your favorite toolchain manager and set the path in config file
+* Supports multiple programming languages, with easy way to add new ones in config file
+* Support for multiple compiler versions -- just use your favorite toolchain manager and set the path in config file
 * Supporting both self-testing and final submission
-* Customizable compilation and execution command with TOML config file
-* Customizable time and memory limit using cgroups
+* Customizable compilation and execution process with TOML config file
+* Monitoring and limiting resource usage
 * Asynchronously report test results
-* Fully supporting SAST OJ
-* RESTful API and gRPC support
+* Works well with SAST OJ
+* RESTful API and gRPC support, enable or disable them with feature flags and config file
 * Highly extensible with plugins
 * Blazingly fast and secured with Rust🦀
 
@@ -20,25 +20,26 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 
 === Prerequisites
 
-* Rust latest stable toolchain
+* Rust 1.74 or later
 * Linux kernel >= 4.5
-* `asciidoctor` to generate manpages
-* `dpkg`, `dpkg-dev` and `liblzma-dev` to generate `.deb` package
+* `dpkg`, `dpkg-dev` and `liblzma-dev` to generate `deb` package
 * For gRPC support, the `protoc` Protocol Buffers compiler, along with Protocol Buffers resource files (under `grpc` feature):
-
-==== Debian/Ubuntu
+** Debian/Ubuntu
++
 [,bash]
 ----
 sudo apt install -y protobuf-compiler libprotobuf-dev
 ----
 
-==== Alpine
+** Alpine
++
 [,bash]
 ----
 sudo apk add protoc protobuf-dev
 ----
 
-==== Arch Linux
+** Arch Linux
++
 [,bash]
 ----
 sudo pacman -S --needed protobuf

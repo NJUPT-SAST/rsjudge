@@ -1,10 +1,14 @@
 [workspace]
-members = ["crates/rsjudge-grpc", "crates/rsjudge-rest", "crates/rsjudge-runner", "xtask"]
+members = ["crates/rsjudge-grpc", "crates/rsjudge-judger", "crates/rsjudge-rest", "crates/rsjudge-runner", "xtask"]
 
 [workspace.package]
 version = "0.1.0"
 authors = ["NJUPT-SAST"]
 license = "Apache-2.0"
+edition = "2021"
+
+# clap requires Rust 1.74+ to work
+rust-version = "1.74"
 
 [package]
 name = "rsjudge"
@@ -12,6 +16,7 @@ version.workspace = true
 authors.workspace = true
 edition = "2021"
 license.workspace = true
+rust-version.workspace = true
 description = "An online judge sandbox server in Rust."
 
 [package.metadata.deb]
@@ -69,6 +74,7 @@ systemd-units = { enable = false }
 
 [dependencies]
 # Workspace dependencies
+rsjudge-judger = { version = "0.1.0", path = "crates/rsjudge-judger" }
 rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
 
 # Optional dependencies
@@ -76,13 +82,13 @@ rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = tru
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 anyhow = "1.0.80"
+caps = "0.5.5"
 clap = { version = "4.5.1", features = ["derive"] }
+env_logger = "0.11.2"
+log = "0.4.21"
 serde = { version = "1.0.197", features = ["derive"] }
 tokio = { version = "1.36.0", features = ["fs", "rt-multi-thread", "macros"] }
 toml = "0.8.10"
-log = "0.4.20"
-env_logger = "0.11.2"
-caps = "0.5.5"
 
 # Unused for now:
 # cgroups = "0.1.0"
