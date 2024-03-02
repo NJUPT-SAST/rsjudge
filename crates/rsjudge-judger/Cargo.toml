@@ -8,9 +8,10 @@ rust-version.workspace = true
 
 [dependencies]
 async-trait = "0.1.77"
-tokio = { version = "1.36.0", features = ["io-util", "fs"] }
+pin-project = "1.1.4"
+tokio = { version = "1.36.0", features = ["io-util", "fs", "macros"] }
 tokio-stream = { version = "0.1.14", features = ["io-util", "tokio-util"] }
 
 [dev-dependencies]
 temp-dir = "0.1.12"
-tokio = { version = "1.36.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.36.0", features = ["rt-multi-thread"] }

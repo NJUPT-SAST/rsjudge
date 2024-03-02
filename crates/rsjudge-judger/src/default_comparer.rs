@@ -46,7 +46,6 @@ impl Comparer for DefaultComparer {
         let out = BufReader::new(out);
         let ans = BufReader::new(ans);
 
-        // LinesStream::new(out.lines())
         let mut out_lines = LinesStream::new(out.lines());
         let mut ans_lines = LinesStream::new(ans.lines());
 
