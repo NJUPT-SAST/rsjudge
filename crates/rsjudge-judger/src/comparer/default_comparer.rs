@@ -1,0 +1,180 @@
+//! A default comparer implementation, supporting ignoring trailing whitespace and/or trailing newline.
+
+use async_trait::async_trait;
+use tokio::{
+    io::{self, AsyncBufReadExt as _, AsyncRead, BufReader},
+    join,
+};
+use tokio_stream::{wrappers::SplitStream, StreamExt as _};
+
+use crate::{CompareResult, Comparer};
+
+pub struct DefaultComparer {
+    ignore_trailing_whitespace: bool,
+    ignore_trailing_newline: bool,
+}
+
+impl DefaultComparer {
+    pub fn new(ignore_trailing_whitespace: bool, ignore_trailing_newline: bool) -> Self {
+        Self {
+            ignore_trailing_whitespace,
+            ignore_trailing_newline,
+        }
+    }
+    fn compare_line(&self, out_line: impl AsRef<[u8]>, ans_line: impl AsRef<[u8]>) -> bool {
+        fn trim_end(line: &[u8]) -> &[u8] {
+            if line.is_empty() {
+                line
+            } else {
+                let end = line
+                    .iter()
+                    .rposition(|c| !c.is_ascii_whitespace())
+                    .unwrap_or_else(|| line.len() - 1);
+                &line[..=end]
+            }
+        }
+        let out_line = out_line.as_ref();
+        let ans_line = ans_line.as_ref();
+        let (out_line, ans_line) = if self.ignore_trailing_whitespace {
+            (trim_end(out_line), trim_end(ans_line))
+        } else {
+            (out_line, ans_line)
+        };
+        out_line == ans_line
+    }
+}
+
+impl Default for DefaultComparer {
+    fn default() -> Self {
+        Self::new(true, true)
+    }
+}
+
+#[async_trait]
+impl Comparer for DefaultComparer {
+    async fn compare<Out, Ans>(&self, out: Out, ans: Ans) -> io::Result<CompareResult>
+    where
+        Out: AsyncRead + Send + Unpin,
+        Ans: AsyncRead + Send + Unpin,
+    {
+        let out = BufReader::new(out);
+        let ans = BufReader::new(ans);
+        let mut out_lines = SplitStream::new(out.split(b'\n')).fuse();
+        let mut ans_lines = SplitStream::new(ans.split(b'\n')).fuse();
+        loop {
+            match join!(out_lines.next(), ans_lines.next()) {
+                (Some(out_line), Some(ans_line)) => {
+                    if !self.compare_line(&out_line?, &ans_line?) {
+                        return Ok(CompareResult::WrongAnswer);
+                    }
+                }
+                (Some(out_line), None) => {
+                    if !self.ignore_trailing_newline || !self.compare_line(&out_line?, []) {
+                        return Ok(CompareResult::WrongAnswer);
+                    }
+                }
+                (None, Some(ans_line)) => {
+                    if !self.ignore_trailing_newline || !self.compare_line([], &ans_line?) {
+                        return Ok(CompareResult::WrongAnswer);
+                    }
+                }
+                (None, None) => return Ok(CompareResult::Accepted),
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+
+    use temp_dir::TempDir;
+    use tokio::{
+        fs::File,
+        io::{empty, AsyncWriteExt as _},
+    };
+
+    use super::{CompareResult, DefaultComparer};
+    use crate::Comparer as _;
+
+    #[tokio::test]
+    async fn compare_empty() -> io::Result<()> {
+        let comparer = DefaultComparer::default();
+        let out = empty();
+        let ans = empty();
+        let result = comparer.compare(out, ans).await?;
+        assert_eq!(result, CompareResult::Accepted);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn compare_files() -> io::Result<()> {
+        let temp_dir = TempDir::new()?;
+
+        let out_path = temp_dir.path().join("out");
+        let ans_path = temp_dir.path().join("ans");
+
+        {
+            File::create(&out_path)
+                .await?
+                .write_all(b"Hello, World!\n")
+                .await?;
+            File::create(&ans_path)
+                .await?
+                .write_all(b"Hello, World!\n")
+                .await?;
+        }
+
+        {
+            let comparer = DefaultComparer::default();
+
+            let result = comparer
+                .compare(File::open(&out_path).await?, File::open(&ans_path).await?)
+                .await?;
+            assert_eq!(result, CompareResult::Accepted);
+        }
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn compare_with_trailing_whitespace() -> io::Result<()> {
+        let out = b"Hello, World! \n";
+        let ans = b"Hello, World!\n";
+        let comparer = DefaultComparer::new(true, true);
+        let result = comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(result, CompareResult::Accepted);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn compare_with_invalid_utf8() -> io::Result<()> {
+        let out = b"Hello, World! \xFF\n";
+        let ans = b"Hello, World!\n";
+        let comparer = DefaultComparer::new(true, true);
+        let result = comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(dbg!(result), CompareResult::WrongAnswer);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn compare_with_trailing_newline() -> io::Result<()> {
+        let out = b"Hello, World!\n";
+        let ans = b"Hello, World!";
+        let comparer = DefaultComparer::new(true, true);
+        let result = comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(result, CompareResult::Accepted);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn compare_with_trailing_content_after_newline() -> io::Result<()> {
+        let out = b"Hello, World!\naaa\n";
+        let ans = b"Hello, World!";
+        let comparer = DefaultComparer::new(true, true);
+        let result = comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(result, CompareResult::WrongAnswer);
+        Ok(())
+    }
+}
