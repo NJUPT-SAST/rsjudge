@@ -7,8 +7,9 @@ use tokio::{
 };
 use tokio_stream::{wrappers::SplitStream, StreamExt as _};
 
-use crate::{CompareResult, Comparer};
+use crate::{utils::trim::slice::trim_ascii_end, CompareResult, Comparer};
 
+///
 pub struct DefaultComparer {
     ignore_trailing_whitespace: bool,
     ignore_trailing_newline: bool,
@@ -22,21 +23,10 @@ impl DefaultComparer {
         }
     }
     fn compare_line(&self, out_line: impl AsRef<[u8]>, ans_line: impl AsRef<[u8]>) -> bool {
-        fn trim_end(line: &[u8]) -> &[u8] {
-            if line.is_empty() {
-                line
-            } else {
-                let end = line
-                    .iter()
-                    .rposition(|c| !c.is_ascii_whitespace())
-                    .unwrap_or_else(|| line.len() - 1);
-                &line[..=end]
-            }
-        }
         let out_line = out_line.as_ref();
         let ans_line = ans_line.as_ref();
         let (out_line, ans_line) = if self.ignore_trailing_whitespace {
-            (trim_end(out_line), trim_end(ans_line))
+            (trim_ascii_end(out_line), trim_ascii_end(ans_line))
         } else {
             (out_line, ans_line)
         };
@@ -68,17 +58,17 @@ impl Comparer for DefaultComparer {
                         return Ok(CompareResult::WrongAnswer);
                     }
                 }
-                (Some(out_line), None) => {
+                (Some(out_line), _) => {
                     if !self.ignore_trailing_newline || !self.compare_line(&out_line?, []) {
                         return Ok(CompareResult::WrongAnswer);
                     }
                 }
-                (None, Some(ans_line)) => {
+                (_, Some(ans_line)) => {
                     if !self.ignore_trailing_newline || !self.compare_line([], &ans_line?) {
                         return Ok(CompareResult::WrongAnswer);
                     }
                 }
-                (None, None) => return Ok(CompareResult::Accepted),
+                _ => return Ok(CompareResult::Accepted),
             }
         }
     }
