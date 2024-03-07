@@ -22,9 +22,8 @@ impl DefaultComparer {
             ignore_trailing_newline,
         }
     }
-    fn compare_line(&self, out_line: impl AsRef<[u8]>, ans_line: impl AsRef<[u8]>) -> bool {
-        let out_line = out_line.as_ref();
-        let ans_line = ans_line.as_ref();
+
+    fn compare_line(&self, out_line: &[u8], ans_line: &[u8]) -> bool {
         let (out_line, ans_line) = if self.ignore_trailing_whitespace {
             (trim_ascii_end(out_line), trim_ascii_end(ans_line))
         } else {
@@ -59,12 +58,12 @@ impl Comparer for DefaultComparer {
                     }
                 }
                 (Some(out_line), _) => {
-                    if !self.ignore_trailing_newline || !self.compare_line(&out_line?, []) {
+                    if !self.ignore_trailing_newline || !self.compare_line(&out_line?, &[]) {
                         return Ok(CompareResult::WrongAnswer);
                     }
                 }
                 (_, Some(ans_line)) => {
-                    if !self.ignore_trailing_newline || !self.compare_line([], &ans_line?) {
+                    if !self.ignore_trailing_newline || !self.compare_line(&[], &ans_line?) {
                         return Ok(CompareResult::WrongAnswer);
                     }
                 }
