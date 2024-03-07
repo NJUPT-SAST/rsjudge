@@ -3,7 +3,8 @@
     "deps",
     "config",
     "xtask",
-    "actions"
+    "actions",
+    "rsjudge-rest"
   ],
   "editor.defaultFormatter": "dprint.dprint",
   "[dockerfile]": {

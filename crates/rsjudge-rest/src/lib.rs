@@ -1,14 +1,11 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use std::{io, net::SocketAddr};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+use axum::{routing::get, Router};
+use tokio::net::TcpListener;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub async fn serve(addr: SocketAddr) -> io::Result<()> {
+    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
+    let listener = TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
+    Ok(())
 }
