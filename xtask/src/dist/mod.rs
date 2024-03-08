@@ -43,8 +43,8 @@ pub(crate) fn build_script_out_dir(
 ) -> anyhow::Result<PathBuf> {
     let pkgid = cmd!(sh, "cargo pkgid").read()?;
     let pkgid = pkgid
-        .split_once("#")
-        .expect(&format!("Unexpected pkgid: {:?}", pkgid));
+        .split_once('#')
+        .unwrap_or_else(|| panic!("Unexpected pkgid: {:?}", pkgid));
 
     let pkg_pattern = format!("({})", pkgid.0);
 
@@ -71,7 +71,7 @@ pub(crate) fn build_script_out_dir(
 
 #[cfg(unix)]
 fn prepare_out_dir(sh: &Shell) -> Result<(), anyhow::Error> {
-    const OUT_DIR: &'static str = "target/release/out";
+    const OUT_DIR: &str = "target/release/out";
 
     use std::{fs::remove_dir_all, os::unix::fs::symlink};
 

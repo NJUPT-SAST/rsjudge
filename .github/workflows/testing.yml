@@ -27,9 +27,9 @@ jobs:
           sudo apt-get update && sudo apt-get upgrade -y && \
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
       - name: Run clippy lint
-        run: cargo clippy --all-targets --all-features
+        run: cargo hack clippy --all-targets --each-feature --workspace
       - name: Run tests
-        run: cargo hack test --each-feature --workspace --all-targets --verbose
+        run: cargo hack test --all-targets --each-feature --verbose --workspace
       - name: Build Debian package
         run: cargo xtask dist deb && dpkg-deb -c target/debian/*.deb
       - uses: actions/upload-artifact@v4
@@ -37,4 +37,4 @@ jobs:
           name: rsjudge-deb
           path: target/debian/*.deb
       - name: Check for MSRV compliance
-        run: cargo hack check --rust-version --workspace --all-targets
+        run: cargo hack check --rust-version --all-targets --each-feature --workspace

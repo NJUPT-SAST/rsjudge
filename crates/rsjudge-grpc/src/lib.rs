@@ -9,7 +9,7 @@ mod server;
 
 pub async fn serve(addr: SocketAddr) -> Result<(), Error> {
     Server::builder()
-        .add_service(JudgeServiceServer::new(JudgeServerImpl::default()))
+        .add_service(JudgeServiceServer::new(JudgeServerImpl))
         .serve(addr)
         .await?;
     Ok(())

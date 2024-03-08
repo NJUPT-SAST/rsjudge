@@ -46,7 +46,7 @@ fn main() -> anyhow::Result<()> {
         match command {
             Command::Codegen => cmd!(sh, "echo Not implemented"),
             Command::Dist { package } => match package {
-                Package::Deb => return Ok(deb_package(sh)?),
+                Package::Deb => return deb_package(sh),
                 Package::Rpm => Err(anyhow!("Not implemented"))?,
             },
             Command::Docker => cmd!(sh, "docker build -t rsjudge ."),
