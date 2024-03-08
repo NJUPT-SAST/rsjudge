@@ -16,11 +16,19 @@ pub struct DefaultComparer {
 }
 
 impl DefaultComparer {
-    pub fn new(ignore_trailing_whitespace: bool, ignore_trailing_newline: bool) -> Self {
+    pub const fn new(ignore_trailing_whitespace: bool, ignore_trailing_newline: bool) -> Self {
         Self {
             ignore_trailing_whitespace,
             ignore_trailing_newline,
         }
+    }
+
+    pub const fn common() -> Self {
+        Self::new(true, true)
+    }
+
+    pub const fn exact_match() -> Self {
+        Self::new(false, false)
     }
 
     fn compare_line(&self, out_line: &[u8], ans_line: &[u8]) -> bool {
@@ -35,7 +43,7 @@ impl DefaultComparer {
 
 impl Default for DefaultComparer {
     fn default() -> Self {
-        Self::new(true, true)
+        Self::common()
     }
 }
 
@@ -48,6 +56,8 @@ impl Comparer for DefaultComparer {
     {
         let out = BufReader::new(out);
         let ans = BufReader::new(ans);
+
+        // TODO: Replace this with `read_until` to avoid unnecessary allocations, and deal with trailing line endings.
         let mut out_lines = SplitStream::new(out.split(b'\n')).fuse();
         let mut ans_lines = SplitStream::new(ans.split(b'\n')).fuse();
         loop {
@@ -88,11 +98,12 @@ mod tests {
 
     #[tokio::test]
     async fn compare_empty() -> io::Result<()> {
-        let comparer = DefaultComparer::default();
-        let out = empty();
-        let ans = empty();
-        let result = comparer.compare(out, ans).await?;
-        assert_eq!(result, CompareResult::Accepted);
+        let common_comparer = DefaultComparer::common();
+        let common_result = common_comparer.compare(empty(), empty()).await?;
+        assert_eq!(common_result, CompareResult::Accepted);
+        let exact_comparer = DefaultComparer::exact_match();
+        let exact_result = exact_comparer.compare(empty(), empty()).await?;
+        assert_eq!(exact_result, CompareResult::Accepted);
         Ok(())
     }
 
@@ -115,8 +126,7 @@ mod tests {
         }
 
         {
-            let comparer = DefaultComparer::default();
-
+            let comparer = DefaultComparer::common();
             let result = comparer
                 .compare(File::open(&out_path).await?, File::open(&ans_path).await?)
                 .await?;
@@ -130,20 +140,25 @@ mod tests {
     async fn compare_with_trailing_whitespace() -> io::Result<()> {
         let out = b"Hello, World! \n";
         let ans = b"Hello, World!\n";
-        let comparer = DefaultComparer::new(true, true);
-        let result = comparer.compare(&out[..], &ans[..]).await?;
-        assert_eq!(result, CompareResult::Accepted);
+        let common_comparer = DefaultComparer::common();
+        let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(common_result, CompareResult::Accepted);
+        let exact_comparer = DefaultComparer::exact_match();
+        let exact_result = exact_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(exact_result, CompareResult::WrongAnswer);
         Ok(())
     }
 
     #[tokio::test]
     async fn compare_with_invalid_utf8() -> io::Result<()> {
         let out = b"Hello, World! \xFF\n";
-        let ans = b"Hello, World!\n";
-        let comparer = DefaultComparer::new(true, true);
-        let result = comparer.compare(&out[..], &ans[..]).await?;
-        assert_eq!(dbg!(result), CompareResult::WrongAnswer);
-
+        let ans = b"Hello, World! \xFF\n";
+        let common_comparer = DefaultComparer::common();
+        let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(common_result, CompareResult::Accepted);
+        let exact_comparer = DefaultComparer::exact_match();
+        let exact_result = exact_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(exact_result, CompareResult::Accepted);
         Ok(())
     }
 
@@ -151,9 +166,12 @@ mod tests {
     async fn compare_with_trailing_newline() -> io::Result<()> {
         let out = b"Hello, World!\n";
         let ans = b"Hello, World!";
-        let comparer = DefaultComparer::new(true, true);
-        let result = comparer.compare(&out[..], &ans[..]).await?;
-        assert_eq!(result, CompareResult::Accepted);
+        let common_comparer = DefaultComparer::common();
+        let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(common_result, CompareResult::Accepted);
+        let exact_comparer = DefaultComparer::exact_match();
+        let exact_result = exact_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(exact_result, CompareResult::WrongAnswer);
         Ok(())
     }
 
@@ -161,9 +179,12 @@ mod tests {
     async fn compare_with_trailing_content_after_newline() -> io::Result<()> {
         let out = b"Hello, World!\naaa\n";
         let ans = b"Hello, World!";
-        let comparer = DefaultComparer::new(true, true);
-        let result = comparer.compare(&out[..], &ans[..]).await?;
-        assert_eq!(result, CompareResult::WrongAnswer);
+        let common_comparer = DefaultComparer::common();
+        let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(common_result, CompareResult::WrongAnswer);
+        let exact_comparer = DefaultComparer::exact_match();
+        let exact_result = exact_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(exact_result, CompareResult::WrongAnswer);
         Ok(())
     }
 }
