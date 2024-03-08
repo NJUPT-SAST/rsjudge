@@ -3,13 +3,12 @@
 use async_trait::async_trait;
 use tokio::{
     io::{self, AsyncBufReadExt as _, AsyncRead, BufReader},
-    join,
+    try_join,
 };
-use tokio_stream::{wrappers::SplitStream, StreamExt as _};
 
 use crate::{utils::trim::slice::trim_ascii_end, CompareResult, Comparer};
 
-///
+/// A default comparer implementation with basic configurations.
 pub struct DefaultComparer {
     ignore_trailing_whitespace: bool,
     ignore_trailing_newline: bool,
@@ -32,12 +31,24 @@ impl DefaultComparer {
     }
 
     fn compare_line(&self, out_line: &[u8], ans_line: &[u8]) -> bool {
-        let (out_line, ans_line) = if self.ignore_trailing_whitespace {
-            (trim_ascii_end(out_line), trim_ascii_end(ans_line))
-        } else {
-            (out_line, ans_line)
+        let (out, ans) = match (out_line, ans_line) {
+            ([out @ .., b'\n'], [ans @ .., b'\n']) => (out, ans),
+            (out, [ans @ .., b'\n']) | ([out @ .., b'\n'], ans) => {
+                if !self.ignore_trailing_newline {
+                    return false;
+                }
+                (out, ans)
+            }
+            (out, ans) => (out, ans),
         };
-        out_line == ans_line
+
+        let (out, ans) = if self.ignore_trailing_whitespace {
+            (trim_ascii_end(out), trim_ascii_end(ans))
+        } else {
+            (out, ans)
+        };
+
+        out == ans
     }
 }
 
@@ -54,30 +65,27 @@ impl Comparer for DefaultComparer {
         Out: AsyncRead + Send + Unpin,
         Ans: AsyncRead + Send + Unpin,
     {
-        let out = BufReader::new(out);
-        let ans = BufReader::new(ans);
+        let mut out = BufReader::new(out);
+        let mut ans = BufReader::new(ans);
 
-        // TODO: Replace this with `read_until` to avoid unnecessary allocations, and deal with trailing line endings.
-        let mut out_lines = SplitStream::new(out.split(b'\n')).fuse();
-        let mut ans_lines = SplitStream::new(ans.split(b'\n')).fuse();
+        let mut out_buf = Vec::new();
+        let mut ans_buf = Vec::new();
+
         loop {
-            match join!(out_lines.next(), ans_lines.next()) {
-                (Some(out_line), Some(ans_line)) => {
-                    if !self.compare_line(&out_line?, &ans_line?) {
-                        return Ok(CompareResult::WrongAnswer);
-                    }
-                }
-                (Some(out_line), _) => {
-                    if !self.ignore_trailing_newline || !self.compare_line(&out_line?, &[]) {
-                        return Ok(CompareResult::WrongAnswer);
-                    }
-                }
-                (_, Some(ans_line)) => {
-                    if !self.ignore_trailing_newline || !self.compare_line(&[], &ans_line?) {
-                        return Ok(CompareResult::WrongAnswer);
-                    }
-                }
-                _ => return Ok(CompareResult::Accepted),
+            let (out_len, ans_len) = try_join!(
+                out.read_until(b'\n', &mut out_buf),
+                ans.read_until(b'\n', &mut ans_buf),
+            )?;
+
+            if out_len == 0 && ans_len == 0 {
+                return Ok(CompareResult::Accepted);
+            }
+
+            if self.compare_line(&out_buf, &ans_buf) {
+                out_buf.clear();
+                ans_buf.clear();
+            } else {
+                return Ok(CompareResult::WrongAnswer);
             }
         }
     }
@@ -85,7 +93,7 @@ impl Comparer for DefaultComparer {
 
 #[cfg(test)]
 mod tests {
-    use std::io;
+    use std::{any::type_name, io};
 
     use temp_dir::TempDir;
     use tokio::{
@@ -186,5 +194,10 @@ mod tests {
         let exact_result = exact_comparer.compare(&out[..], &ans[..]).await?;
         assert_eq!(exact_result, CompareResult::WrongAnswer);
         Ok(())
+    }
+
+    #[test]
+    fn test() {
+        println!("{}", type_name::<DefaultComparer>());
     }
 }
