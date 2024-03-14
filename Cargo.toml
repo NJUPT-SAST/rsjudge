@@ -115,3 +115,4 @@ clap_mangen = "0.2.20"
 codegen-units = 1
 lto = true
 strip = true
+panic = "abort"
