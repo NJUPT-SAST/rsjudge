@@ -18,7 +18,5 @@
   "[rust]": {
     "editor.defaultFormatter": "dprint.dprint"
   },
-  "rust-analyzer.linkedProjects": [
-    "./Cargo.toml"
-  ]
+  "rust-analyzer.linkedProjects": ["./Cargo.toml"]
 }
