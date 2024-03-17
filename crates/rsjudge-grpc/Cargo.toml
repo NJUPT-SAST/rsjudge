@@ -7,11 +7,13 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.81"
+futures = "0.3.30"
 prost = "0.12.3"
 tokio = { version = "1.36.0", features = ["net"] }
-tokio-stream = "0.1.14"
+tokio-stream = "0.1.15"
 tonic = "0.11.0"
+
 [build-dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.81"
 tonic-build = "0.11.0"
