@@ -10,6 +10,7 @@ rust-version.workspace = true
 anyhow = "1.0.81"
 futures = "0.3.30"
 prost = "0.12.3"
+prost-types = "0.12.3"
 tokio = { version = "1.36.0", features = ["net"] }
 tokio-stream = "0.1.15"
 tonic = "0.11.0"
