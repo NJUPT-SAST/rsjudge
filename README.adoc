@@ -1,48 +1,78 @@
-= RsJudge
+= rsjudge
 :toc: preamble
+:source-highlighter: rouge
 
 An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for SAST OJ.
 
 == Features
 
-* Supports multiple programming languages, with easy way to add new ones in config file
-* Support for multiple compiler versions -- just use your favorite toolchain manager and set the path in config file
-* Supporting both self-testing and final submission
-* Customizable compilation and execution process with TOML config file
-* Monitoring and limiting resource usage
-* Asynchronously report test results
-* Works well with SAST OJ
-* RESTful API and gRPC support, enable or disable them with feature flags and config file
-* Highly extensible with plugins
-* Blazingly fast and secured with Rust🦀
+* Supports multiple programming languages, with easy way to add new ones in config file.
+* Support for multiple compiler versions -- just use your favorite toolchain manager and set the path in config file.
+* Supporting both self-testing and final submission.
+* Customizable compilation and execution process with TOML config file.
+* Monitoring and limiting resource usage.
+* Asynchronously report test results.
+* Works well with SAST OJ.
+* RESTful API and gRPC support, enable or disable them with feature flags and config file.
+* Highly extensible with plugins.
+* Blazingly fast and secured with Rust🦀.
+
+== Repository structure
+
+`src/`::
+    Source of entry point, including CLI and configuration parsing.
+`xtask/`::
+    Extra tasks for building and packaging, invoked with `cargo xtask <TASK>`.
+`crates/`::
+    Sub-crates of the project.
+    `crates/rsjudge-grpc/`:::
+        Crate for gRPC server and client.
+    `crates/rsjudge-judger/`:::
+        Crate for answer comparing and judging.
+    `crates/rsjudge-rest/`:::
+        Crate for RESTful API server.
+    `crates/rsjudge-runner/`:::
+        Crate for sandbox logic.
+`debian/`::
+    Files for generating `.deb` package.
+
 
 == Build from source
 
 === Prerequisites
 
-* Rust 1.74 or later
+* Rust 1.74 or later.
+* `lld` for faster linking.
+** You can use other linkers instead, just update the `.cargo/config.toml` file.
 * Linux kernel >= 4.5
-* `dpkg`, `dpkg-dev` and `liblzma-dev` to generate `deb` package
-* For gRPC support, the `protoc` Protocol Buffers compiler, along with Protocol Buffers resource files (under `grpc` feature):
-** Debian/Ubuntu
-+
+** This is required for Seccomp BPF support.
+* For gRPC support, the `protoc` Protocol Buffers compiler, along with Protocol Buffers resource files (under `grpc` feature)
+* For `.deb` package generation, a Debian/Ubuntu system with `dpkg-dev` and `liblzma-dev` installed.
+
+=== Install extra dependencies
+
+==== Debian/Ubuntu
+
 [,bash]
 ----
-sudo apt install -y protobuf-compiler libprotobuf-dev
+sudo apt install -y lld protobuf-compiler libprotobuf-dev
+
+# If you want to build `.deb` package
+sudo apt install -y dpkg-dev liblzma-dev
 ----
 
-** Alpine
-+
+==== Alpine
+
 [,bash]
 ----
-sudo apk add protoc protobuf-dev
+sudo apk add lld protoc protobuf-dev
 ----
 
-** Arch Linux
-+
+==== Arch Linux
+
 [,bash]
 ----
-sudo pacman -S --needed protobuf
+sudo pacman -S --needed lld protobuf
 ----
 
 === Build
