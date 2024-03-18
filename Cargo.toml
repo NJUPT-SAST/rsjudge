@@ -17,7 +17,7 @@ authors.workspace = true
 edition = "2021"
 license.workspace = true
 rust-version.workspace = true
-description = "An online judge sandbox server in Rust."
+description = "online judge sandbox server in Rust"
 
 [package.metadata.deb]
 assets = [
@@ -63,14 +63,17 @@ assets = [
     ],
 ]
 copyright = "2023-2024 NJUPT-SAST"
+changelog = "debian/changelog"
 features = ["default"]
 conf-files = ["/etc/rsjudge/server.toml", "/etc/rsjudge/executors.toml"]
+extended-description = "An online judge sandbox server in Rust, inspired by go-judge, for SAST OJ."
+maintainer = "Xiaoqing Xuan <jswn@jswn9945.xyz>"
 maintainer-scripts = "debian/"
-depends = "$auto, libc6, libgcc-s1, libstdc++6, libssl1.1, libzstd1, libzstd-dev"
+depends = "$auto, adduser, libc6, libgcc-s1, libstdc++6, libssl1.1, libzstd1, libzstd-dev"
 recommends = "gcc, g++, python3"
 suggests = "pypy3"
+section = "net"
 systemd-units = { enable = false }
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # Workspace dependencies
@@ -86,14 +89,13 @@ caps = "0.5.5"
 clap = { version = "4.5.3", features = ["derive"] }
 env_logger = "0.11.3"
 log = "0.4.21"
-serde = { version = "1.0.197", features = ["derive"] }
 tokio = { version = "1.36.0", features = ["fs", "rt-multi-thread", "macros"] }
-toml = "0.8.11"
+toml = "0.8.12"
 
 # Unused for now:
 # cgroups = "0.1.0"
-# duct = "0.13.7"
 # nix = { version = "0.27.1", features = ["fs"] }
+# serde = { version = "1.0.197", features = ["derive"] }
 # strfmt = "0.2.4"
 # uzers = "0.11.3"
 

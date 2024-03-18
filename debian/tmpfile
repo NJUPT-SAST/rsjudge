@@ -1,0 +1,5 @@
+#Type Path                        Mode User               Group              Age Argument
+d     /var/lib/rsjudge-supervisor 0700 rsjudge-supervisor rsjudge-supervisor -   -
+d     /var/log/rsjudge-supervisor 0755 rsjudge-supervisor rsjudge-supervisor -   -
+d     /var/lib/rsjudge-builder    0700 rsjudge-builder    rsjudge-builder    -   -
+d     /var/lib/rsjudge-runner     0700 rsjudge-runner     rsjudge-runner     -   -

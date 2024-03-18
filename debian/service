@@ -1,5 +1,8 @@
 [Unit]
 Description=RsJudge autostart service.
+Documentation=man:rsjudge(1)
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 ExecStart=/usr/bin/rsjudge --config /etc/rsjudge/

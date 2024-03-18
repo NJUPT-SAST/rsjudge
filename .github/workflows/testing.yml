@@ -25,13 +25,15 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get upgrade -y && \
-          sudo apt-get install -y protobuf-compiler libprotobuf-dev lld
+          sudo apt-get install -y lld protobuf-compiler libprotobuf-dev  lintian
       - name: Run clippy lint
         run: cargo hack clippy --all-targets --each-feature --workspace
       - name: Run tests
         run: cargo hack test --all-targets --each-feature --verbose --workspace
       - name: Build Debian package
         run: cargo xtask dist deb && dpkg-deb -c target/debian/*.deb
+      - name: Lint Debian package
+        run: lintian target/debian/*.deb
       - uses: actions/upload-artifact@v4
         with:
           name: rsjudge-deb
