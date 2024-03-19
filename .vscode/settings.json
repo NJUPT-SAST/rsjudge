@@ -6,7 +6,8 @@
     "actions",
     "rsjudge-rest",
     "rsjudge-judger",
-    "rsjudge-runner"
+    "rsjudge-runner",
+    "packaging"
   ],
   "editor.defaultFormatter": "dprint.dprint",
   "[dockerfile]": {

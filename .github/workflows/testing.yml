@@ -33,7 +33,7 @@ jobs:
       - name: Build Debian package
         run: cargo xtask dist deb && dpkg-deb -c target/debian/*.deb
       - name: Lint Debian package
-        run: lintian target/debian/*.deb
+        run: lintian -i target/debian/*.deb
       - uses: actions/upload-artifact@v4
         with:
           name: rsjudge-deb
