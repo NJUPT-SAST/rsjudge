@@ -36,6 +36,11 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 `debian/`::
     Files for generating `.deb` package.
 
+https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
+    image:https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[
+        Repository structure visualized
+    ]
+]
 
 == Build from source
 
