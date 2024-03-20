@@ -1,7 +1,9 @@
 pub mod default_comparer;
 
+use std::io;
+
 use async_trait::async_trait;
-use tokio::io::{self, AsyncRead};
+use tokio::io::AsyncRead;
 
 #[derive(Debug, PartialEq)]
 pub enum CompareResult {

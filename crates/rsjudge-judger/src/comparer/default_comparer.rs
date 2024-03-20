@@ -1,10 +1,10 @@
 //! A default comparer implementation, supporting ignoring trailing whitespace and/or trailing newline.
 
+use std::io;
+
 use async_trait::async_trait;
-use tokio::{
-    io::{self, AsyncBufReadExt as _, AsyncRead, BufReader},
-    try_join,
-};
+use futures::try_join;
+use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 
 use crate::{utils::trim::slice::trim_ascii_end, CompareResult, Comparer};
 
