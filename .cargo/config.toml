@@ -1,5 +1,6 @@
 [alias]
 xtask = "run --package xtask --"
+xtask-dbg = "run --package xtask --features dbg --"
 
 [build]
 rustflags = ["-Clink-arg=-fuse-ld=lld"]

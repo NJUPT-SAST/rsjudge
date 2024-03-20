@@ -3,9 +3,9 @@ mod cli;
 
 use std::{
     env::var_os,
-    fs::File,
-    io::{self, ErrorKind, Write},
-    path::PathBuf,
+    fs::{create_dir_all, File},
+    io::{self, Write},
+    path::Path,
 };
 
 use clap::CommandFactory;
@@ -14,16 +14,21 @@ use clap_mangen::Man;
 
 use crate::cli::Args;
 
-fn main() -> anyhow::Result<()> {
-    let out_dir = PathBuf::from(var_os("OUT_DIR").ok_or(io::Error::from(ErrorKind::NotFound))?);
+fn main() -> io::Result<()> {
+    let asset_dir = Path::new(
+        &var_os("CARGO_MANIFEST_DIR").expect("Environment `CARGO_MANIFEST_DIR` not set by cargo."),
+    )
+    .join("target/assets");
+
+    create_dir_all(&asset_dir)?;
 
     let mut cmd = Args::command();
 
     for shell in [Shell::Bash, Shell::Fish, Shell::Zsh] {
-        generate_to(shell, &mut cmd, "rsjudge", &out_dir)?;
+        generate_to(shell, &mut cmd, "rsjudge", &asset_dir)?;
     }
 
-    let mut manpage = File::create(out_dir.join("rsjudge.1"))?;
+    let mut manpage = File::create(asset_dir.join("rsjudge.1"))?;
     Man::new(cmd).render(&mut manpage)?;
     manpage.flush()?;
 

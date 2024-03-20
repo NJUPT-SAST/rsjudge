@@ -37,7 +37,7 @@ assets = [
         "644",
     ],
     [
-        "target/release/out/rsjudge.1",
+        "target/assets/rsjudge.1",
         "usr/share/man/man1/rsjudge.1",
         "644",
     ],
@@ -47,28 +47,28 @@ assets = [
         "644",
     ],
     [
-        "target/release/out/rsjudge.bash",
+        "target/assets/rsjudge.bash",
         "usr/share/bash-completion/completions/rsjudge",
         "644",
     ],
     [
-        "target/release/out/rsjudge.fish",
+        "target/assets/rsjudge.fish",
         "usr/share/fish/vendor_completions.d/rsjudge.fish",
         "644",
     ],
     [
-        "target/release/out/_rsjudge",
+        "target/assets/_rsjudge",
         "usr/share/zsh/vendor-completions/_rsjudge",
         "644",
     ],
 ]
 copyright = "2023-2024 NJUPT-SAST"
-changelog = "debian/changelog"
+changelog = "packaging/deb/changelog"
 features = ["default"]
 conf-files = ["/etc/rsjudge/server.toml", "/etc/rsjudge/executors.toml"]
 extended-description = "An online judge sandbox server in Rust, inspired by go-judge, for SAST OJ."
 maintainer = "Xiaoqing Xuan <jswn@jswn9945.xyz>"
-maintainer-scripts = "debian/"
+maintainer-scripts = "packaging/deb/"
 depends = "$auto, adduser, libc6, libgcc-s1, libstdc++6, libssl1.1, libzstd1, libzstd-dev"
 recommends = "gcc, g++, python3"
 suggests = "pypy3"
@@ -108,7 +108,6 @@ rest = ["dep:rsjudge-rest"]
 default = ["grpc"]
 
 [build-dependencies]
-anyhow = "1.0.81"
 clap = { version = "4.5.3", features = ["derive"] }
 clap_complete = "4.5.1"
 clap_mangen = "0.2.20"

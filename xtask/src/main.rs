@@ -1,8 +1,6 @@
 use std::{env::set_current_dir, path::Path};
 
-use anyhow::anyhow;
 use clap::{Parser, ValueEnum};
-use dist::{build_script_out_dir, deb::deb_package, Profile};
 use xshell::{cmd, Shell};
 
 #[derive(Debug, ValueEnum, Clone, Copy, PartialEq, Eq)]
@@ -18,8 +16,6 @@ enum Package {
 #[clap(about, long_about)]
 /// Build related tasks.
 enum Command {
-    /// Generate Rust modules from Protobuf definitions.
-    Codegen,
     /// Package distribution-specific packages.
     Dist {
         /// Which package to build.
@@ -29,10 +25,9 @@ enum Command {
     /// Build Docker image.
     Docker,
     /// Debug a command.
+    #[cfg(feature = "dbg")]
     Debug,
 }
-
-mod dist;
 
 fn main() -> anyhow::Result<()> {
     let command = Command::parse();
@@ -44,18 +39,13 @@ fn main() -> anyhow::Result<()> {
     let sh = Shell::new()?;
     {
         match command {
-            Command::Codegen => cmd!(sh, "echo Not implemented"),
             Command::Dist { package } => match package {
-                Package::Deb => return deb_package(sh),
-                Package::Rpm => Err(anyhow!("Not implemented"))?,
+                Package::Deb => cmd!(sh, "cargo deb -v"),
+                Package::Rpm => todo!("Not implemented"),
             },
             Command::Docker => cmd!(sh, "docker build -t rsjudge ."),
-            Command::Debug => {
-                return Ok(println!(
-                    "{:#?}",
-                    build_script_out_dir(&sh, Profile::Debug, false)?
-                ))
-            }
+            #[cfg(feature = "dbg")]
+            Command::Debug => return Ok(()),
         }
         .run()?
     }

@@ -800,6 +800,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
 
 [[package]]
+name = "litrs"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4ce301924b7887e9d637144fdade93f9dfff9b60981d4ac161db09720d39aa5"
+dependencies = [
+ "proc-macro2",
+]
+
+[[package]]
 name = "log"
 version = "0.4.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1242,6 +1251,27 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "sh"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40748b229ba0f836ef0d162b4f479b7adc660494bb89c527dafaa7e98f9eb5a2"
+dependencies = [
+ "sh-macro",
+ "thiserror",
+]
+
+[[package]]
+name = "sh-macro"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16da17e38a2b1390a7ca0ec7251369bf0e06726ebb7df0a0236d3e90cbdf8384"
+dependencies = [
+ "litrs",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
@@ -1751,5 +1781,6 @@ dependencies = [
  "clap",
  "serde",
  "serde_json",
+ "sh",
  "xshell",
 ]
