@@ -9,13 +9,13 @@
 * 支持多种编程语言，可以在配置文件中轻松添加新的语言。
 * 支持多个编译器版本——只需使用你喜欢的工具链管理器并在配置文件中设置路径。
 * 支持自我测试和最终提交。
-* 可以通过 TOML 配置文件自定义编译和执行过程
-* 可以监控和限制资源使用
-* 异步报告测试结果
-* 与 SAST OJ 良好兼容
+* 通过 TOML 配置文件，轻松自定义编译和执行过程。
+* 可以监控和限制资源使用。
+* 与 SAST OJ 良好兼容。
 * 支持 RESTful API 和 gRPC，可通过 feature flag 和配置文件启用或禁用
-* 支持使用插件进行扩展
-* 使用 Rust🦀编写，速度极快，安全性高
+* 采用 SSE 或 gRPC 流实时流式返回评测结果。
+* 支持使用插件进行扩展。
+* 使用 Rust🦀编写，速度极快，安全性高。
 
 == 目录结构
 
@@ -62,6 +62,12 @@ https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
 ----
 sudo apt install -y lld protobuf-compiler libprotobuf-dev
 
+# 安装 `buf` 工具
+curl -sSL -o buf \
+  "https://github.com/bufbuild/buf/releases/download/latest/buf-Linux-$(uname -m)"
+# 您可以用自己喜欢的目录替换 `/usr/local/bin`，并确保将其添加到 `PATH` 中。
+sudo install -Dm755 buf /usr/local/bin/buf
+
 # 如果你想构建 `.deb` 包
 sudo apt install -y dpkg-dev liblzma-dev
 ----
@@ -71,13 +77,19 @@ sudo apt install -y dpkg-dev liblzma-dev
 [,bash]
 ----
 sudo apk add lld protoc protobuf-dev
+
+# 安装 `buf` 工具
+curl -sSL -o buf \
+  "https://github.com/bufbuild/buf/releases/download/latest/buf-Linux-$(uname -m)"
+# 您可以用自己喜欢的目录替换 `/usr/local/bin`，并确保将其添加到 `PATH` 中。
+sudo install -Dm755 buf /usr/local/bin/buf
 ----
 
 ==== Arch Linux
 
 [,bash]
 ----
-sudo pacman -S --needed lld protobuf
+sudo pacman -S --needed lld protobuf buf
 ----
 
 === 构建

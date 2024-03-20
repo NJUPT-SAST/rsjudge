@@ -1,6 +1,5 @@
 = rsjudge
 :toc: preamble
-:source-highlighter: rouge
 
 An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for SAST OJ.
 
@@ -11,9 +10,9 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 * Supporting both self-testing and final submission.
 * Customizable compilation and execution process with TOML config file.
 * Monitoring and limiting resource usage.
-* Asynchronously report test results.
 * Works well with SAST OJ.
 * RESTful API and gRPC support, enable or disable them with feature flags and config file.
+* Streaming test results in real-time with SSE or gRPC stream.
 * Highly extensible with plugins.
 * Blazingly fast and secured with Rust🦀.
 
@@ -46,21 +45,30 @@ https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
 
 === Prerequisites
 
-* Rust 1.74 or later.
-* `lld` for faster linking.
+* Rust 1.74 or later,
+* `lld` for faster linking,
 ** You can use other linkers instead, just update the `.cargo/config.toml` file.
-* Linux kernel >= 4.5
-** This is required for Seccomp BPF support.
-* For gRPC support, the `protoc` Protocol Buffers compiler, along with Protocol Buffers resource files (under `grpc` feature)
+* Linux kernel >= 4.5,
+** Required for Seccomp BPF support.
+* For gRPC support (under `grpc` feature):
+** `protoc` as Protocol Buffers compiler,
+** `buf` for gRPC dependencies management.
 * For `.deb` package generation, a Debian/Ubuntu system with `dpkg-dev` and `liblzma-dev` installed.
 
-=== Install extra dependencies
+=== Install dependencies
 
 ==== Debian/Ubuntu
 
 [,bash]
 ----
 sudo apt install -y lld protobuf-compiler libprotobuf-dev
+
+# For buf support
+curl -sSL -o buf \
+  "https://github.com/bufbuild/buf/releases/download/latest/buf-Linux-$(uname -m)"
+# You may replace `/usr/local/bin` with your preferred directory，
+# and ensure it is added to `PATH`.
+sudo install -Dm755 buf /usr/local/bin/buf
 
 # If you want to build `.deb` package
 sudo apt install -y dpkg-dev liblzma-dev
@@ -71,13 +79,20 @@ sudo apt install -y dpkg-dev liblzma-dev
 [,bash]
 ----
 sudo apk add lld protoc protobuf-dev
+
+# For buf support
+curl -sSL -o buf \
+  "https://github.com/bufbuild/buf/releases/download/latest/buf-Linux-$(uname -m)"
+# Replace `/usr/local/bin` with your preferred directory,
+# remember to add it to `PATH`
+sudo install -Dm755 buf /usr/local/bin/buf
 ----
 
 ==== Arch Linux
 
 [,bash]
 ----
-sudo pacman -S --needed lld protobuf
+sudo pacman -S --needed lld protobuf buf
 ----
 
 === Build

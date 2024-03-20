@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package rsjudge.v1;
 
+import "google/protobuf/duration.proto";
+
 // The judging service definition.
 service JudgeService {
   // Sends a self-test request.
@@ -57,6 +59,8 @@ message SelfTestSummary {
   //
   // This is not used by the judge system, but may be useful for debugging.
   string stderr = 3;
+  // Execution time of the program. Unset if TLE and killed by judger.
+  optional google.protobuf.Duration execution_time = 4;
 }
 
 // The request containing the user's code and judge info.

@@ -1,6 +1,5 @@
-use tonic::{
-    async_trait, codegen::tokio_stream::wrappers::ReceiverStream, Request, Response, Status,
-};
+use tokio_stream::wrappers::ReceiverStream;
+use tonic::{async_trait, Request, Response, Status};
 
 use crate::proto::{
     judge_service_server::JudgeService, SelfTestRequest, SelfTestResponse, SubmitRequest,
