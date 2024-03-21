@@ -1126,6 +1126,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tonic",
+ "tonic-buf-build",
  "tonic-build",
 ]
 
@@ -1135,10 +1136,8 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "futures",
- "pin-project",
  "temp-dir",
  "tokio",
- "tokio-stream",
 ]
 
 [[package]]
@@ -1190,6 +1189,12 @@ name = "ryu"
 version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e86697c916019a8588c99b5fac3cead74ec0b4b819707a682fd4d23fa0ce1ba1"
+
+[[package]]
+name = "scopeguard"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "serde"
@@ -1251,6 +1256,19 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serde_yaml"
+version = "0.9.33"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0623d197252096520c6f2a5e1171ee436e5af99a5d7caa2891e55e61950e6d9"
+dependencies = [
+ "indexmap 2.2.5",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
 ]
 
 [[package]]
@@ -1407,7 +1425,6 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
- "tokio-util",
 ]
 
 [[package]]
@@ -1483,6 +1500,20 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
+]
+
+[[package]]
+name = "tonic-buf-build"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89fb2d0fdd379526f80038c2bfbc5be061ff966b84b402b8131dbff4015ba25d"
+dependencies = [
+ "prost-build",
+ "scopeguard",
+ "serde",
+ "serde_yaml",
+ "tonic-build",
+ "uuid",
 ]
 
 [[package]]
@@ -1575,10 +1606,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
+name = "unsafe-libyaml"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
+
+[[package]]
 name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+
+[[package]]
+name = "uuid"
+version = "1.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
+dependencies = [
+ "getrandom",
+ "rand",
+]
 
 [[package]]
 name = "uzers"
@@ -1759,28 +1806,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "xshell"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce2107fe03e558353b4c71ad7626d58ed82efaf56c54134228608893c77023ad"
-dependencies = [
- "xshell-macros",
-]
-
-[[package]]
-name = "xshell-macros"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e2c411759b501fb9501aac2b1b2d287a6e93e5bdcf13c25306b23e1b716dd0e"
-
-[[package]]
 name = "xtask"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "serde",
- "serde_json",
  "sh",
- "xshell",
 ]

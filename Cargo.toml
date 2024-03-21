@@ -75,6 +75,27 @@ suggests = "pypy3"
 section = "net"
 systemd-units = { enable = false }
 
+[package.metadata.generate-rpm]
+
+[[package.metadata.generate-rpm.assets]]
+source = "target/release/rsjudge"
+dest = "/usr/bin/rsjudge"
+mode = "755"
+
+[[package.metadata.generate-rpm.assets]]
+source = "templates/*"
+dest = "/etc/rsjudge/"
+mode = "644"
+
+[[package.metadata.generate-rpm.assets]]
+source = "target/assets/rsjudge.1"
+dest = "/usr/share/man/man1/rsjudge.1"
+mode = "644"
+
+[[package.metadata.generate-rpm.assets]]
+source = "README.adoc"
+dest = "/usr/share/doc/rsjudge/README"
+
 [dependencies]
 # Workspace dependencies
 rsjudge-judger = { version = "0.1.0", path = "crates/rsjudge-judger" }

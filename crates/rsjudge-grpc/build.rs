@@ -9,9 +9,16 @@ use tonic_build::compile_protos;
 ///
 /// `buf` is needed to run this build script.
 fn main() -> anyhow::Result<()> {
-    let proto_out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+    let proto_out_dir = {
+        let mut out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+        out_dir.push("proto");
+        out_dir
+    };
 
-    let buf_ls_files = Command::new("buf").args(["ls-files"]).output()?;
+    let buf_ls_files = Command::new("buf")
+        .current_dir("proto")
+        .args(["ls-files"])
+        .output()?;
 
     assert!(
         buf_ls_files.status.success(),
