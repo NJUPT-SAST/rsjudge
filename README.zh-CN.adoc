@@ -1,4 +1,5 @@
-= RsJudge
+= rsjudge
+:lang: zh-CN
 :toc: preamble
 :toc-title: 目录
 
@@ -47,28 +48,35 @@ https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
 === 先决条件
 
 * Rust 1.74 或更高版本。
-* `lld` 用于更快的链接。
-** 你也可以使用其他链接器，只需更新 `.cargo/config.toml` 文件。
 * Linux 内核 >= 4.5
 ** 这是为了支持 Seccomp BPF。
-* 对于 gRPC 支持，需要 `protoc` 协议缓冲区编译器，以及协议缓冲区资源文件（在 `grpc` 特性下）
+* 对于 gRPC 支持（在 `grpc` 特性下）
+** https://github.com/protocolbuffers/protobuf?tab=readme-ov-file#protobuf-compiler-installation[`protoc`] >= 3.15,
+** https://github.com/bufbuild/buf/[`buf`] 用于 gRPC 依赖管理。
 * 对于 `.deb` 包的生成，需要安装了 `dpkg-dev` 和 `liblzma-dev` 的 Debian/Ubuntu 系统。
 
 === 安装额外的依赖
 
 ==== Debian/Ubuntu
 
+. 确保 `PATH` 中包含 `protoc` >= 3.15，可以从
+https://github.com/protocolbuffers/protobuf/releases/[发布页]下载最新版本。
+
+** 在 Debian 12, Ubuntu 23.04 或更高版本的系统上，可以使用 `apt` 安装符合版本要求的 `protoc`：
++
 [,bash]
 ----
-sudo apt install -y lld protobuf-compiler libprotobuf-dev
+sudo apt install -y protobuf-compiler libprotobuf-dev
+protoc --version
+# libprotoc <VERSION>
+----
 
-# 安装 `buf` 工具
-curl -sSL -o buf \
-  "https://github.com/bufbuild/buf/releases/download/latest/buf-Linux-$(uname -m)"
-# 您可以用自己喜欢的目录替换 `/usr/local/bin`，并确保将其添加到 `PATH` 中。
-sudo install -Dm755 buf /usr/local/bin/buf
+. 手动安装 `buf`。
 
-# 如果你想构建 `.deb` 包
+. 使用 `apt` 安装打包 `.deb` 需要的软件包：
++
+[,bash]
+----
 sudo apt install -y dpkg-dev liblzma-dev
 ----
 
@@ -115,3 +123,5 @@ cargo build --release
 ----
 cargo xtask dist deb
 ----
+
+生成的软件包位于 `target/debian` 目录下。

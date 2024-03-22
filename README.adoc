@@ -46,45 +46,54 @@ https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
 === Prerequisites
 
 * Rust 1.74 or later,
-* `lld` for faster linking,
-** You can use other linkers instead, just update the `.cargo/config.toml` file.
 * Linux kernel >= 4.5,
 ** Required for Seccomp BPF support.
 * For gRPC support (under `grpc` feature):
-** `protoc` as Protocol Buffers compiler,
-** `buf` for gRPC dependencies management.
+** https://github.com/protocolbuffers/protobuf?tab=readme-ov-file#protobuf-compiler-installation[`protoc`] >= 3.15,
+** https://github.com/bufbuild/buf/[`buf`] for gRPC dependencies management.
 * For `.deb` package generation, a Debian/Ubuntu system with `dpkg-dev` and `liblzma-dev` installed.
 
 === Install dependencies
 
-==== Debian/Ubuntu
+You can install Rust toolchain with `rustup`:
 
 [,bash]
 ----
-sudo apt install -y lld protobuf-compiler libprotobuf-dev
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+----
 
-# For buf support
-curl -sSL -o buf \
-  "https://github.com/bufbuild/buf/releases/download/latest/buf-Linux-$(uname -m)"
-# You may replace `/usr/local/bin` with your preferred directory，
-# and ensure it is added to `PATH`.
-sudo install -Dm755 buf /usr/local/bin/buf
+==== Debian/Ubuntu
 
-# If you want to build `.deb` package
-sudo apt install -y dpkg-dev liblzma-dev
+. Install buf manually, if they are not available in the package manager.
+
+. Ensure a `protoc` binary with version >= 3.15 is available in your PATH, or install it manually by downloading from https://github.com/protocolbuffers/protobuf/releases/[the release page].
+
+** On Debian 12, Ubuntu 23.04 or later versions, you can install a compatible `protoc` with `apt`:
++
+[,bash]
+----
+sudo apt install -y protobuf-compiler libprotobuf-dev
+----
+
+. Install packaging related packages with `apt`:
++
+[,bash]
+----
+sudo apt install dpkg-dev liblzma-dev
 ----
 
 ==== Alpine
 
 [,bash]
 ----
-sudo apk add lld protoc protobuf-dev
+sudo apk add protoc protobuf-dev
 
-# For buf support
+# Installing buf
 curl -sSL -o buf \
   "https://github.com/bufbuild/buf/releases/download/latest/buf-Linux-$(uname -m)"
-# Replace `/usr/local/bin` with your preferred directory,
-# remember to add it to `PATH`
+# You can replace `/usr/local/bin` with your preferred directory,
+# but remember to add it to `PATH`
 sudo install -Dm755 buf /usr/local/bin/buf
 ----
 
@@ -92,7 +101,7 @@ sudo install -Dm755 buf /usr/local/bin/buf
 
 [,bash]
 ----
-sudo pacman -S --needed lld protobuf buf
+sudo pacman -S --needed protobuf buf
 ----
 
 === Build
@@ -118,3 +127,5 @@ Generate `.deb` package:
 ----
 cargo xtask dist deb
 ----
+
+The `.deb` package will be generated in `target/debian`.

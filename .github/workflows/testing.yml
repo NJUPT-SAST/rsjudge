@@ -25,8 +25,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get upgrade -y && \
-          sudo apt-get install -y lld lintian
-      - name: Setup Buf
+          sudo apt-get install -y wget lintian clang
+      - name: Setup mold
+        uses: rui314/setup-mold@v1
+      - name: Setup buf
         uses: bufbuild/buf-setup-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -34,6 +36,12 @@ jobs:
         uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+      - name: Enable sccache
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
       - name: Lint protobuf files
         uses: bufbuild/buf-lint-action@v1
       - name: Run clippy lint

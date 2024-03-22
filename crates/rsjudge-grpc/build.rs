@@ -1,6 +1,6 @@
 use std::{env, io::BufRead, path::PathBuf, process::Command};
 
-use tonic_build::compile_protos;
+use tonic_build::configure;
 
 /// Generate Rust code from the proto files.
 ///
@@ -43,7 +43,7 @@ fn main() -> anyhow::Result<()> {
     );
 
     for proto in protos {
-        compile_protos(proto_out_dir.join(proto))?;
+        configure().compile(&[proto_out_dir.join(proto)], &[&proto_out_dir])?;
     }
 
     println!("cargo:rerun-if-changed=proto");
