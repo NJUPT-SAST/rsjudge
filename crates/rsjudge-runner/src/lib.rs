@@ -15,23 +15,38 @@ impl RunAs for Command {
 
         self.uid(uid).gid(gid);
 
-        let groups: Vec<_> = user
-            .groups()
-            .unwrap_or_default()
-            .into_iter()
-            .map(|g| Gid::from_raw(g.gid()))
-            .collect();
-
         // SAFETY: `group` is moved into the closure,
         // and no longer accessible outside it.
         //
         // Replace with `CommandExt::groups` once it's stable.
-        unsafe {
-            self.pre_exec(move || {
-                setgroups(&groups)?;
-                Ok(())
-            })
-        };
+        #[cfg(not(setgroups))]
+        {
+            let groups: Vec<_> = user
+                .groups()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|g| Gid::from_raw(g.gid()))
+                .collect();
+            unsafe {
+                self.pre_exec(move || {
+                    setgroups(&groups)?;
+                    Ok(())
+                })
+            };
+        }
+
+        #[cfg(setgroups)]
+        {
+            let groups: Vec<_> = user
+                .groups()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|g| g.gid())
+                .collect();
+
+            self.groups(groups);
+        }
+
         self
     }
 }
