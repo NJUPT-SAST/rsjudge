@@ -4,10 +4,15 @@ use caps::{has_cap, CapSet, Capability};
 use clap::Parser;
 use env_logger::Env;
 use log::{debug, info, trace};
+use mimalloc::MiMalloc;
 use rsjudge_runner::{user::builder, RunAs};
 use tokio::fs::read;
 
 use crate::cli::Args;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 mod cli;
 
 #[tokio::main]
