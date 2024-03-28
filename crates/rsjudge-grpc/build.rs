@@ -17,7 +17,7 @@ fn main() -> anyhow::Result<()> {
 
     let buf_ls_files = Command::new("buf")
         .current_dir("proto")
-        .args(["ls-files"])
+        .arg("ls-files")
         .output()?;
 
     assert!(
