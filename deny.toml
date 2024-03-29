@@ -20,4 +20,4 @@ reason = "Upstream https://github.com/tokio-rs/prost/issues/1009"
 
 [[bans.skip-tree]]
 crate = "tonic@0.11.0"
-reason = "tonic 0.11.0 is not compatible with tokio 1.0"
+reason = "tonic 0.11.0 is not compatible with hyper 1.0 and axum 0.7, see upstream https://github.com/hyperium/tonic/pull/1595"
