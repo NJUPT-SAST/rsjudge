@@ -43,7 +43,9 @@ fn main() -> anyhow::Result<()> {
     );
 
     for proto in protos {
-        configure().compile(&[proto_out_dir.join(proto)], &[&proto_out_dir])?;
+        configure()
+            .emit_rerun_if_changed(false)
+            .compile(&[proto_out_dir.join(proto)], &[&proto_out_dir])?;
     }
 
     println!("cargo:rerun-if-changed=proto");
