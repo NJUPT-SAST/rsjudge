@@ -14,6 +14,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y wget clang
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -21,11 +26,6 @@ jobs:
           bins: cargo-hack, cargo-deny
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get upgrade -y
-          sudo apt-get install -y wget clang
       - name: Setup mold
         uses: rui314/setup-mold@v1
       - name: Setup buf
@@ -57,6 +57,10 @@ jobs:
     container: debian:bullseye
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y sudo wget lintian clang
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -64,10 +68,6 @@ jobs:
           bins: cargo-deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget lintian clang
       - name: Setup mold
         uses: rui314/setup-mold@v1
       - name: Setup buf
@@ -97,6 +97,9 @@ jobs:
     container: fedora:38
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo dnf install -y clang mold protobuf-compiler
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -104,9 +107,6 @@ jobs:
           bins: cargo-generate-rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install dependencies
-        run: |
-          sudo dnf install -y wget clang mold protobuf-compiler
       - name: Setup buf
         uses: bufbuild/buf-setup-action@v1
         with:
