@@ -60,7 +60,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y sudo wget lintian clang
+          apt-get install -y sudo gcc wget lintian clang
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
