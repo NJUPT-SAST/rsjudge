@@ -8,7 +8,7 @@ use sh::cmd;
 enum Package {
     /// Build DEB package.
     Deb,
-    /// Build RPM package (unimplemented).
+    /// Build RPM package.
     Rpm,
 }
 
@@ -38,13 +38,20 @@ fn main() -> anyhow::Result<()> {
     match command {
         Command::Dist { package } => match package {
             Package::Deb => cmd!(cargo deb "-v"),
-            Package::Rpm => todo!("Not implemented"),
+            Package::Rpm => cmd! {
+                cargo build "--release";
+                cargo "generate-rpm"
+            },
         },
         Command::Docker => cmd!(docker build "-t" rsjudge "."),
         #[cfg(feature = "dbg")]
         Command::Debug => return Ok(()),
     }
-    .try_for_each(|cmd| cmd.exec())?;
+    .try_for_each(|cmd| {
+        #[cfg(feature = "dbg")]
+        eprintln!("Executing: {:?}", cmd);
+        cmd.exec()
+    })?;
 
     Ok(())
 }

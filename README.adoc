@@ -32,8 +32,8 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
         Crate for RESTful API server.
     `crates/rsjudge-runner/`:::
         Crate for sandbox logic.
-`debian/`::
-    Files for generating `.deb` package.
+`packaging/`::
+    Files for generating `.deb` and `.rpm` package.
 
 https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
     image:https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[

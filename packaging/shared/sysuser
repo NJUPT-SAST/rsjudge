@@ -1,0 +1,4 @@
+#Type Name               ID GECOS                   Home directory              Shell
+u     rsjudge-supervisor -  "Supervisor of rsjudge" /var/lib/rsjudge-supervisor
+u     rsjudge-builder    -  "Builder of rsjudge"    /var/lib/rsjudge-builder
+u     rsjudge-runner     -  "Runner of rsjudge"     /var/lib/rsjudge-runner

@@ -1,17 +1,17 @@
 #!/bin/sh
 set -e
 
-RSJUDGE_CONF="/etc/rsjudge/*.conf"
+RSJUDGE_CONF="/etc/rsjudge/"
 
 case "$1" in
 purge)
-    if [ -f "${RSJUDGE_CONF}" ]; then
-        rm "${RSJUDGE_CONF}"
+    if [ -d "${RSJUDGE_CONF}" ]; then
+        rm -r "${RSJUDGE_CONF}"
     fi
 
-    deluser --system --remove-home --group "${RSJUDGE_USER}-supervisor" || true
-    deluser --system --remove-home --group "${RSJUDGE_USER}-builder" || true
-    deluser --system --remove-home --group "${RSJUDGE_USER}-runner" || true
+    deluser --system --remove-home "${RSJUDGE_USER}-supervisor" || true
+    deluser --system --remove-home "${RSJUDGE_USER}-builder" || true
+    deluser --system --remove-home "${RSJUDGE_USER}-runner" || true
 
     ;;
 esac

@@ -34,8 +34,8 @@
         RESTful API 服务器。
     `crates/rsjudge-runner/`:::
         执行各种命令的沙箱，提供用户切换、I/O 重定向、安全上下文等功能。
-`debian/`::
-    用于生成 `.deb` 包的附加文件。
+`packaging/`::
+    用于生成 `.deb` 与 `.rpm` 包的附加文件。
 
 https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
     image:https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[
