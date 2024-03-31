@@ -1,14 +1,14 @@
 {
   "conventionalCommits.scopes": [
-    "deps",
-    "config",
-    "xtask",
     "actions",
-    "rsjudge-rest",
-    "rsjudge-judger",
-    "rsjudge-runner",
+    "config",
+    "deps",
     "packaging",
-    "rsjudge-grpc"
+    "rsjudge-grpc",
+    "rsjudge-judger",
+    "rsjudge-rest",
+    "rsjudge-runner",
+    "xtask"
   ],
   "editor.defaultFormatter": "dprint.dprint",
   "[dockerfile]": {
