@@ -1,5 +1,6 @@
 use std::{env, io::BufRead, path::PathBuf, process::Command};
 
+use rsjudge_utils::command::check_output;
 use tonic_build::configure;
 
 /// Generate Rust code from the proto files.
@@ -15,32 +16,18 @@ fn main() -> anyhow::Result<()> {
         out_dir
     };
 
-    let buf_ls_files = Command::new("buf")
-        .current_dir("proto")
-        .arg("ls-files")
-        .output()?;
-
-    assert!(
-        buf_ls_files.status.success(),
-        "buf ls-files failed with: {:#?}",
-        buf_ls_files
-    );
+    let buf_ls_files = check_output(Command::new("buf").current_dir("proto").arg("ls-files"))?;
 
     let protos = buf_ls_files
         .stdout
         .lines()
         .filter_map(|line| line.ok().filter(|s| !s.is_empty()));
 
-    let buf_export = Command::new("buf")
-        .args(["export", "proto", "-o"])
-        .arg(&proto_out_dir)
-        .output()?;
-
-    assert!(
-        buf_export.status.success(),
-        "buf export failed with: {:#?}",
-        buf_export
-    );
+    check_output(
+        Command::new("buf")
+            .args(["export", "proto", "-o"])
+            .arg(&proto_out_dir),
+    )?;
 
     for proto in protos {
         configure()
@@ -52,4 +39,16 @@ fn main() -> anyhow::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_display_cmd() {
+        let mut cmd = Command::new("echo");
+        cmd.arg("hello");
+        assert_eq!(display_cmd(&cmd), r#""echo" "hello""#);
+    }
 }

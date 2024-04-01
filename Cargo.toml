@@ -1,5 +1,12 @@
 [workspace]
-members = ["crates/rsjudge-grpc", "crates/rsjudge-judger", "crates/rsjudge-rest", "crates/rsjudge-runner", "xtask"]
+members = [
+    "crates/rsjudge-grpc",
+    "crates/rsjudge-judger",
+    "crates/rsjudge-rest",
+    "crates/rsjudge-runner",
+    "crates/rsjudge-utils",
+    "xtask",
+]
 
 [workspace.package]
 version = "0.1.0"

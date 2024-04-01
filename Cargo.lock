@@ -1123,6 +1123,7 @@ dependencies = [
  "futures",
  "prost",
  "prost-types",
+ "rsjudge-utils",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -1136,6 +1137,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "futures",
+ "rsjudge-utils",
  "temp-dir",
  "tokio",
 ]
@@ -1156,8 +1158,16 @@ dependencies = [
  "caps",
  "nix",
  "once_cell",
+ "rsjudge-utils",
  "rustc_version",
  "uzers",
+]
+
+[[package]]
+name = "rsjudge-utils"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
 ]
 
 [[package]]

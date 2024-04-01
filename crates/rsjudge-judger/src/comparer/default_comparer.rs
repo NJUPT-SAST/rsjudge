@@ -4,9 +4,10 @@ use std::io;
 
 use async_trait::async_trait;
 use futures::try_join;
+use rsjudge_utils::trim::trim_ascii_end;
 use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 
-use crate::{utils::trim::slice::trim_ascii_end, CompareResult, Comparer};
+use crate::{CompareResult, Comparer};
 
 /// A default comparer implementation with basic configurations.
 pub struct DefaultComparer {

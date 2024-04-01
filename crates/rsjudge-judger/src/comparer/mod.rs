@@ -12,7 +12,6 @@ pub enum CompareResult {
     PresentationError,
 }
 
-// TODO: Migrate to AsyncComparer trait
 #[async_trait]
 pub trait Comparer {
     async fn compare<Out, Ans>(&self, out: Out, ans: Ans) -> io::Result<CompareResult>
