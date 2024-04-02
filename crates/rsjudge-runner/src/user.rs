@@ -1,25 +1,36 @@
-use anyhow::anyhow;
-use once_cell::sync::Lazy;
+use std::sync::OnceLock;
+
 use uzers::{get_user_by_name, User};
 
-pub static SUPERVISOR: Lazy<Option<User>> = Lazy::new(|| get_user_by_name("rsjudge-supervisor"));
-pub static BUILDER: Lazy<Option<User>> = Lazy::new(|| get_user_by_name("rsjudge-builder"));
-pub static RUNNER: Lazy<Option<User>> = Lazy::new(|| get_user_by_name("rsjudge-runner"));
+use crate::error::{Error, Result};
 
-pub fn supervisor<'a>() -> anyhow::Result<&'a User> {
+pub static SUPERVISOR: OnceLock<Option<User>> = OnceLock::new();
+pub static BUILDER: OnceLock<Option<User>> = OnceLock::new();
+pub static RUNNER: OnceLock<Option<User>> = OnceLock::new();
+
+pub fn supervisor<'a>() -> Result<&'a User> {
     SUPERVISOR
+        .get_or_init(|| get_user_by_name("rsjudge-supervisor"))
         .as_ref()
-        .ok_or_else(|| anyhow!("User `rsjudge-supervisor` not found"))
+        .ok_or_else(|| Error::UserNotFound {
+            name: "rsjudge-supervisor".to_string(),
+        })
 }
 
-pub fn builder<'a>() -> anyhow::Result<&'a User> {
+pub fn builder<'a>() -> Result<&'a User> {
     BUILDER
+        .get_or_init(|| get_user_by_name("rsjudge-builder"))
         .as_ref()
-        .ok_or_else(|| anyhow!("User `rsjudge-builder` not found"))
+        .ok_or_else(|| Error::UserNotFound {
+            name: "rsjudge-builder".to_string(),
+        })
 }
 
-pub fn runner<'a>() -> anyhow::Result<&'a User> {
+pub fn runner<'a>() -> Result<&'a User> {
     RUNNER
+        .get_or_init(|| get_user_by_name("rsjudge-runner"))
         .as_ref()
-        .ok_or_else(|| anyhow!("User `rsjudge-runner` not found"))
+        .ok_or_else(|| Error::UserNotFound {
+            name: "rsjudge-runner".to_string(),
+        })
 }

@@ -1,15 +1,35 @@
+#![cfg_attr(not(test), warn(clippy::print_stdout, clippy::print_stderr))]
+
 use std::{os::unix::process::CommandExt as _, process::Command};
 
+use caps::{has_cap, CapSet, Capability};
 use nix::unistd::{setgroups, Gid};
 use uzers::User;
 
+use crate::error::{Error, Result};
+
+pub mod error;
 pub mod user;
 pub trait RunAs {
-    fn run_as(&mut self, user: &User) -> &mut Command;
+    type Error;
+    fn run_as(&mut self, user: &User) -> Result<&mut Self>;
 }
 
 impl RunAs for Command {
-    fn run_as(&mut self, user: &User) -> &mut Self {
+    type Error = Error;
+    fn run_as(&mut self, user: &User) -> Result<&mut Self> {
+        if !has_cap(None, CapSet::Effective, Capability::CAP_SETUID)? {
+            Err(Error::CapsRequired {
+                cap: Capability::CAP_SETUID,
+            })?;
+        }
+
+        has_cap(None, CapSet::Effective, Capability::CAP_SETGID).map_err(|_| {
+            Error::CapsRequired {
+                cap: Capability::CAP_SETGID,
+            }
+        })?;
+
         let uid = user.uid();
         let gid = user.primary_group_id();
 
@@ -47,6 +67,6 @@ impl RunAs for Command {
             self.groups(groups);
         }
 
-        self
+        Ok(self)
     }
 }

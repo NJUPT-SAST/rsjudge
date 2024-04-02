@@ -1,3 +1,5 @@
+#![cfg_attr(not(test), warn(clippy::print_stdout, clippy::print_stderr))]
+
 use std::net::SocketAddr;
 
 use tonic::transport::{Error, Server};

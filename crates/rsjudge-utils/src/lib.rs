@@ -1,3 +1,5 @@
+#![warn(clippy::print_stdout, clippy::print_stderr)]
+
 //! A collection of utility functions for the rsjudge project.
 
 #![warn(missing_docs)]

@@ -17,6 +17,10 @@ license = "Apache-2.0"
 # clap requires Rust 1.74+ to work
 rust-version = "1.74"
 
+[workspace.dependencies]
+log = "0.4.21"
+rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
+
 [package]
 name = "rsjudge"
 version.workspace = true
@@ -131,6 +135,7 @@ dest = "/usr/lib/sysusers.d/rsjudge.conf"
 # Workspace dependencies
 rsjudge-judger = { version = "0.1.0", path = "crates/rsjudge-judger" }
 rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
+rsjudge-utils.workspace = true
 
 # Optional dependencies
 rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
@@ -140,9 +145,9 @@ anyhow = "1.0.80"
 caps = "0.5.5"
 clap = { version = "4.5.3", features = ["derive"] }
 env_logger = "0.11.3"
-log = "0.4.21"
+log.workspace = true
 mimalloc = "0.1.39"
-tokio = { version = "1.36.0", features = ["fs", "rt-multi-thread", "macros"] }
+tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros"] }
 toml = "0.8.12"
 
 # Unused for now:

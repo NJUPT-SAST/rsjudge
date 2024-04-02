@@ -1,3 +1,4 @@
+use log::debug;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{async_trait, Request, Response, Status};
 
@@ -17,8 +18,8 @@ impl JudgeService for JudgeServerImpl {
         &self,
         request: Request<SelfTestRequest>,
     ) -> Result<Response<Self::SelfTestStream>, Status> {
-        let _ = request;
-        todo!()
+        debug!("Received SelfTestRequest: {:?}", request.into_inner());
+        Err(Status::unimplemented("Not implemented yet"))
     }
 
     type SubmitStream = ReceiverStream<Result<SubmitResponse, Status>>;
@@ -27,7 +28,7 @@ impl JudgeService for JudgeServerImpl {
         &self,
         request: Request<SubmitRequest>,
     ) -> Result<Response<Self::SubmitStream>, Status> {
-        let _ = request;
-        todo!()
+        debug!("Received SubmitRequest: {:?}", request.into_inner());
+        Err(Status::unimplemented("Not implemented yet"))
     }
 }
