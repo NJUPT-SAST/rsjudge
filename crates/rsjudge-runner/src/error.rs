@@ -1,17 +1,23 @@
-use caps::Capability;
+use caps::{errors::CapsError, Capability};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("{cap} is required to run as another user.")]
-    CapsRequired { cap: Capability },
-    #[error("User '{name}' not found")]
-    UserNotFound { name: String },
+    /// Capabilities required but not set.
+    #[error("{caps:?} required but not set.")]
+    CapsRequired { caps: Box<[Capability]> },
 
-    #[error("I/O error: {0}")]
+    /// The requested user is not found.
+    #[error("User '{username}' not found")]
+    UserNotFound { username: &'static str },
+
+    /// A wrapper for `std::io::Error`.
+    #[error(transparent)]
     Io(#[from] std::io::Error),
-    #[error("{0}")]
-    CapsError(#[from] caps::errors::CapsError),
+
+    /// A wrapper for `caps::errors::CapsError`.
+    #[error(transparent)]
+    CapsError(#[from] CapsError),
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;

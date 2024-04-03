@@ -2,13 +2,17 @@
 
 use std::{os::unix::process::CommandExt as _, process::Command};
 
-use caps::{has_cap, CapSet, Capability};
+use caps::Capability;
 use nix::unistd::{setgroups, Gid};
 use uzers::User;
 
-use crate::error::{Error, Result};
+pub use crate::{
+    caps_check::require_caps,
+    error::{Error, Result},
+};
 
-pub mod error;
+mod caps_check;
+mod error;
 pub mod user;
 pub trait RunAs {
     type Error;
@@ -18,17 +22,11 @@ pub trait RunAs {
 impl RunAs for Command {
     type Error = Error;
     fn run_as(&mut self, user: &User) -> Result<&mut Self> {
-        if !has_cap(None, CapSet::Effective, Capability::CAP_SETUID)? {
-            Err(Error::CapsRequired {
-                cap: Capability::CAP_SETUID,
-            })?;
-        }
-
-        has_cap(None, CapSet::Effective, Capability::CAP_SETGID).map_err(|_| {
-            Error::CapsRequired {
-                cap: Capability::CAP_SETGID,
-            }
-        })?;
+        require_caps([
+            Capability::CAP_SETUID,
+            Capability::CAP_SETGID,
+            Capability::CAP_DAC_READ_SEARCH,
+        ])?;
 
         let uid = user.uid();
         let gid = user.primary_group_id();

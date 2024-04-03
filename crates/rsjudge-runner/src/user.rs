@@ -1,36 +1,34 @@
+//! Functions to get user instances.
+//!
+//! All functions return a reference to a static instance of [`uzers::User`] if succeeded.
+
 use std::sync::OnceLock;
 
 use uzers::{get_user_by_name, User};
 
 use crate::error::{Error, Result};
 
-pub static SUPERVISOR: OnceLock<Option<User>> = OnceLock::new();
-pub static BUILDER: OnceLock<Option<User>> = OnceLock::new();
-pub static RUNNER: OnceLock<Option<User>> = OnceLock::new();
-
-pub fn supervisor<'a>() -> Result<&'a User> {
-    SUPERVISOR
-        .get_or_init(|| get_user_by_name("rsjudge-supervisor"))
-        .as_ref()
-        .ok_or_else(|| Error::UserNotFound {
-            name: "rsjudge-supervisor".to_string(),
-        })
+/// Generate functions to get user instances.
+macro_rules! users {
+    ($($vis:vis fn $id:ident() => $name:literal);* $(;)?) => {
+        $(
+            #[doc = concat!("Get an instance of user `", $name, "`.")]
+            ///
+            /// # Errors
+            /// Returns an error if the user is not found.
+            pub fn $id() -> Result<&'static User> {
+                static INNER: OnceLock<Option<User>> = OnceLock::new();
+                INNER
+                    .get_or_init(|| get_user_by_name($name))
+                    .as_ref()
+                    .ok_or_else(|| Error::UserNotFound { username: $name })
+            }
+        )*
+    };
 }
 
-pub fn builder<'a>() -> Result<&'a User> {
-    BUILDER
-        .get_or_init(|| get_user_by_name("rsjudge-builder"))
-        .as_ref()
-        .ok_or_else(|| Error::UserNotFound {
-            name: "rsjudge-builder".to_string(),
-        })
-}
-
-pub fn runner<'a>() -> Result<&'a User> {
-    RUNNER
-        .get_or_init(|| get_user_by_name("rsjudge-runner"))
-        .as_ref()
-        .ok_or_else(|| Error::UserNotFound {
-            name: "rsjudge-runner".to_string(),
-        })
+users! {
+    pub fn supervisor() => "rsjudge-supervisor";
+    pub fn builder() => "rsjudge-builder";
+    pub fn runner() => "rsjudge-runner";
 }
