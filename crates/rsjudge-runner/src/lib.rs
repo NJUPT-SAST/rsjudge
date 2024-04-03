@@ -13,7 +13,11 @@ pub use crate::{
 
 mod caps_check;
 mod error;
+
+#[macro_use]
+mod user_macro;
 pub mod user;
+
 pub trait RunAs {
     type Error;
     fn run_as(&mut self, user: &User) -> Result<&mut Self>;
