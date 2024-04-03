@@ -1,5 +1,3 @@
-use std::convert::identity;
-
 use caps::{errors::CapsError, has_cap, Capability};
 
 use crate::error::{Error, Result};
@@ -16,7 +14,7 @@ where
         })
         .collect::<Result<Vec<_>, CapsError>>()?
         .into_iter()
-        .filter_map(identity)
+        .flatten()
         .collect::<Vec<_>>();
 
     if missing_caps.is_empty() {
