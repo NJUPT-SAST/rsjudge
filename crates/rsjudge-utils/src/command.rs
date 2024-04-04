@@ -1,3 +1,5 @@
+//! Functions for working with [`std::process::Command`].
+
 use std::{
     io::ErrorKind,
     iter,
