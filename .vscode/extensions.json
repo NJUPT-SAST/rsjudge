@@ -1,9 +1,11 @@
 {
   "recommendations": [
     "asciidoctor.asciidoctor-vscode",
+    "bufbuild.vscode-buf",
     "dprint.dprint",
     "rust-lang.rust-analyzer",
-    "seaql.firedbg-rust",
-    "serayuzgur.crates"
+    "serayuzgur.crates",
+    "tamasfe.even-better-toml",
+    "vadimcn.vscode-lldb"
   ]
 }
