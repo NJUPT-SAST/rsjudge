@@ -6,7 +6,7 @@ macro_rules! users {
             ///
             /// # Errors
             /// Returns an error if the user is not found.
-            pub fn $id() -> Result<&'static User> {
+            $vis fn $id() -> Result<&'static User> {
                 static INNER: OnceLock<Option<User>> = OnceLock::new();
                 INNER
                     .get_or_init(|| get_user_by_name($name))
