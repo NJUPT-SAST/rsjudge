@@ -8,6 +8,7 @@
     "rsjudge-judger",
     "rsjudge-rest",
     "rsjudge-runner",
+    "rsjudge-utils",
     "xtask"
   ],
   "editor.defaultFormatter": "dprint.dprint",

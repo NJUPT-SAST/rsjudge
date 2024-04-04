@@ -4,7 +4,9 @@
 
 #![warn(missing_docs)]
 
-/// Functions for trimming ASCII whitespace from `[u8]` and `str`.
+#[macro_use]
+mod error_macros;
+
 pub mod trim;
 
 /// Functions for working with `std::process::Command`.

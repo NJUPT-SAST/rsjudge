@@ -1,3 +1,5 @@
+//! Functions for trimming ASCII whitespace from `[u8]` and `str`.
+
 /// Returns a byte slice with leading ASCII whitespace bytes removed.
 ///
 /// 'Whitespace' refers to the definition used by
