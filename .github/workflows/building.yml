@@ -23,6 +23,7 @@ jobs:
         uses: moonrepo/setup-rust@v1
         with:
           channel: stable
+          components: rust-src
           bins: cargo-hack, cargo-deny
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
