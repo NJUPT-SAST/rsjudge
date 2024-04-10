@@ -18,7 +18,7 @@ use anyhow::{bail, ensure};
 ///
 /// let mut cmd = Command::new("echo");
 /// cmd.arg("Hello, world!");
-/// assert_eq!(display_cmd(&cmd), "\"echo\" \"Hello, world!\"");
+/// assert_eq!(display_cmd(&cmd), "echo 'Hello, world!'");
 /// ```
 pub fn display_cmd(cmd: &Command) -> String {
     let args = iter::once(cmd.get_program())
