@@ -3,7 +3,9 @@
 :toc: preamble
 :toc-title: 目录
 
-一个用 Rust 编写的在线评测沙箱服务器，受到 https://github.com/criyle/go-judge[go-judge] 的启发，用于 SAST OJ。
+image:assets/rsjudge.svg[Rsjudge logo]
+
+一个用 Rust 编写的在线评测沙箱服务器，受到 https://github.com/criyle/go-judge[go-judge] 的启发，服务于 SAST OJ。
 
 == 特性
 

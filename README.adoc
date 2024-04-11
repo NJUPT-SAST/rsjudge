@@ -1,7 +1,9 @@
 = rsjudge
 :toc: preamble
 
-An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for SAST OJ.
+image:assets/rsjudge.svg[Rsjudge logo]
+
+An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for [SAST OJ].
 
 == Features
 

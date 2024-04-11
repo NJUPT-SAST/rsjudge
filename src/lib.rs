@@ -1,4 +1,8 @@
 #![cfg_attr(not(test), warn(clippy::print_stdout, clippy::print_stderr))]
+#![doc(html_logo_url = "https://cdn.jsdelivr.net/gh/NJUPT-SAST/rsjudge@main/assets/rsjudge.svg")]
+
+//！ An online judge sandbox server in Rust,
+//！ inspired by https://github.com/criyle/go-judge[go-judge], for [SAST OJ].
 
 use std::process::Command;
 
