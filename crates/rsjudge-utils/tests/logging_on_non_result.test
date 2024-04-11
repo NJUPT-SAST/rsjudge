@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 use std::fmt::Display;
 
 use rsjudge_utils::log_if_error;

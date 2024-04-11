@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //! Macro for logging when error occurs.
 
 /// Log an error message and return an `Err` variant of `Result`.

@@ -1,6 +1,8 @@
 {
   "newLineKind": "auto",
-  "json": {},
+  "json": {
+    "trailingCommas": "never"
+  },
   "markdown": {},
   "toml": {
     "indentWidth": 4

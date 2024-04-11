@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //! Functions to get user instances.
 //!
 //! All functions return a reference to a static instance of [`uzers::User`] if succeeded.

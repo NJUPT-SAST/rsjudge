@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 use caps::{has_cap, raise, Capability};
 
 use crate::error::{Error, Result};

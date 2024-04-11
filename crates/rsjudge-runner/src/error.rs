@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 use caps::{errors::CapsError, Capability};
 use thiserror::Error;
 

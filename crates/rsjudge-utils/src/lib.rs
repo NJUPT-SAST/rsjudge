@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //! A collection of utility functions for the rsjudge project.
 
 // No `(e)print` or `(e)println` in library code.

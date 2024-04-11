@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 use log::debug;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{async_trait, Request, Response, Status};

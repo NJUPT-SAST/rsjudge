@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> tests/logging_on_non_result.test:19:27
+  --> tests/logging_on_non_result.test:21:27
    |
-19 |     let _ = log_if_error!(S);
+21 |     let _ = log_if_error!(S);
    |             --------------^-
    |             |             |
    |             |             expected `Result<_, _>`, found `S`
@@ -16,7 +16,7 @@ note: method defined here
    |            ^^^^^^^
 help: try wrapping the expression in a variant of `Result`
    |
-19 |     let _ = log_if_error!(Ok(S));
+21 |     let _ = log_if_error!(Ok(S));
    |                           +++ +
-19 |     let _ = log_if_error!(Err(S));
+21 |     let _ = log_if_error!(Err(S));
    |                           ++++ +

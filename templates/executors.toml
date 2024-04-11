@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 [bash]
 execute = "/usr/bin/bash -r --no-profile --no-rc {src_file}"
 

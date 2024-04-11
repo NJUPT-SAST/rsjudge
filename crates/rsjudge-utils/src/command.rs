@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //! Functions for working with [`std::process::Command`].
 
 use std::{

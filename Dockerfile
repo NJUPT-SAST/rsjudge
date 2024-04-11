@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 # Use the official Rust image as the base image
 FROM rust:latest AS builder
 

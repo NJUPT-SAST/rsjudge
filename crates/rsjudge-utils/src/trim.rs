@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //! Functions for trimming ASCII whitespace from `[u8]` and `str`.
 
 /// Returns a byte slice with leading ASCII whitespace bytes removed.

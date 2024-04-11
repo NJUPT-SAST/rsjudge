@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 use std::{env, io::BufRead, path::PathBuf, process::Command};
 
 use rsjudge_utils::command::check_output;

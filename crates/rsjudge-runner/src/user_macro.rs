@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /// Generate functions to get user instances.
 macro_rules! users {
     ($($vis:vis fn $id:ident() => $name:literal);* $(;)?) => {
