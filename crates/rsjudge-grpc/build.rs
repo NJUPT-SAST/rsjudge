@@ -31,11 +31,12 @@ fn main() -> anyhow::Result<()> {
             .arg(&proto_out_dir),
     )?;
 
-    for proto in protos {
-        configure()
-            .emit_rerun_if_changed(false)
-            .compile(&[proto_out_dir.join(proto)], &[&proto_out_dir])?;
-    }
+    let proto_files: Vec<_> = protos.map(|proto| proto_out_dir.join(proto)).collect();
+
+    configure()
+        .emit_rerun_if_changed(false)
+        .bytes(["."])
+        .compile(&proto_files, &[&proto_out_dir])?;
 
     println!("cargo:rerun-if-changed=proto");
     println!("cargo:rerun-if-changed=build.rs");
