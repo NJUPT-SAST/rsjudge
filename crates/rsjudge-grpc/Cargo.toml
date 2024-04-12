@@ -23,5 +23,5 @@ tonic = "0.11.0"
 
 [build-dependencies]
 anyhow = "1.0.82"
-rsjudge-utils = { version = "0.1.0", path = "../rsjudge-utils" }
+rsjudge-utils.workspace = true
 tonic-build = "0.11.0"
