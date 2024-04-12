@@ -8,17 +8,20 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[package.metadata.cargo-machete]
+ignored = ["prost"]
+
 [dependencies]
-anyhow = "1.0.81"
+anyhow = "1.0.82"
 futures = "0.3.30"
 log.workspace = true
-prost = "0.12.3"
-prost-types = "0.12.3"
-tokio = { version = "1.36.0", features = ["net"] }
+prost = "0.12.4"
+prost-types = "0.12.4"
+tokio = { version = "1.37.0", features = ["net"] }
 tokio-stream = "0.1.15"
 tonic = "0.11.0"
 
 [build-dependencies]
-anyhow = "1.0.81"
+anyhow = "1.0.82"
 rsjudge-utils = { version = "0.1.0", path = "../rsjudge-utils" }
 tonic-build = "0.11.0"

@@ -98,7 +98,7 @@ impl Comparer for DefaultComparer {
 mod tests {
     use std::{any::type_name, io};
 
-    use temp_dir::TempDir;
+    use tempfile::TempDir;
     use tokio::{
         fs::File,
         io::{empty, AsyncWriteExt as _},

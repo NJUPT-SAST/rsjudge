@@ -9,11 +9,11 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-async-trait = "0.1.78"
+async-trait = "0.1.80"
 futures = "0.3.30"
 rsjudge-utils = { version = "0.1.0", path = "../rsjudge-utils" }
-tokio = { version = "1.36.0", features = ["io-util", "fs", "macros"] }
+tokio = { version = "1.37.0", features = ["io-util", "fs", "macros"] }
 
 [dev-dependencies]
-temp-dir = "0.1.12"
-tokio = { version = "1.36.0", features = ["rt-multi-thread"] }
+tempfile = "3.10.1"
+tokio = { version = "1.37.0", features = ["rt-multi-thread"] }

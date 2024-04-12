@@ -143,9 +143,9 @@ rsjudge-utils.workspace = true
 rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
-anyhow = "1.0.80"
+anyhow = "1.0.82"
 caps = "0.5.5"
-clap = { version = "4.5.3", features = ["derive"] }
+clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
 mimalloc = "0.1.39"
@@ -159,8 +159,8 @@ toml = "0.8.12"
 # strfmt = "0.2.4"
 # uzers = "0.11.3"
 
-[dev-dependencies]
-tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+# [dev-dependencies]
+# tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
 
 [features]
 grpc = ["dep:rsjudge-grpc"]
@@ -168,8 +168,8 @@ rest = ["dep:rsjudge-rest"]
 default = ["grpc"]
 
 [build-dependencies]
-clap = { version = "4.5.3", features = ["derive"] }
-clap_complete = "4.5.1"
+clap = { version = "4.5.4", features = ["derive"] }
+clap_complete = "4.5.2"
 clap_mangen = "0.2.20"
 
 [profile.release]
