@@ -9,7 +9,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [package.metadata.cargo-machete]
-ignored = ["prost"]
+ignored = ["prost", "prost-types"]
 
 [dependencies]
 anyhow = "1.0.82"

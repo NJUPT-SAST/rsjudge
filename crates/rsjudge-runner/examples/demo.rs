@@ -3,9 +3,10 @@
 use std::process::Command;
 
 use anyhow::anyhow;
+use caps::Capability;
 use rsjudge_runner::{
     user::{builder, runner},
-    RunAs,
+    CapHandle, RunAs,
 };
 use uzers::{get_current_uid, get_user_by_uid};
 fn main() -> anyhow::Result<()> {
@@ -13,6 +14,9 @@ fn main() -> anyhow::Result<()> {
         .run_as(&get_user_by_uid(get_current_uid()).ok_or(anyhow!("invalid user"))?)?
         .output()?;
     println!("{}", String::from_utf8_lossy(&self_output.stdout));
+
+    CapHandle::new(Capability::CAP_SETUID)?;
+    CapHandle::new(Capability::CAP_SETGID)?;
 
     let builder_output = Command::new("id").run_as(builder()?)?.output()?;
     println!("{}", String::from_utf8_lossy(&builder_output.stdout));

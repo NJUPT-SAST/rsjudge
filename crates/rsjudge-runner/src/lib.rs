@@ -2,7 +2,11 @@
 
 #![cfg_attr(not(test), warn(clippy::print_stdout, clippy::print_stderr))]
 
-use std::{os::unix::process::CommandExt as _, process::Command};
+use std::{
+    io::{self, ErrorKind},
+    os::unix::process::CommandExt as _,
+    process::Command,
+};
 
 use caps::Capability;
 use nix::unistd::{setgroups, Gid};
@@ -10,15 +14,16 @@ use rsjudge_utils::log_if_error;
 use uzers::User;
 
 pub use crate::{
-    caps_check::require_caps,
+    cap_handle::CapHandle,
     error::{Error, Result},
 };
 
-mod caps_check;
 mod error;
 
 #[macro_use]
 mod user_macro;
+
+mod cap_handle;
 pub mod user;
 
 pub trait RunAs {
@@ -29,12 +34,6 @@ pub trait RunAs {
 impl RunAs for Command {
     type Error = Error;
     fn run_as(&mut self, user: &User) -> Result<&mut Self> {
-        log_if_error!(require_caps([
-            Capability::CAP_SETUID,
-            Capability::CAP_SETGID,
-            Capability::CAP_DAC_READ_SEARCH,
-        ]))?;
-
         let uid = user.uid();
         let gid = user.primary_group_id();
 
@@ -53,6 +52,8 @@ impl RunAs for Command {
                 .map(|g| Gid::from_raw(g.gid()))
                 .collect();
             let set_groups = move || {
+                CapHandle::new(Capability::CAP_SETGID)
+                    .map_err(|e| io::Error::new(ErrorKind::PermissionDenied, e.to_string()))?;
                 log_if_error!(setgroups(&groups))?;
                 Ok(())
             };
