@@ -15,6 +15,7 @@ version = "0.1.0"
 authors = ["NJUPT-SAST"]
 edition = "2021"
 license = "Apache-2.0"
+repository = "https://github.com/NJUPT-SAST/rsjudge"
 
 # clap requires Rust 1.74+ to work
 rust-version = "1.74"
@@ -29,6 +30,7 @@ version.workspace = true
 authors.workspace = true
 edition = "2021"
 license.workspace = true
+repository.workspace = true
 rust-version.workspace = true
 description = "online judge sandbox server in Rust"
 

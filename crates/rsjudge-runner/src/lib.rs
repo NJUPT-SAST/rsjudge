@@ -28,11 +28,21 @@ pub mod user;
 
 pub trait RunAs {
     type Error;
+
+    /// Run the command as the given user.
+    ///
+    /// This function will set the UID, GID, and supplementary groups of the command.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the user does not exist,
+    /// or if the process does not have the necessary capabilities.
     fn run_as(&mut self, user: &User) -> Result<&mut Self>;
 }
 
 impl RunAs for Command {
     type Error = Error;
+
     fn run_as(&mut self, user: &User) -> Result<&mut Self> {
         let uid = user.uid();
         let gid = user.primary_group_id();

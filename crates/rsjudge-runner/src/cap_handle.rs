@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use caps::{drop as drop_cap, has_cap, raise as raise_cap, Capability};
 
-use crate::Result;
+use crate::{Error, Result};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct CapHandle {
@@ -16,6 +16,13 @@ impl CapHandle {
         static LOCAL_CAPS: RefCell<HashMap<Capability,Rc<()>>> = RefCell::new(HashMap::new());
     }
 
+    /// Create a new capability handle.
+    ///
+    /// The capability will be raised if it is permitted but not effective.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the capability is not permitted,
     pub fn new(cap: Capability) -> Result<Self> {
         let ref_count = Self::LOCAL_CAPS
             .with_borrow_mut(|local_caps| local_caps.entry(cap).or_default().clone());
@@ -44,6 +51,6 @@ fn try_raise_cap(cap: Capability) -> Result<bool> {
         raise_cap(None, caps::CapSet::Effective, cap)?;
         Ok(true)
     } else {
-        Ok(false)
+        Err(Error::CapRequired(cap))
     }
 }

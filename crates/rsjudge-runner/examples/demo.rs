@@ -11,7 +11,7 @@ use rsjudge_runner::{
 use uzers::{get_current_uid, get_user_by_uid};
 fn main() -> anyhow::Result<()> {
     let self_output = Command::new("id")
-        .run_as(&get_user_by_uid(get_current_uid()).ok_or(anyhow!("invalid user"))?)?
+        .run_as(&get_user_by_uid(get_current_uid()).ok_or_else(|| anyhow!("invalid user"))?)?
         .output()?;
     println!("{}", String::from_utf8_lossy(&self_output.stdout));
 

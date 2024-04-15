@@ -6,8 +6,8 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum Error {
     /// Capabilities required but not set.
-    #[error("{caps:?} required but not set.")]
-    CapsRequired { caps: Box<[Capability]> },
+    #[error("{0} required but not set.")]
+    CapRequired(Capability),
 
     /// The requested user is not found.
     #[error("User '{username}' not found")]

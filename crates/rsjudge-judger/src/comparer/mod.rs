@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pub mod default_comparer;
+mod default_comparer;
 
 use std::io;
 
 use async_trait::async_trait;
 use tokio::io::AsyncRead;
 
-#[derive(Debug, PartialEq)]
+pub use self::default_comparer::DefaultComparer;
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum CompareResult {
     Accepted,
     WrongAnswer,

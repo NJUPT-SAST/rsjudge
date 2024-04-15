@@ -16,6 +16,7 @@
 /// assert_eq!(trim_ascii_start(b""), b"");
 /// ```
 #[inline]
+#[must_use = "This function does not modify the input."]
 pub const fn trim_ascii_start(mut bytes: &[u8]) -> &[u8] {
     // Note: A pattern matching based approach (instead of indexing) allows
     // making the function const.
@@ -43,6 +44,7 @@ pub const fn trim_ascii_start(mut bytes: &[u8]) -> &[u8] {
 /// assert_eq!(trim_ascii_end(b""), b"");
 /// ```
 #[inline]
+#[must_use = "This function does not modify the input."]
 pub const fn trim_ascii_end(mut bytes: &[u8]) -> &[u8] {
     // Note: A pattern matching based approach (instead of indexing) allows
     // making the function const.
@@ -71,6 +73,7 @@ pub const fn trim_ascii_end(mut bytes: &[u8]) -> &[u8] {
 /// assert_eq!(trim_ascii(b""), b"");
 /// ```
 #[inline]
+#[must_use = "This function does not modify the input."]
 pub const fn trim_ascii(bytes: &[u8]) -> &[u8] {
     trim_ascii_end(trim_ascii_start(bytes))
 }

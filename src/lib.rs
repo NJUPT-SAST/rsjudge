@@ -19,6 +19,8 @@ use crate::cli::Args;
 
 mod cli;
 
+/// # Errors
+///
 pub async fn main_impl() -> anyhow::Result<()> {
     env_logger::Builder::from_env(
         Env::new()

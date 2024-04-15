@@ -6,12 +6,13 @@ use std::io;
 
 use async_trait::async_trait;
 use futures::try_join;
-use rsjudge_utils::trim::trim_ascii_end;
+use rsjudge_utils::trim_ascii_end;
 use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 
 use crate::{CompareResult, Comparer};
 
 /// A default comparer implementation with basic configurations.
+#[must_use = "Comparer makes no sense if it is not used"]
 pub struct DefaultComparer {
     ignore_trailing_whitespace: bool,
     ignore_trailing_newline: bool,

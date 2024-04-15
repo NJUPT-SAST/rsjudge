@@ -22,6 +22,7 @@ use thiserror::Error;
 /// cmd.arg("Hello, world!");
 /// assert_eq!(display_cmd(&cmd), "echo 'Hello, world!'");
 /// ```
+#[must_use = "this function returns the formatted command"]
 pub fn display_cmd(cmd: &Command) -> String {
     let args = iter::once(cmd.get_program())
         .chain(cmd.get_args())
@@ -68,6 +69,11 @@ pub enum ExecutionError {
 /// let output = check_output(&mut cmd).unwrap();
 /// assert_eq!(output.stdout, b"Hello, world!\n");
 /// ```
+///
+/// # Errors
+///
+/// This function returns an error if the command was not found, failed to start,
+/// or failed with a non-zero exit status.
 pub fn check_output(cmd: &mut Command) -> Result<Output, ExecutionError> {
     let child = cmd
         .stdout(Stdio::piped())
@@ -82,13 +88,13 @@ pub fn check_output(cmd: &mut Command) -> Result<Output, ExecutionError> {
 
     let output = child.wait_with_output()?;
 
-    if !output.status.success() {
+    if output.status.success() {
+        Ok(output)
+    } else {
         Err(ExecutionError::NonZeroExitStatus {
             command: display_cmd(cmd),
             output,
         })
-    } else {
-        Ok(output)
     }
 }
 

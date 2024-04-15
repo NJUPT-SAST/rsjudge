@@ -10,7 +10,7 @@ use crate::proto::{
 };
 
 #[derive(Debug, Default)]
-pub(crate) struct JudgeServerImpl;
+pub struct JudgeServerImpl;
 
 #[async_trait]
 impl JudgeService for JudgeServerImpl {

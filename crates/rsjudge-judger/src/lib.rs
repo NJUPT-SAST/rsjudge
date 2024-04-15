@@ -4,4 +4,4 @@
 
 pub mod comparer;
 
-pub use comparer::{default_comparer::DefaultComparer, CompareResult, Comparer};
+pub use comparer::{CompareResult, Comparer, DefaultComparer};

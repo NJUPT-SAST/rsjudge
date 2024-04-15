@@ -8,6 +8,8 @@
 #[macro_use]
 mod error_macros;
 
-pub mod trim;
+mod trim;
+
+pub use trim::{trim_ascii, trim_ascii_end, trim_ascii_start};
 
 pub mod command;

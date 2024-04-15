@@ -11,6 +11,10 @@ use crate::{proto::judge_service_server::JudgeServiceServer, server::JudgeServer
 mod proto;
 mod server;
 
+/// Serve the gRPC judge server on the given address.
+///
+/// # Errors
+///
 pub async fn serve(addr: SocketAddr) -> Result<(), Error> {
     Server::builder()
         .add_service(JudgeServiceServer::new(JudgeServerImpl))
