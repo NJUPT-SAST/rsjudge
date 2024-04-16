@@ -3,7 +3,7 @@
 #![cfg_attr(not(test), warn(clippy::print_stdout, clippy::print_stderr))]
 
 pub use crate::{
-    cap_handle::CapHandle,
+    cap_handle::{Cap, CapHandle},
     error::{Error, Result},
 };
 

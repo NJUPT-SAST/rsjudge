@@ -1,19 +1,26 @@
+//! RAII-style Capability handle.
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use caps::{drop as drop_cap, has_cap, raise as raise_cap, Capability};
+pub use capctl::Cap;
+use capctl::CapState;
+use rsjudge_utils::log_if_error;
 
 use crate::{Error, Result};
-
+/// An RAII-style handle for capabilities.
+///
+/// When constructed, the handle will raise the capability if it is permitted but not effective.
+///
+/// When dropped, the handle will drop the capability if it is the last reference.
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct CapHandle {
-    cap: Capability,
+    cap: Cap,
     ref_count: Rc<()>,
 }
 
 impl CapHandle {
     thread_local! {
         /// Local capability reference count.
-        static LOCAL_CAPS: RefCell<HashMap<Capability,Rc<()>>> = RefCell::new(HashMap::new());
+        static LOCAL_CAPS: RefCell<HashMap<Cap, Rc<()>>> = RefCell::new(HashMap::new());
     }
 
     /// Create a new capability handle.
@@ -23,7 +30,7 @@ impl CapHandle {
     /// # Errors
     ///
     /// Returns an error if the capability is not permitted,
-    pub fn new(cap: Capability) -> Result<Self> {
+    pub fn new(cap: Cap) -> Result<Self> {
         let ref_count = Self::LOCAL_CAPS
             .with_borrow_mut(|local_caps| local_caps.entry(cap).or_default().clone());
         try_raise_cap(cap)?;
@@ -35,7 +42,15 @@ impl Drop for CapHandle {
     fn drop(&mut self) {
         if Rc::strong_count(&self.ref_count) == 1 {
             // Last reference.
-            let _ = drop_cap(None, caps::CapSet::Effective, self.cap);
+
+            let cap = self.cap;
+
+            // We cannot throw errors in `drop`, so we just log and ignore it.
+            let _ = log_if_error!(CapState::get_current().and_then(|mut state| {
+                state.effective.drop(cap);
+                state.set_current()
+            }));
+
             Self::LOCAL_CAPS.with_borrow_mut(|local_caps| {
                 local_caps.remove(&self.cap);
             });
@@ -43,13 +58,16 @@ impl Drop for CapHandle {
     }
 }
 
-fn try_raise_cap(cap: Capability) -> Result<bool> {
-    if has_cap(None, caps::CapSet::Effective, cap)? {
+fn try_raise_cap(cap: Cap) -> Result<()> {
+    assert!(cap.is_supported());
+    let mut state = CapState::get_current()?;
+    if state.effective.has(cap) {
         // Already has cap.
-        Ok(true)
-    } else if has_cap(None, caps::CapSet::Permitted, cap)? {
-        raise_cap(None, caps::CapSet::Effective, cap)?;
-        Ok(true)
+        Ok(())
+    } else if state.permitted.has(cap) {
+        state.effective.add(cap);
+        state.set_current()?;
+        Ok(())
     } else {
         Err(Error::CapRequired(cap))
     }

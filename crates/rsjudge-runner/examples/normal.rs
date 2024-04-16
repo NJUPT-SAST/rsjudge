@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use caps::{read, CapSet};
+use capctl::FullCapState;
 
 fn main() {
     eprintln!("Start normal binary");
-    dbg!(read(None, CapSet::Ambient).unwrap());
-    dbg!(read(None, CapSet::Effective).unwrap());
-    dbg!(read(None, CapSet::Inheritable).unwrap());
-    dbg!(read(None, CapSet::Permitted).unwrap());
+    dbg!(FullCapState::get_current().unwrap());
     eprintln!("End normal binary");
 }

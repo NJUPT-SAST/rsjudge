@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use anyhow::anyhow;
-use caps::Capability;
+use capctl::Cap;
 use rsjudge_runner::{
     user::{builder, runner},
     CapHandle, RunAs,
@@ -17,8 +17,8 @@ async fn main() -> anyhow::Result<()> {
         .await?;
     println!("{}", String::from_utf8_lossy(&self_output.stdout));
 
-    CapHandle::new(Capability::CAP_SETUID)?;
-    CapHandle::new(Capability::CAP_SETGID)?;
+    CapHandle::new(Cap::SETUID)?;
+    CapHandle::new(Cap::SETGID)?;
 
     let builder_output = Command::new("id").run_as(builder()?)?.output().await?;
     println!("{}", String::from_utf8_lossy(&builder_output.stdout));

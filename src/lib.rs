@@ -9,8 +9,7 @@
 use clap::Parser as _;
 use env_logger::Env;
 use log::{debug, info, warn};
-use rsjudge_runner::{user::builder, RunAs as _};
-use rsjudge_utils::command::display_cmd;
+use rsjudge_runner::{user::builder, Cap, CapHandle, RunAs as _};
 use tokio::{fs::read, process::Command};
 
 use crate::cli::Args;
@@ -34,11 +33,17 @@ pub async fn main_impl() -> anyhow::Result<()> {
 
     let config = read(args.config_dir.join("executors.toml")).await?;
 
-    info!("Executing \"id\" as rsjudge-builder");
+    info!("Executing \"captest\" as rsjudge-builder");
 
-    match Command::new("id").run_as(builder()?) {
-        Ok(it) => {
-            debug!("{} exited with {}", display_cmd(it), it.status().await?);
+    CapHandle::new(Cap::SETUID)?;
+    CapHandle::new(Cap::SETGID)?;
+
+    match Command::new("captest")
+        .run_as(builder()?)
+        .and_then(|cmd| Ok(cmd.spawn()?))
+    {
+        Ok(mut child) => {
+            debug!("Command exited with {}", child.wait().await?);
         }
         Err(err) => {
             warn!("Failed to run \"id\" as rsjudge-builder: {}", err);

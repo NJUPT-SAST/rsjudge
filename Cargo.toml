@@ -146,7 +146,6 @@ rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = tru
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 anyhow = "1.0.82"
-caps = "0.5.5"
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true

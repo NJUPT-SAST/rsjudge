@@ -1,6 +1,6 @@
 use std::io::{self, ErrorKind};
 
-use caps::Capability;
+use capctl::Cap;
 use nix::unistd::{setgroups, Gid};
 use rsjudge_utils::log_if_error;
 use tokio::process::Command;
@@ -44,7 +44,7 @@ impl RunAs for Command {
                 .collect();
 
             let set_groups = move || {
-                CapHandle::new(Capability::CAP_SETGID)
+                CapHandle::new(Cap::SETGID)
                     .map_err(|e| io::Error::new(ErrorKind::PermissionDenied, e.to_string()))?;
                 log_if_error!(setgroups(&groups))?;
                 Ok(())
