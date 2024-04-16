@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{env, io::BufRead, path::PathBuf, process::Command};
+use std::{env, io::BufRead, path::PathBuf};
 
 use rsjudge_utils::command::check_output;
+use tokio::process::Command;
 use tonic_build::configure;
 
 /// Generate Rust code from the proto files.
@@ -11,14 +12,16 @@ use tonic_build::configure;
 /// compiles them using `tonic_build`.
 ///
 /// `buf` is needed to run this build script.
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let proto_out_dir = {
         let mut out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
         out_dir.push("proto");
         out_dir
     };
 
-    let buf_ls_files = check_output(Command::new("buf").current_dir("proto").arg("ls-files"))?;
+    let buf_ls_files =
+        check_output(Command::new("buf").current_dir("proto").arg("ls-files")).await?;
 
     let protos = buf_ls_files
         .stdout
@@ -29,7 +32,8 @@ fn main() -> anyhow::Result<()> {
         Command::new("buf")
             .args(["export", "proto", "-o"])
             .arg(&proto_out_dir),
-    )?;
+    )
+    .await?;
 
     let proto_files: Vec<_> = protos.map(|proto| proto_out_dir.join(proto)).collect();
 
@@ -42,16 +46,4 @@ fn main() -> anyhow::Result<()> {
     println!("cargo:rerun-if-changed=build.rs");
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_display_cmd() {
-        let mut cmd = Command::new("echo");
-        cmd.arg("hello");
-        assert_eq!(display_cmd(&cmd), r#""echo" "hello""#);
-    }
 }

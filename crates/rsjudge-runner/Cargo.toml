@@ -11,12 +11,15 @@ rust-version.workspace = true
 description = "Command runner for rsjudge"
 
 [dependencies]
+capctl = "0.2.4"
 caps = "0.5.5"
 log.workspace = true
 nix = { version = "0.28.0", features = ["user"] }
 rsjudge-utils.workspace = true
 thiserror = "1.0.58"
+tokio = { version = "1.37.0", features = ["process", "sync"] }
 uzers = "0.11.3"
+# parking = "2.2.0"
 
 [build-dependencies]
 rustc_version = "0.4.0"

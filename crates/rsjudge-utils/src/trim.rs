@@ -10,7 +10,7 @@
 /// # Examples
 ///
 /// ```
-/// use rsjudge_utils::trim::trim_ascii_start;
+/// use rsjudge_utils::trim_ascii_start;
 /// assert_eq!(trim_ascii_start(b" \t hello world\n"), b"hello world\n");
 /// assert_eq!(trim_ascii_start(b"  "), b"");
 /// assert_eq!(trim_ascii_start(b""), b"");
@@ -38,7 +38,7 @@ pub const fn trim_ascii_start(mut bytes: &[u8]) -> &[u8] {
 /// # Examples
 ///
 /// ```
-/// use rsjudge_utils::trim::trim_ascii_end;
+/// use rsjudge_utils::trim_ascii_end;
 /// assert_eq!(trim_ascii_end(b"\r hello world\n "), b"\r hello world");
 /// assert_eq!(trim_ascii_end(b"  "), b"");
 /// assert_eq!(trim_ascii_end(b""), b"");
@@ -67,7 +67,7 @@ pub const fn trim_ascii_end(mut bytes: &[u8]) -> &[u8] {
 /// # Examples
 ///
 /// ```
-/// use rsjudge_utils::trim::trim_ascii;
+/// use rsjudge_utils::trim_ascii;
 /// assert_eq!(trim_ascii(b"\r hello world\n "), b"hello world");
 /// assert_eq!(trim_ascii(b"  "), b"");
 /// assert_eq!(trim_ascii(b""), b"");

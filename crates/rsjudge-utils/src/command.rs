@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! Functions for working with [`std::process::Command`].
+//! Functions for working with [`tokio::process::Command`].
 
 use std::{
     io::{self, ErrorKind},
     iter,
-    process::{Command, Output, Stdio},
+    process::{Output, Stdio},
 };
 
 use thiserror::Error;
+use tokio::process::Command;
 
 /// Display a command in a human-readable format, suitable for error messages.
 ///
 /// # Examples
 ///
 /// ```
-/// use std::process::Command;
+/// use tokio::process::Command;
 /// use rsjudge_utils::command::display_cmd;
 ///
 /// let mut cmd = Command::new("echo");
@@ -24,6 +25,7 @@ use thiserror::Error;
 /// ```
 #[must_use = "this function returns the formatted command"]
 pub fn display_cmd(cmd: &Command) -> String {
+    let cmd = cmd.as_std();
     let args = iter::once(cmd.get_program())
         .chain(cmd.get_args())
         .map(|arg| arg.to_string_lossy());
@@ -60,33 +62,35 @@ pub enum ExecutionError {
 ///
 /// # Examples
 ///
-/// ```no_run
-/// use std::process::Command;
+/// ```
+/// use tokio::process::Command;
 /// use rsjudge_utils::command::check_output;
-///
+/// # #[tokio::main]
+/// # async fn main() {
 /// let mut cmd = Command::new("echo");
 /// cmd.arg("Hello, world!");
-/// let output = check_output(&mut cmd).unwrap();
+/// let output = check_output(&mut cmd).await.unwrap();
 /// assert_eq!(output.stdout, b"Hello, world!\n");
+/// # }
 /// ```
 ///
 /// # Errors
 ///
 /// This function returns an error if the command was not found, failed to start,
 /// or failed with a non-zero exit status.
-pub fn check_output(cmd: &mut Command) -> Result<Output, ExecutionError> {
+pub async fn check_output(cmd: &mut Command) -> Result<Output, ExecutionError> {
     let child = cmd
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| match e.kind() {
             ErrorKind::NotFound => ExecutionError::NotFound {
-                program: cmd.get_program().to_string_lossy().into_owned(),
+                program: cmd.as_std().get_program().to_string_lossy().into_owned(),
             },
             _ => e.into(),
         })?;
 
-    let output = child.wait_with_output()?;
+    let output = child.wait_with_output().await?;
 
     if output.status.success() {
         Ok(output)
@@ -101,28 +105,30 @@ pub fn check_output(cmd: &mut Command) -> Result<Output, ExecutionError> {
 #[cfg(test)]
 mod tests {
 
+    use tokio::process::Command;
+
     use crate::command::ExecutionError;
 
-    #[test]
-    fn command_not_found_with_custom_error() {
-        let mut cmd = std::process::Command::new("nonexistent");
-        let err = super::check_output(&mut cmd).unwrap_err();
+    #[tokio::test]
+    async fn command_not_found_with_custom_error() {
+        let mut cmd = Command::new("nonexistent");
+        let err = super::check_output(&mut cmd).await.unwrap_err();
         assert!(matches!(err, ExecutionError::NotFound { .. }));
     }
 
-    #[test]
-    fn command_failed_with_custom_error() {
-        let mut cmd = std::process::Command::new("false");
-        let err = super::check_output(&mut cmd).unwrap_err();
+    #[tokio::test]
+    async fn command_failed_with_custom_error() {
+        let mut cmd = Command::new("false");
+        let err = super::check_output(&mut cmd).await.unwrap_err();
 
         assert!(matches!(err, ExecutionError::NonZeroExitStatus { .. }));
     }
 
-    #[test]
-    fn capture_output() {
-        let mut cmd = std::process::Command::new("echo");
+    #[tokio::test]
+    async fn capture_output() {
+        let mut cmd = Command::new("echo");
         cmd.arg("Hello, world!");
-        let output = super::check_output(&mut cmd).unwrap();
+        let output = super::check_output(&mut cmd).await.unwrap();
         assert_eq!(output.stdout, b"Hello, world!\n");
     }
 }

@@ -6,14 +6,12 @@
 //！ An online judge sandbox server in Rust,
 //！ inspired by [go-judge](https://github.com/criyle/go-judge), for SAST OJ.
 
-use std::process::Command;
-
 use clap::Parser as _;
 use env_logger::Env;
 use log::{debug, info, warn};
 use rsjudge_runner::{user::builder, RunAs as _};
 use rsjudge_utils::command::display_cmd;
-use tokio::fs::read;
+use tokio::{fs::read, process::Command};
 
 use crate::cli::Args;
 
@@ -40,7 +38,7 @@ pub async fn main_impl() -> anyhow::Result<()> {
 
     match Command::new("id").run_as(builder()?) {
         Ok(it) => {
-            debug!("{} exited with {}", display_cmd(it), it.status()?);
+            debug!("{} exited with {}", display_cmd(it), it.status().await?);
         }
         Err(err) => {
             warn!("Failed to run \"id\" as rsjudge-builder: {}", err);

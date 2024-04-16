@@ -151,7 +151,7 @@ clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
 mimalloc = "0.1.39"
-tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros"] }
+tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.12"
 
 # Unused for now:
