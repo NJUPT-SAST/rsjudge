@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package rsjudge.v1;
 
-import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
 
 // The judging service definition.
 service JudgeService {
@@ -26,10 +26,12 @@ message SelfTestRequest {
 message SelfTestResponse {
   // The type of the response.
   oneof self_test_response_type {
+    // Message indicating start of compilation.
+    google.protobuf.Empty compile_start = 1;
     // Message indicating the compile result.
-    CompileInfo compile_info = 1;
+    CompileInfo compile_info = 2;
     // Message indicating the self-test result.
-    SelfTestSummary summary = 2;
+    SelfTestSummary summary = 3;
   }
 }
 
@@ -59,8 +61,10 @@ message SelfTestSummary {
   //
   // This is not used by the judge system, but may be useful for debugging.
   string stderr = 3;
-  // Execution time of the program. Unset if TLE and killed by judger.
-  optional google.protobuf.Duration execution_time = 4;
+  // Execution time of the program, in ms. Unset if TLE and killed by judger.
+  optional int32 execution_time = 4;
+  // Memory usage of the program, in kiB. Unset if MLE and killed by judger.
+  optional int32 memory_usage = 5;
 }
 
 // The request containing the user's code and judge info.
@@ -71,24 +75,28 @@ message SubmitRequest {
   string language = 1;
   // The code to be judged.
   string code = 2;
-  // The test case id.
+  // The problem id.
+  int32 problem_id = 3;
+  // The cases id.
   //
   // If the test case is updated, the test case id MUST be changed, so that the judger can request the latest test case.
-  int32 test_case_id = 3;
+  int32 cases_id = 4;
 }
 
 // The response message containing the judge results.
 message SubmitResponse {
   // The type of the response.
   oneof submit_response_type {
+    // Message indicating start of compilation.
+    google.protobuf.Empty compile_start = 1;
     // Message indicating the compile result.
-    CompileInfo compile_info = 1;
+    CompileInfo compile_info = 2;
     // Message indicating the single case judge result.
     //
     // Case info may not be sent in order, so case id SHOULD be checked.
-    CaseInfo case_info = 2;
+    CaseInfo case_info = 3;
     // Message indicating the judge result of all cases.
-    CasesSummary cases_summary = 3;
+    CasesSummary cases_summary = 4;
   }
 }
 
@@ -120,8 +128,18 @@ enum JudgeResult {
   JUDGE_RESULT_UNSPECIFIED = 0;
   // The judge result is Accepted (AC).
   JUDGE_RESULT_ACCEPTED = 1;
+  // The judge result is Compilation Error (CE).
+  JUDGE_RESULT_COMPILE_ERROR = 2;
   // The judge result is Wrong Answer (WA).
-  JUDGE_RESULT_WRONG_ANSWER = 2;
+  JUDGE_RESULT_WRONG_ANSWER = 3;
+  // The judge result is Presentation Error (PE).
+  JUDGE_RESULT_PRESENTATION_ERROR = 4;
   // The judge result is Runtime Error (RE).
-  JUDGE_RESULT_RUNTIME_ERROR = 3;
+  JUDGE_RESULT_RUNTIME_ERROR = 5;
+  // The judge result is Time Limit Exceeded (TLE).
+  JUDGE_RESULT_TIME_LIMIT_EXCEEDED = 6;
+  // The judge result is Memory Limit Exceeded (MLE).
+  JUDGE_RESULT_MEMORY_LIMIT_EXCEEDED = 7;
+  // The judge result is Output Limit Exceeded (OLE).
+  JUDGE_RESULT_OUTPUT_LIMIT_EXCEEDED = 8;
 }

@@ -3,4 +3,56 @@ syntax = "proto3";
 package register.v1;
 
 // The register service definition.
-service RegisterService {}
+service RegisterService {
+  // Register a new rsjudge instance.
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+}
+
+// Request to register a new rsjudge instance.
+message RegisterRequest {
+  // List of languages supported by the rsjudge instance.
+  repeated Language languages = 1;
+  // The address of the backend server.
+  int32 port = 2;
+  // System information. (maybe in JSON)
+  string system_info = 3;
+}
+
+// A language supported by the rsjudge instance.
+message Language {
+  // The name of the language.
+  string name = 1;
+  // The highlight scheme of the language.
+  string language_base = 2;
+  // The file extension of the language.
+  optional string info = 3;
+}
+
+// Response to a new registered rsjudge instance.
+message RegisterResponse {
+  // The id for the rsjudge instance.
+  int32 id = 1;
+}
+
+// Fetch cases from backend server.
+service CaseService {
+  // Fetch cases from the backend server.
+  rpc FetchCases(FetchCasesRequest) returns (FetchCasesResponse) {}
+}
+
+// Request to fetch cases from the backend server.
+message FetchCasesRequest {
+  // The id of the problem.
+  int32 problem_id = 1;
+}
+
+// Response to fetch cases from the backend server.
+message FetchCasesResponse {
+  // The id of the cases requested.
+  int32 cases_id = 1;
+  // The tarball of the cases, with config file.
+  //
+  // TODO: The tarball should be compressed in a specified format.
+  //       Maybe .tar.zst
+  bytes tarball = 2;
+}

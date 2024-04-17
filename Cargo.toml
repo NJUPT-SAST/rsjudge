@@ -152,6 +152,7 @@ log.workspace = true
 mimalloc = "0.1.39"
 tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.12"
+sysinfo = { version = "0.30.10", features = ["serde"] }
 
 # Unused for now:
 # cgroups = "0.1.0"
