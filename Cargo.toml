@@ -4,6 +4,7 @@
 members = [
     "crates/rsjudge-grpc",
     "crates/rsjudge-judger",
+    "crates/rsjudge-rabbitmq",
     "crates/rsjudge-rest",
     "crates/rsjudge-runner",
     "crates/rsjudge-utils",
@@ -143,6 +144,7 @@ rsjudge-utils.workspace = true
 
 # Optional dependencies
 rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
+rsjudge-rabbitmq = { version = "0.1.0", path = "crates/rsjudge-rabbitmq", optional = true }
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 anyhow = "1.0.82"
@@ -150,9 +152,9 @@ clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
 mimalloc = "0.1.39"
+sysinfo = { version = "0.30.10", features = ["serde"] }
 tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.12"
-sysinfo = { version = "0.30.10", features = ["serde"] }
 
 # Unused for now:
 # cgroups = "0.1.0"
@@ -167,6 +169,7 @@ sysinfo = { version = "0.30.10", features = ["serde"] }
 [features]
 grpc = ["dep:rsjudge-grpc"]
 rest = ["dep:rsjudge-rest"]
+rabbitmq = ["dep:rsjudge-rabbitmq"]
 default = ["grpc"]
 
 [build-dependencies]

@@ -6,24 +6,27 @@
     "packaging",
     "rsjudge-grpc",
     "rsjudge-judger",
+    "rsjudge-rabbitmq",
     "rsjudge-rest",
     "rsjudge-runner",
     "rsjudge-utils",
     "xtask"
   ],
   "editor.defaultFormatter": "dprint.dprint",
-  "[json]": {
-    "editor.defaultFormatter": "dprint.dprint"
-  },
   "[dockerfile]": {
     "editor.defaultFormatter": "dprint.dprint"
   },
-  "[toml]": {
+  "[json]": {
     "editor.defaultFormatter": "dprint.dprint"
   },
   "[rust]": {
     "editor.defaultFormatter": "dprint.dprint"
   },
+  "[toml]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
   "rust-analyzer.check.command": "clippy",
-  "rust-analyzer.linkedProjects": ["./Cargo.toml"]
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml"
+  ]
 }
