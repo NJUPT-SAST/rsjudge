@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //! RAII-style Capability handle.
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 

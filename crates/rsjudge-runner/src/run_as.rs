@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 use std::io::{self, ErrorKind};
 
 use capctl::Cap;
@@ -11,10 +13,11 @@ use crate::{
     error::{Error, Result},
 };
 
+/// A trait to allow running a [`tokio::process::Command`] as another user.
 pub trait RunAs {
     type Error;
 
-    /// Run the command as the given user.
+    /// Run the [`Command`] as the given [`User`].
     ///
     /// This function will set the UID, GID, and supplementary groups of the command.
     ///
