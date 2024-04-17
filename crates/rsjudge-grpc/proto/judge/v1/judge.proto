@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package rsjudge.v1;
+package judge.v1;
 
 import "google/protobuf/empty.proto";
 

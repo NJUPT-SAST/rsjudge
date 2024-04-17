@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package cases.v1;
+
+// Fetch cases from backend server.
+service CasesService {
+  // Fetch cases from the backend server.
+  rpc FetchCases(FetchCasesRequest) returns (FetchCasesResponse) {}
+}
+
+// Request to fetch cases from the backend server.
+message FetchCasesRequest {
+  // The id of the problem.
+  int32 problem_id = 1;
+}
+
+// Response to fetch cases from the backend server.
+message FetchCasesResponse {
+  // The id of the cases requested.
+  int32 cases_id = 1;
+  // The tarball of the cases, with config file.
+  //
+  // TODO: The tarball should be compressed in a specified format.
+  //       Maybe .tar.zst
+  bytes tarball = 2;
+}
