@@ -23,7 +23,7 @@ pub enum Error {
 /// Convert a [`capctl::Error`] to an [`Error::Io`].
 impl From<capctl::Error> for Error {
     fn from(value: capctl::Error) -> Self {
-        Self::Io(io::Error::from_raw_os_error(value.code()))
+        Self::Io(io::Error::from(value))
     }
 }
 
