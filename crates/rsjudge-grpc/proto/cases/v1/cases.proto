@@ -5,7 +5,9 @@ package cases.v1;
 // Fetch cases from backend server.
 service CasesService {
   // Fetch cases from the backend server.
-  rpc FetchCases(FetchCasesRequest) returns (FetchCasesResponse) {}
+  //
+  // Server should return cases in chunks. Each chunk should be around 1kiB.
+  rpc FetchCases(FetchCasesRequest) returns (stream FetchCasesResponse);
 }
 
 // Request to fetch cases from the backend server.
@@ -18,9 +20,12 @@ message FetchCasesRequest {
 message FetchCasesResponse {
   // The id of the cases requested.
   int32 cases_id = 1;
-  // The tarball of the cases, with config file.
+  // The id of the chunk.
+  int32 chunk_id = 2;
+  // Chunk of the tarball, containing poblem config and cases.
   //
-  // TODO: The tarball should be compressed in a specified format.
-  //       Maybe .tar.zst
-  bytes tarball = 2;
+  // Chunk size should be around 1kiB.
+  //
+  // The tarball should be compressed in zstd.
+  bytes chunk = 3;
 }

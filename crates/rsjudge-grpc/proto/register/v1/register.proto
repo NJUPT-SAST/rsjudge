@@ -5,7 +5,7 @@ package register.v1;
 // The register service definition.
 service RegisterService {
   // Register a new rsjudge instance.
-  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc Register(RegisterRequest) returns (RegisterResponse);
 }
 
 // Request to register a new rsjudge instance.
