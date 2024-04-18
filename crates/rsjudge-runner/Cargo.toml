@@ -12,6 +12,7 @@ description = "Command runner for rsjudge"
 
 [dependencies]
 capctl = "0.2.4"
+cgroups-rs = "0.3.4"
 log.workspace = true
 nix = { version = "0.28.0", features = ["user"] }
 rsjudge-utils.workspace = true
