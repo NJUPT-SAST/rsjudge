@@ -3,6 +3,7 @@
     "actions",
     "config",
     "deps",
+    "devcontainer",
     "packaging",
     "rsjudge-grpc",
     "rsjudge-judger",

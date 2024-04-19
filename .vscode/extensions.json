@@ -3,6 +3,7 @@
     "asciidoctor.asciidoctor-vscode",
     "bufbuild.vscode-buf",
     "dprint.dprint",
+    "emberian.rustup",
     "rust-lang.rust-analyzer",
     "serayuzgur.crates",
     "tamasfe.even-better-toml",

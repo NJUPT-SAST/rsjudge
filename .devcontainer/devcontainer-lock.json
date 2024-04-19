@@ -1,0 +1,19 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-contrib/features/dprint-asdf:2": {
+      "version": "2.0.14",
+      "resolved": "ghcr.io/devcontainers-contrib/features/dprint-asdf@sha256:056ad0c43ded376371c6a80d6067453a37316adaf03f9e467a09ecba7c13669e",
+      "integrity": "sha256:056ad0c43ded376371c6a80d6067453a37316adaf03f9e467a09ecba7c13669e"
+    },
+    "ghcr.io/devcontainers-contrib/features/protoc:1": {
+      "version": "1.0.2",
+      "resolved": "ghcr.io/devcontainers-contrib/features/protoc@sha256:436d25961d1c3bbc39a565c004d0eca8dd9c0cb80c0319d089d0aa49dc2ad070",
+      "integrity": "sha256:436d25961d1c3bbc39a565c004d0eca8dd9c0cb80c0319d089d0aa49dc2ad070"
+    },
+    "ghcr.io/marcozac/devcontainer-features/buf:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/marcozac/devcontainer-features/buf@sha256:a7ce65c9ab101ea5d0f5378e49c260df1d3123171d3219cd2060163d6406dd26",
+      "integrity": "sha256:a7ce65c9ab101ea5d0f5378e49c260df1d3123171d3219cd2060163d6406dd26"
+    }
+  }
+}
