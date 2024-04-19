@@ -7,6 +7,10 @@ service CasesService {
   // Fetch cases from the backend server.
   //
   // Server should return cases in chunks. Each chunk should be around 1kiB.
+  //
+  // Server should return all chunks in order, or correctly cancel the stream.
+  //
+  // Server should also put a `cases_id` item in metadata.
   rpc FetchCases(FetchCasesRequest) returns (stream FetchCasesResponse);
 }
 
@@ -18,14 +22,10 @@ message FetchCasesRequest {
 
 // Response to fetch cases from the backend server.
 message FetchCasesResponse {
-  // The id of the cases requested.
-  int32 cases_id = 1;
-  // The id of the chunk.
-  int32 chunk_id = 2;
   // Chunk of the tarball, containing poblem config and cases.
   //
-  // Chunk size should be around 1kiB.
+  // Chunk size should be around 1kiB, except the last chunk.
   //
   // The tarball should be compressed in zstd.
-  bytes chunk = 3;
+  bytes chunk = 1;
 }
