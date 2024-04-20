@@ -4,7 +4,7 @@
 #![doc(html_logo_url = "https://cdn.jsdelivr.net/gh/NJUPT-SAST/rsjudge@main/assets/rsjudge.svg")]
 
 //！ An online judge sandbox server in Rust,
-//！ inspired by [go-judge](https://github.com/criyle/go-judge), for SAST OJ.
+//！ inspired by [go-judge](https://github.com/criyle/go-judge), for SASTOJ.
 
 use clap::Parser as _;
 use env_logger::Env;

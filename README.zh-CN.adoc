@@ -5,7 +5,7 @@
 
 image:assets/rsjudge.svg[Rsjudge logo]
 
-一个用 Rust 编写的在线评测沙箱服务器，受到 https://github.com/criyle/go-judge[go-judge] 的启发，服务于 SAST OJ。
+一个用 Rust 编写的在线评测沙箱服务器，受到 https://github.com/criyle/go-judge[go-judge] 的启发，服务于 SASTOJ。
 
 == 特性
 
@@ -14,7 +14,7 @@ image:assets/rsjudge.svg[Rsjudge logo]
 * 支持自我测试和最终提交。
 * 通过 TOML 配置文件，轻松自定义编译和执行过程。
 * 可以监控和限制资源使用。
-* 与 SAST OJ 良好兼容。
+* 与 SASTOJ 良好兼容。
 * 支持 RESTful API 和 gRPC，可通过 feature flag 和配置文件启用或禁用
 * 采用 SSE 或 gRPC 流实时流式返回评测结果。
 * 支持使用插件进行扩展。

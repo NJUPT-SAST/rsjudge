@@ -3,7 +3,7 @@
 
 image:assets/rsjudge.svg[Rsjudge logo]
 
-An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for SAST OJ.
+An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for SASTOJ.
 
 == Features
 
@@ -12,7 +12,7 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 * Supporting both self-testing and final submission.
 * Customizable compilation and execution process with TOML config file.
 * Monitoring and limiting resource usage.
-* Works well with SAST OJ.
+* Works well with SASTOJ.
 * RESTful API and gRPC support, enable or disable them with feature flags and config file.
 * Streaming test results in real-time with SSE or gRPC stream.
 * Highly extensible with plugins.
