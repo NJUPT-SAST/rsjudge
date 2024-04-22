@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [package]
-name = "rsjudge-rabbitmq"
+name = "rsjudge-traits"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -12,11 +12,5 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-amqprs = { version = "1.5.4", features = ["urispec"] }
-thiserror = "1.0.58"
-tokio = "1.37.0"
-
-serde = { version = "1.0.198", features = ["derive"], optional = true }
-
-[features]
-serde = ["dep:serde"]
+async-trait = "0.1.80"
+serde = "1.0.198"

@@ -15,6 +15,7 @@ use tokio::{fs::read, process::Command};
 use crate::cli::Args;
 
 mod cli;
+mod config;
 
 /// # Errors
 ///

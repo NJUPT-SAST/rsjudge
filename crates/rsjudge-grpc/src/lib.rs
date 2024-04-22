@@ -8,6 +8,7 @@ use tonic::transport::{Error, Server};
 
 use crate::{proto::judge_service_server::JudgeServiceServer, server::JudgeServerImpl};
 
+pub mod config;
 mod proto;
 mod server;
 

@@ -7,6 +7,7 @@ members = [
     "crates/rsjudge-rabbitmq",
     "crates/rsjudge-rest",
     "crates/rsjudge-runner",
+    "crates/rsjudge-traits",
     "crates/rsjudge-utils",
     "xtask",
 ]
@@ -48,8 +49,8 @@ assets = [
         "644",
     ],
     [
-        "templates/server.toml",
-        "etc/rsjudge/server.toml",
+        "templates/services.toml",
+        "etc/rsjudge/services.toml",
         "644",
     ],
     [
@@ -81,7 +82,7 @@ assets = [
 copyright = "2023-2024 NJUPT-SAST"
 changelog = "packaging/deb/changelog"
 features = ["default"]
-conf-files = ["/etc/rsjudge/server.toml", "/etc/rsjudge/executors.toml"]
+conf-files = ["/etc/rsjudge/services.toml", "/etc/rsjudge/executors.toml"]
 extended-description = "An online judge sandbox server in Rust, inspired by go-judge, for SASTOJ."
 maintainer = "Xiaoqing Xuan <jswn@jswn9945.xyz>"
 maintainer-scripts = "packaging/deb/"
@@ -152,13 +153,13 @@ clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
 mimalloc = "0.1.39"
+serde = { version = "1.0.197", features = ["derive"] }
 sysinfo = { version = "0.30.10", features = ["serde"] }
 tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.12"
 
 # Unused for now:
 # nix = { version = "0.27.1", features = ["fs"] }
-# serde = { version = "1.0.197", features = ["derive"] }
 # strfmt = "0.2.4"
 # uzers = "0.11.3"
 
@@ -166,10 +167,10 @@ toml = "0.8.12"
 # tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
 
 [features]
-grpc = ["dep:rsjudge-grpc"]
+grpc = ["dep:rsjudge-grpc", "rsjudge-grpc/serde"]
 rest = ["dep:rsjudge-rest"]
-rabbitmq = ["dep:rsjudge-rabbitmq"]
-default = ["grpc"]
+rabbitmq = ["dep:rsjudge-rabbitmq", "rsjudge-rabbitmq/serde"]
+default = ["grpc", "rest", "rabbitmq"]
 
 [build-dependencies]
 clap = { version = "4.5.4", features = ["derive"] }

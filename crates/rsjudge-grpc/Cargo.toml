@@ -23,8 +23,15 @@ tokio = { version = "1.37.0", features = ["net"] }
 tokio-stream = "0.1.15"
 tonic = "0.11.0"
 
+# Optional dependencies
+serde = { version = "1.0.198", optional = true, features = ["derive"] }
+axum = "0.7.5"
+
 [build-dependencies]
 anyhow = "1.0.82"
 rsjudge-utils.workspace = true
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread", "process"] }
 tonic-build = "0.11.0"
+
+[features]
+serde = ["dep:serde"]

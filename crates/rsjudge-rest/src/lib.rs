@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
+pub mod config;
+
 use std::{io, net::SocketAddr};
 
 use axum::{routing::get, Router};
