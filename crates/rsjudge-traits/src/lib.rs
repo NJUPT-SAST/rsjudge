@@ -3,4 +3,7 @@
 mod judger;
 mod service;
 
-pub use crate::{judger::Judger, service::Service};
+pub use crate::{
+    judger::Judger,
+    service::{Config, Service},
+};

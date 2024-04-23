@@ -1236,6 +1236,7 @@ dependencies = [
  "log",
  "prost",
  "prost-types",
+ "rsjudge-traits",
  "rsjudge-utils",
  "serde",
  "tokio",
@@ -1260,6 +1261,7 @@ name = "rsjudge-rabbitmq"
 version = "0.1.0"
 dependencies = [
  "amqprs",
+ "rsjudge-traits",
  "serde",
  "thiserror",
  "tokio",
@@ -1270,6 +1272,7 @@ name = "rsjudge-rest"
 version = "0.1.0"
 dependencies = [
  "axum 0.7.5",
+ "rsjudge-traits",
  "serde",
  "tokio",
 ]
@@ -1296,6 +1299,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "serde",
+ "tokio",
 ]
 
 [[package]]

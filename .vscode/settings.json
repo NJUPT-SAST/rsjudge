@@ -10,6 +10,7 @@
     "rsjudge-rabbitmq",
     "rsjudge-rest",
     "rsjudge-runner",
+    "rsjudge-traits",
     "rsjudge-utils",
     "xtask"
   ],
