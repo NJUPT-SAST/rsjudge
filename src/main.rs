@@ -3,9 +3,11 @@
 #![cfg_attr(not(test), warn(clippy::print_stdout, clippy::print_stderr))]
 
 use log::error;
+#[cfg(feature = "mimalloc")]
 use mimalloc::MiMalloc;
 use rsjudge::main_impl;
 
+#[cfg(feature = "mimalloc")]
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 

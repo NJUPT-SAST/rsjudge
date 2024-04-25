@@ -152,7 +152,7 @@ anyhow = "1.0.82"
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
-mimalloc = "0.1.41"
+mimalloc = { version = "0.1.41", optional = true }
 serde = { version = "1.0.197", features = ["derive"] }
 sysinfo = { version = "0.30.11", features = ["serde"] }
 tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
@@ -161,16 +161,13 @@ toml = "0.8.12"
 # Unused for now:
 # nix = { version = "0.27.1", features = ["fs"] }
 # strfmt = "0.2.4"
-# uzers = "0.11.3"
-
-# [dev-dependencies]
-# tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
 
 [features]
 grpc = ["dep:rsjudge-grpc", "rsjudge-grpc/serde"]
 rest = ["dep:rsjudge-rest"]
 rabbitmq = ["dep:rsjudge-rabbitmq", "rsjudge-rabbitmq/serde"]
-default = ["grpc", "rest", "rabbitmq"]
+mimalloc = ["dep:mimalloc"]
+default = ["grpc", "rest", "rabbitmq", "mimalloc"]
 
 [build-dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
