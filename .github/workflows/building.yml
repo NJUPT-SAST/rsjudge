@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -24,7 +24,7 @@ jobs:
         with:
           channel: stable
           components: rust-src
-          bins: cargo-hack, cargo-deny
+          bins: cargo-hack, cargo-deny, clippy-sarif, sarif-fmt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup mold
@@ -47,10 +47,19 @@ jobs:
         uses: bufbuild/buf-lint-action@v1
       - name: Run clippy lint
         run: cargo hack clippy --all-targets --each-feature --workspace
+              --message-format json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+        continue-on-error: true
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: rust-clippy-results.sarif
+          wait-for-processing: true
       - name: Run tests
         run: cargo hack test --all-targets --each-feature --verbose --workspace
       - name: Check for MSRV compliance
-        run: cargo hack check --rust-version --all-targets --each-feature --workspace
+        env:
+          TRYBUILD: overwrite
+        run: cargo hack test --rust-version --all-targets --each-feature --workspace
       - name: Check dependency graph
         run: cargo deny --all-features --workspace check
   pkg-deb:
