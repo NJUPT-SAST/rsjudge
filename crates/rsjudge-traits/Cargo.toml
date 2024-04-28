@@ -13,5 +13,5 @@ rust-version.workspace = true
 
 [dependencies]
 async-trait = "0.1.80"
-serde = "1.0.198"
+serde.workspace = true
 tokio = { version = "1.37.0", features = ["process"] }
