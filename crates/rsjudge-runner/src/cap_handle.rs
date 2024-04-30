@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! RAII-style Capability handle.
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
 pub use capctl::Cap;
 use capctl::CapState;
@@ -22,7 +26,7 @@ pub struct CapHandle {
 impl CapHandle {
     thread_local! {
         /// Local capability reference count.
-        static LOCAL_CAPS: RefCell<HashMap<Cap, Rc<()>>> = RefCell::new(HashMap::new());
+        static LOCAL_CAPS: RefCell<HashMap<Cap, Weak<()>>> = RefCell::new(HashMap::new());
     }
 
     /// Create a new capability handle.
@@ -33,14 +37,25 @@ impl CapHandle {
     ///
     /// Returns an error if the capability is not permitted,
     pub fn new(cap: Cap) -> Result<Self> {
-        let ref_count = Self::LOCAL_CAPS
-            .with_borrow_mut(|local_caps| local_caps.entry(cap).or_default().clone());
-        try_raise_cap(cap)?;
-        Ok(Self { cap, ref_count })
+        let result: Result<Self> = Self::LOCAL_CAPS.with_borrow_mut(move |local_caps| {
+            if let Some(weak) = local_caps.get(&cap) {
+                if let Some(ref_count) = weak.upgrade() {
+                    return Ok(Self { cap, ref_count });
+                }
+            }
+
+            try_raise_cap(cap)?;
+            let ref_count = Rc::new(());
+            local_caps.insert(cap, Rc::downgrade(&ref_count));
+
+            Ok(Self { cap, ref_count })
+        });
+        result
     }
 }
 
 impl Drop for CapHandle {
+    #[allow(clippy::print_stderr)]
     fn drop(&mut self) {
         if Rc::strong_count(&self.ref_count) == 1 {
             // Last reference.

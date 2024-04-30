@@ -1314,6 +1314,7 @@ dependencies = [
  "log",
  "nix 0.28.0",
  "rsjudge-utils",
+ "rustversion",
  "thiserror",
  "tokio",
  "uzers",

@@ -26,6 +26,10 @@ enum Command {
     },
     /// Build Docker image.
     Docker,
+    /// Run integrated capability checks on project.
+    ///
+    /// Requires `sudo` to set capabilities.
+    CapTest,
     /// Debug a command.
     #[cfg(feature = "dbg")]
     Debug,
@@ -46,6 +50,18 @@ fn main() -> anyhow::Result<()> {
             },
         },
         Command::Docker => cmd!(docker build "-t" rsjudge "."),
+        Command::CapTest => cmd! {
+            cargo build "--examples" "--workspace";
+
+            echo "Setting capabilities for demo and exploit binaries with sudo.";
+
+            sudo setcap "cap_setuid,cap_setgid=p" "target/debug/examples/demo";
+            sudo setcap "cap_setuid,cap_setgid,cap_dac_read_search=p" "target/debug/examples/exploit";
+
+            "target/debug/examples/demo";
+            "target/debug/examples/exploit";
+        },
+
         #[cfg(feature = "dbg")]
         Command::Debug => return Ok(()),
     }
