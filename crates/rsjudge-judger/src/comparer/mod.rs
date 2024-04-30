@@ -13,7 +13,6 @@ pub use self::default_comparer::DefaultComparer;
 pub enum CompareResult {
     Accepted,
     WrongAnswer,
-    #[allow(unused_labels)]
     PresentationError,
 }
 
