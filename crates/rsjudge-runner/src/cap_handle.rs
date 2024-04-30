@@ -12,6 +12,10 @@ use capctl::CapState;
 use rsjudge_utils::log_if_error;
 
 use crate::{Error, Result};
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+struct NonCopy;
+
 /// An RAII-style handle for capabilities.
 ///
 /// When constructed, the handle will raise the capability if it is permitted but not effective.
@@ -20,13 +24,13 @@ use crate::{Error, Result};
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct CapHandle {
     cap: Cap,
-    ref_count: Rc<()>,
+    rc: Rc<NonCopy>,
 }
 
 impl CapHandle {
     thread_local! {
         /// Local capability reference count.
-        static LOCAL_CAPS: RefCell<HashMap<Cap, Weak<()>>> = RefCell::new(HashMap::new());
+        static LOCAL_CAPS: RefCell<HashMap<Cap, Weak<NonCopy>>> = RefCell::new(HashMap::new());
     }
 
     /// Create a new capability handle.
@@ -37,27 +41,31 @@ impl CapHandle {
     ///
     /// Returns an error if the capability is not permitted,
     pub fn new(cap: Cap) -> Result<Self> {
-        let result: Result<Self> = Self::LOCAL_CAPS.with_borrow_mut(move |local_caps| {
-            if let Some(weak) = local_caps.get(&cap) {
-                if let Some(ref_count) = weak.upgrade() {
-                    return Ok(Self { cap, ref_count });
-                }
-            }
+        Self::LOCAL_CAPS.with_borrow_mut(|local_caps| {
+            local_caps
+                .get(&cap)
+                .and_then(|weak| weak.upgrade())
+                .map(|rc| Self { cap, rc })
+                .map_or_else(
+                    || {
+                        try_raise_cap(cap)?;
+                        let rc = Rc::new_cyclic(|weak| {
+                            local_caps.insert(cap, weak.clone());
+                            NonCopy
+                        });
 
-            try_raise_cap(cap)?;
-            let ref_count = Rc::new(());
-            local_caps.insert(cap, Rc::downgrade(&ref_count));
-
-            Ok(Self { cap, ref_count })
-        });
-        result
+                        Ok(Self { cap, rc })
+                    },
+                    Ok,
+                )
+        })
     }
 }
 
 impl Drop for CapHandle {
     #[allow(clippy::print_stderr)]
     fn drop(&mut self) {
-        if Rc::strong_count(&self.ref_count) == 1 {
+        if Rc::strong_count(&self.rc) == 1 {
             // Last reference.
 
             let cap = self.cap;
