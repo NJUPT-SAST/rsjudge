@@ -8,8 +8,8 @@ use tokio::process::Command;
 use uzers::User;
 
 use crate::{
-    cap_handle::CapHandle,
     error::{Error, Result},
+    utils::cap_handle::CapHandle,
 };
 
 /// A trait to allow running a [`tokio::process::Command`] as another user.

@@ -4,18 +4,15 @@
 #![cfg_attr(setgroups, feature(setgroups))]
 
 pub use crate::{
-    cap_handle::{Cap, CapHandle},
     error::{Error, Result},
+    utils::cap_handle::{Cap, CapHandle},
 };
 
 mod error;
 
-mod cap_handle;
-
 mod macros;
 mod run_as;
+pub mod utils;
 pub use run_as::RunAs;
 
 pub mod user;
-
-mod resources;

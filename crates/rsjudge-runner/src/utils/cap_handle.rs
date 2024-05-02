@@ -21,6 +21,10 @@ struct NonCopy;
 /// When constructed, the handle will raise the capability if it is permitted but not effective.
 ///
 /// When dropped, the handle will drop the capability if it is the last reference.
+///
+/// # Note
+///
+/// You can use [`use_caps!`][crate::use_caps] macro to simplify the usage of this struct.
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct CapHandle {
     cap: Cap,

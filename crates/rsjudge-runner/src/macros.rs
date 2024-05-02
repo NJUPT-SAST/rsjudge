@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 #[macro_export]
 /// Use capabilities in the current thread, in a declarative way.
 ///

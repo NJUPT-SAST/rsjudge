@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 #[rustversion::nightly]
 fn main() {
     // tokio::process::Command has neither groups() nor as_std_mut(),
