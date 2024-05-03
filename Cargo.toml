@@ -25,7 +25,7 @@ rust-version = "1.74"
 [workspace.dependencies]
 log = "0.4.21"
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
-serde = { version = "1.0.199", features = ["derive"] }
+serde = { version = "1.0.200", features = ["derive"] }
 
 [package]
 name = "rsjudge"
