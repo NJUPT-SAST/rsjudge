@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  lint-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +37,7 @@ jobs:
         uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          version: 26.x
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.4
       - name: Enable sccache
@@ -87,6 +88,7 @@ jobs:
         uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          version: 26.x
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.4
       - name: Enable sccache
