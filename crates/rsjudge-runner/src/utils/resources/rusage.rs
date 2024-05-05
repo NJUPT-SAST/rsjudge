@@ -82,9 +82,7 @@ impl WaitForResourceUsage for Child {
             return Ok((exit_status, None));
         };
         let (exit_status, resource_usage) =
-            tokio::task::spawn_blocking(move || safe_wait4(pid as _, 0))
-                .await
-                .unwrap()?;
+            tokio::task::spawn_blocking(move || safe_wait4(pid as _, 0)).await??;
         Ok((exit_status, Some(resource_usage)))
     }
 }
@@ -135,7 +133,7 @@ mod tests {
             .arg("10")
             .spawn_with_resource_limit(ResourceLimit::new(
                 Some(Duration::from_secs(1)),
-                Some(Duration::from_secs(1)),
+                Some(Duration::from_secs_f64(1.5)),
                 None,
                 None,
             ))
@@ -147,7 +145,9 @@ mod tests {
         let error = child.wait_for_resource_usage().await.unwrap_err();
         let elapsed = start.elapsed();
 
-        assert!(elapsed < Duration::from_secs_f32(1.1));
+        dbg!(elapsed);
+
+        assert!(elapsed < Duration::from_secs_f32(1.52));
         assert!(matches!(error, Error::TimeLimitExceeded));
     }
 }
