@@ -19,4 +19,4 @@ tokio = { version = "1.37.0", features = ["process", "macros", "rt-multi-thread"
 
 [dev-dependencies]
 anyhow = "1.0.82"
-trybuild = "1.0.93"
+trybuild = "1.0.94"
