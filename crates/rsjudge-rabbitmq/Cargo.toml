@@ -13,7 +13,7 @@ rust-version.workspace = true
 
 [dependencies]
 amqprs = { version = "1.6.0", features = ["urispec"] }
-thiserror = "1.0.59"
+thiserror = "1.0.60"
 tokio = "1.37.0"
 
 rsjudge-traits = { version = "0.1.0", path = "../rsjudge-traits" }
