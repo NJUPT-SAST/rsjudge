@@ -14,24 +14,30 @@ use crate::{CompareResult, Comparer};
 /// A default comparer implementation with basic configurations.
 #[must_use = "Comparer makes no sense if it is not used"]
 pub struct DefaultComparer {
+    case_sensitive: bool,
     ignore_trailing_whitespace: bool,
     ignore_trailing_newline: bool,
 }
 
 impl DefaultComparer {
-    pub const fn new(ignore_trailing_whitespace: bool, ignore_trailing_newline: bool) -> Self {
+    pub const fn new(
+        case_sensitive: bool,
+        ignore_trailing_whitespace: bool,
+        ignore_trailing_newline: bool,
+    ) -> Self {
         Self {
+            case_sensitive,
             ignore_trailing_whitespace,
             ignore_trailing_newline,
         }
     }
 
     pub const fn common() -> Self {
-        Self::new(true, true)
+        Self::new(true, true, true)
     }
 
     pub const fn exact_match() -> Self {
-        Self::new(false, false)
+        Self::new(true, false, false)
     }
 
     fn compare_line(&self, out_line: &[u8], ans_line: &[u8]) -> bool {
@@ -52,7 +58,11 @@ impl DefaultComparer {
             (out, ans)
         };
 
-        out == ans
+        if self.case_sensitive {
+            out == ans
+        } else {
+            out.eq_ignore_ascii_case(ans)
+        }
     }
 }
 
@@ -97,7 +107,7 @@ impl Comparer for DefaultComparer {
 
 #[cfg(test)]
 mod tests {
-    use std::{any::type_name, io};
+    use std::io;
 
     use tempfile::TempDir;
     use tokio::{
@@ -129,11 +139,11 @@ mod tests {
         {
             File::create(&out_path)
                 .await?
-                .write_all(b"Hello, World!\n")
+                .write_all(b"Hello, world!\n")
                 .await?;
             File::create(&ans_path)
                 .await?
-                .write_all(b"Hello, World!\n")
+                .write_all(b"Hello, world!\n")
                 .await?;
         }
 
@@ -150,8 +160,8 @@ mod tests {
 
     #[tokio::test]
     async fn compare_with_trailing_whitespace() -> io::Result<()> {
-        let out = b"Hello, World! \n";
-        let ans = b"Hello, World!\n";
+        let out = b"Hello, world! \n";
+        let ans = b"Hello, world!\n";
         let common_comparer = DefaultComparer::common();
         let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
         assert_eq!(common_result, CompareResult::Accepted);
@@ -163,8 +173,8 @@ mod tests {
 
     #[tokio::test]
     async fn compare_with_invalid_utf8() -> io::Result<()> {
-        let out = b"Hello, World! \xFF\n";
-        let ans = b"Hello, World! \xFF\n";
+        let out = b"Hello, world! \xFF\n";
+        let ans = b"Hello, world! \xFF\n";
         let common_comparer = DefaultComparer::common();
         let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
         assert_eq!(common_result, CompareResult::Accepted);
@@ -176,8 +186,8 @@ mod tests {
 
     #[tokio::test]
     async fn compare_with_trailing_newline() -> io::Result<()> {
-        let out = b"Hello, World!\n";
-        let ans = b"Hello, World!";
+        let out = b"Hello, world!\n";
+        let ans = b"Hello, world!";
         let common_comparer = DefaultComparer::common();
         let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
         assert_eq!(common_result, CompareResult::Accepted);
@@ -189,8 +199,8 @@ mod tests {
 
     #[tokio::test]
     async fn compare_with_trailing_content_after_newline() -> io::Result<()> {
-        let out = b"Hello, World!\naaa\n";
-        let ans = b"Hello, World!";
+        let out = b"Hello, world!\naaa\n";
+        let ans = b"Hello, world!";
         let common_comparer = DefaultComparer::common();
         let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
         assert_eq!(common_result, CompareResult::WrongAnswer);
@@ -200,8 +210,25 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test() {
-        println!("{}", type_name::<DefaultComparer>());
+    #[tokio::test]
+    async fn compare_case_sensitive() -> io::Result<()> {
+        let out = b"Hello, World!";
+        let ans = b"Hello, world!";
+
+        let common_comparer = DefaultComparer::common();
+        let common_result = common_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(common_result, CompareResult::WrongAnswer);
+
+        let exact_comparer = DefaultComparer::exact_match();
+        let exact_result = exact_comparer.compare(&out[..], &ans[..]).await?;
+        assert_eq!(exact_result, CompareResult::WrongAnswer);
+
+        let case_insensitive_comparer = DefaultComparer::new(false, true, true);
+        let case_insensitive_result = case_insensitive_comparer
+            .compare(&out[..], &ans[..])
+            .await?;
+        assert_eq!(case_insensitive_result, CompareResult::Accepted);
+
+        Ok(())
     }
 }

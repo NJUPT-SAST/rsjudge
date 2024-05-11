@@ -25,6 +25,7 @@ rust-version = "1.74"
 [workspace.dependencies]
 log = "0.4.21"
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
+serde = { version = "1.0.200", features = ["derive"] }
 
 [package]
 name = "rsjudge"
@@ -153,8 +154,8 @@ clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
 mimalloc = { version = "0.1.41", optional = true }
-serde = { version = "1.0.197", features = ["derive"] }
-sysinfo = { version = "0.30.11", features = ["serde"] }
+serde.workspace = true
+sysinfo = { version = "0.30.12", features = ["serde"] }
 tokio = { version = "1.37.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.12"
 

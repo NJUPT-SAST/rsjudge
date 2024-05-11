@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{io, result::Result as StdResult, time::Duration};
+use std::{io, process::ExitStatus, result::Result as StdResult};
 
 use capctl::Cap;
 use nix::errno::Errno;
 use thiserror::Error;
+use tokio::task::JoinError;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -20,11 +21,15 @@ pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
-    #[error("Time limit exceeded: CPU time: {cpu_time:?}, wall time: {wall_time:?}")]
-    TimeLimitExceeded {
-        cpu_time: Option<Duration>,
-        wall_time: Option<Duration>,
-    },
+    #[error("Time limit exceeded")]
+    TimeLimitExceeded,
+
+    #[error("Child process has exited with status: {0:?}")]
+    ChildExited(ExitStatus),
+
+    /// Task failed to execute to completion.
+    #[error(transparent)]
+    Join(#[from] JoinError),
 }
 
 /// Convert a [`capctl::Error`] to an [`Error::Io`].

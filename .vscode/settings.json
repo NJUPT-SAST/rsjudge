@@ -30,5 +30,6 @@
   "rust-analyzer.check.command": "clippy",
   "rust-analyzer.linkedProjects": [
     "./Cargo.toml"
-  ]
+  ],
+  "sarif-viewer.connectToGithubCodeScanning": "on"
 }

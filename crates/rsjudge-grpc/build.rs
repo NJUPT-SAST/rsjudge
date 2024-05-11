@@ -43,7 +43,6 @@ async fn main() -> anyhow::Result<()> {
         .compile(&proto_files, &[&proto_out_dir])?;
 
     println!("cargo:rerun-if-changed=proto");
-    println!("cargo:rerun-if-changed=build.rs");
 
     Ok(())
 }
