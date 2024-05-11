@@ -66,7 +66,8 @@ mod tests {
                 },
                 #[cfg(feature = "rabbitmq")]
                 rabbitmq: RabbitMqConfig {
-                    uri: "amqp://user:bitnami@localhost".to_owned()
+                    uri: "amqp://user:bitnami@localhost".to_owned(),
+                    queue_name: "rpc_queue".to_owned(),
                 },
             })?
         );
