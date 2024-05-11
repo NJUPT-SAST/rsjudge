@@ -6,7 +6,7 @@ package cases.v1;
 service CasesService {
   // Fetch cases from the backend server.
   //
-  // Server should return cases in chunks. Each chunk should be around 1kiB.
+  // Server should return cases in chunks. Each chunk should be less than 1 MiB.
   //
   // Server should return all chunks in order, or correctly cancel the stream.
   //
@@ -24,7 +24,7 @@ message FetchCasesRequest {
 message FetchCasesResponse {
   // Chunk of the tarball, containing poblem config and cases.
   //
-  // Chunk size should be around 1kiB, except the last chunk.
+  // Chunk size should be less than 1 MiB.
   //
   // The tarball should be compressed in zstd.
   bytes chunk = 1;
