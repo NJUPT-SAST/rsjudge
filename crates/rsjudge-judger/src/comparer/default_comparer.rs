@@ -115,8 +115,7 @@ mod tests {
         io::{empty, AsyncWriteExt as _},
     };
 
-    use super::{CompareResult, DefaultComparer};
-    use crate::Comparer as _;
+    use crate::{CompareResult, Comparer as _, DefaultComparer};
 
     #[tokio::test]
     async fn compare_empty() -> io::Result<()> {

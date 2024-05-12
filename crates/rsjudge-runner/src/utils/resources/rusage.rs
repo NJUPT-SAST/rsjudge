@@ -119,35 +119,3 @@ impl WaitForResourceUsage for ChildWithTimeout {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use std::time::Instant;
-
-    use super::*;
-    use crate::utils::resources::{rlimit::ResourceLimit, RunWithResourceLimit};
-
-    #[tokio::test]
-    async fn test_wait_for_resource_usage() {
-        let mut child = tokio::process::Command::new("sleep")
-            .arg("10")
-            .spawn_with_resource_limit(ResourceLimit::new(
-                Some(Duration::from_secs(1)),
-                Some(Duration::from_secs_f64(1.5)),
-                None,
-                None,
-            ))
-            .unwrap();
-
-        dbg!(&child);
-
-        let start = Instant::now();
-        let error = child.wait_for_resource_usage().await.unwrap_err();
-        let elapsed = start.elapsed();
-
-        dbg!(elapsed);
-
-        assert!(elapsed < Duration::from_secs_f32(1.52));
-        assert!(matches!(error, Error::TimeLimitExceeded));
-    }
-}

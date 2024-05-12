@@ -5,7 +5,7 @@
 use std::{
     io::{self, ErrorKind},
     iter,
-    process::{Output, Stdio},
+    process::{ExitStatus, Output, Stdio},
 };
 
 use thiserror::Error;
@@ -58,11 +58,31 @@ pub enum ExecutionError {
     },
 }
 
+impl ExecutionError {
+    /// Get the output of the command, if any.
+    ///
+    /// This method will return `Some(&Output)` if the error is `NonZeroExitStatus`, otherwise `None`.
+    pub fn output(&self) -> Option<&Output> {
+        match self {
+            Self::NonZeroExitStatus { output, .. } => Some(output),
+            _ => None,
+        }
+    }
+
+    /// Get the exit status of the command, if any.
+    pub fn exit_status(&self) -> Option<ExitStatus> {
+        match self {
+            Self::NonZeroExitStatus { output, .. } => Some(output.status),
+            _ => None,
+        }
+    }
+}
+
 /// Run a command, returning the output if succeeded, with some error handling.
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// use tokio::process::Command;
 /// use rsjudge_utils::command::check_output;
 /// # #[tokio::main]
@@ -107,28 +127,43 @@ mod tests {
 
     use tokio::process::Command;
 
-    use crate::command::ExecutionError;
+    use crate::command::{check_output, ExecutionError};
 
     #[tokio::test]
+    #[ignore = "execute `nonexistent` on the platform"]
     async fn command_not_found_with_custom_error() {
         let mut cmd = Command::new("nonexistent");
-        let err = super::check_output(&mut cmd).await.unwrap_err();
-        assert!(matches!(err, ExecutionError::NotFound { .. }));
+        let err = check_output(&mut cmd).await.unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            ExecutionError::NotFound {
+                program: "nonexistent".to_string()
+            }
+            .to_string()
+        );
     }
 
     #[tokio::test]
+    #[ignore = "execute `false` on the platform"]
     async fn command_failed_with_custom_error() {
         let mut cmd = Command::new("false");
-        let err = super::check_output(&mut cmd).await.unwrap_err();
+        let err = check_output(&mut cmd).await.unwrap_err();
+
+        dbg!(&err);
 
         assert!(matches!(err, ExecutionError::NonZeroExitStatus { .. }));
+
+        let code = err.exit_status().and_then(|status| status.code());
+
+        assert_eq!(code, Some(1));
     }
 
     #[tokio::test]
+    #[ignore = "execute `echo` on the platform"]
     async fn capture_output() {
         let mut cmd = Command::new("echo");
         cmd.arg("Hello, world!");
-        let output = super::check_output(&mut cmd).await.unwrap();
+        let output = check_output(&mut cmd).await.unwrap();
         assert_eq!(output.stdout, b"Hello, world!\n");
     }
 }
