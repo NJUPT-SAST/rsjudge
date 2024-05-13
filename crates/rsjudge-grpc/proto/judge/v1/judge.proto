@@ -143,3 +143,22 @@ enum JudgeResult {
   // The judge result is Output Limit Exceeded (OLE).
   JUDGE_RESULT_OUTPUT_LIMIT_EXCEEDED = 8;
 }
+
+// Represents a language supported by the judge system.
+message Language {
+  // The name of the language, should be identical to one of registered languages.
+  string name = 1;
+  // Additional configuration for the language.
+  map<string, ConfigType> configs = 4;
+}
+
+// Represents type of the configuration item.
+message ConfigType {
+  // The type of the configuration item.
+  oneof config_type {
+    // The configuration item is a boolean.
+    bool boolean = 1;
+    // The configuration item is an enum. The value must be one of the specified variants.
+    string enum = 2;
+  }
+}
