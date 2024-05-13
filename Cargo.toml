@@ -45,12 +45,12 @@ assets = [
         "755",
     ],
     [
-        "templates/executors.toml",
+        "config-demo/executors.toml",
         "etc/rsjudge/executors.toml",
         "644",
     ],
     [
-        "templates/services.toml",
+        "config-demo/services.toml",
         "etc/rsjudge/services.toml",
         "644",
     ],
@@ -101,7 +101,7 @@ dest = "/usr/bin/rsjudge"
 mode = "755"
 
 [[package.metadata.generate-rpm.assets]]
-source = "templates/*"
+source = "config-demo/*"
 dest = "/etc/rsjudge/"
 mode = "644"
 
