@@ -7,6 +7,7 @@ use rsjudge_traits::Config;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RabbitMqConfig {
     pub uri: String,
+    pub queue_name: String,
 }
 
 #[cfg(feature = "serde")]
