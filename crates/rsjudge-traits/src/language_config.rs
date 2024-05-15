@@ -1,0 +1,149 @@
+// SPDX-License-Identifier: Apache-2.0
+
+use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LanguageDef {
+    #[serde(flatten)]
+    exec_type: ExecType,
+    options: HashMap<String, ConfigDef>,
+    message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "exec_type")]
+pub enum ExecType {
+    Binary {
+        compile: String,
+    },
+    ByteCode {
+        compile: String,
+        execute: String,
+    },
+    SourceCode {
+        check: Option<String>,
+        execute: String,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum ConfigDef {
+    Bool {
+        target: String,
+        default: bool,
+        enable: String,
+    },
+    Enum {
+        target: String,
+        default: String,
+        variants: HashMap<String, String>,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use toml::toml;
+
+    use super::{ConfigDef, ExecType, LanguageDef};
+
+    #[test]
+    fn test_language() {
+        let c_def = LanguageDef {
+            exec_type: ExecType::Binary {
+                compile: "gcc {...flags} -o {out_file} {src_file}".into(),
+            },
+            options: HashMap::from([
+                (
+                    "O2".into(),
+                    ConfigDef::Bool {
+                        default: true,
+                        target: "flags".into(),
+                        enable: "-O2".into(),
+                    },
+                ),
+                (
+                    "version".into(),
+                    ConfigDef::Enum {
+                        default: "C99".into(),
+                        variants: HashMap::from([
+                            ("C99".into(), "-std=c99".into()),
+                            ("C11".into(), "-std=c11".into()),
+                        ]),
+                        target: "flags".into(),
+                    },
+                ),
+            ]),
+            message: Some("使用 $(gcc --version)。".into()),
+        };
+
+        let languages = HashMap::from([("C".to_string(), c_def)]);
+
+        let json = serde_json::to_string_pretty(&languages).unwrap();
+
+        println!("{}", json);
+
+        println!(
+            "{:#?}",
+            serde_json::from_str::<HashMap<String, LanguageDef>>(&json).unwrap()
+        );
+
+        let toml = toml::to_string(&languages).unwrap();
+        println!("{}", toml);
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let toml = toml! {
+            [C]
+            message = "使用 $(gcc --version)。"
+            exec_type = "binary"
+            compile = "gcc {...flags} -lm -Wall -o {out_file} {src_file}"
+
+            [C.options.O2]
+            type = "bool"
+            target = "flags"
+            default = true
+            enable = "-O2"
+
+            [C.options.version]
+            type = "enum"
+            target = "flags"
+            default = "C99"
+
+            [C.options.version.variants]
+            C99 = "-std=c99"
+            C11 = "-std=c11"
+
+            ["C++"]
+            exec_type = "binary"
+            compile = "g++ {...flags} -o {out_file} {src_file}"
+
+            ["C++".options.O2]
+            type = "bool"
+            target = "flags"
+            default = true
+            enable = "-O2"
+
+            ["C++".options.version]
+            type = "enum"
+            target = "flags"
+            default = "C++17"
+
+            ["C++".options.version.variants]
+            "C++98" = "-std=c++98"
+            "C++11" = "-std=c++11"
+            "C++14" = "-std=c++14"
+            "C++17" = "-std=c++17"
+            "C++20" = "-std=c++20"
+        };
+
+        let languages = toml::from_str::<HashMap<String, LanguageDef>>(&toml.to_string()).unwrap();
+
+        println!("{:#?}", languages);
+    }
+}

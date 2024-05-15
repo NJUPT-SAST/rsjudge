@@ -1,4 +1,4 @@
-FROM rust:1 AS builder
+FROM rust AS builder
 
 WORKDIR /src
 

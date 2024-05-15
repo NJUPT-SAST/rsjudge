@@ -1,50 +1,103 @@
 # SPDX-License-Identifier: Apache-2.0
 
-[bash]
-execute = "/usr/bin/bash -r --no-profile --no-rc {src_file}"
+[C]
+# Example $flags: "-O2 -std=c99"
+message = "使用 $(gcc --version)。"
+exec_type = "binary"
+compile = "gcc {...flags} -lm -Wall -o {out_file} {src_file}"
 
-[c]
-# Example $flags: "-O2 -lm -Wall -std=c99"
-compile = "/usr/bin/gcc {flags} -o {out_file} {src_file}"
+[C.options.O2]
+type = "bool"
+target = "flags"
+default = true
+enable = "-O2"
 
-[cpp]
-# Example $flags: "-O2 -lm -Wall -std=c++14"
-compile = "/usr/bin/g++ {flags} -o {out_file} {src_file}"
+[C.options.version]
+type = "enum"
+target = "flags"
+default = "C99"
 
-[csharp]
+[C.options.version.variants]
+C99 = "-std=c99"
+C11 = "-std=c11"
+
+["C++"]
+# Example $flags: "-O2 -std=c++14"
+exec_type = "binary"
+compile = "g++ {...flags} -lm -Wall -o {out_file} {src_file}"
+
+["C++".options.O2]
+type = "bool"
+target = "flags"
+default = true
+enable = "-O2"
+
+["C++".options.version]
+type = "enum"
+target = "flags"
+default = "C++17"
+
+["C++".options.version.variants]
+"C++98" = "-std=c++98"
+"C++11" = "-std=c++11"
+"C++14" = "-std=c++14"
+"C++17" = "-std=c++17"
+"C++20" = "-std=c++20"
+
+["C#"]
 # Only mono is supported now, .NET SDK is under development.
 out_rename = "Program.exe"
-compile = "/usr/bin/mcs -o+ -out:{out_file} {src_file}"
-execute = "/usr/bin/mono {out_file}"
+compile = "mcs -o+ -out:{out_file} {src_file}"
+execute = "mono {out_file}"
 
-[java]
-# $java_home should be set to the directory containing the bin/ directory of the target java version
-message = "主类需命名为 `Main`。"
+[Dart]
+# Install Dart SDK as described in https://dart.dev/get-dart
+execute = "dart compile exe -o {out_file} {src_file}"
+
+[Java]
+message = """
+Java 版本：
+
+```
+$(java --version)
+```
+"""
 src_rename = "Main.java"
+out_extension = "jar"
+compile = "javac -d {tmp_dir} Main.java && jar -cvfe {out_file} Main -C {tmp_dir} *"
+execute = "java -jar {out_file}"
+
+[JavaScript]
+message = "使用 Node.js $(node -v)。"
+execute = "node {src_file}"
+
+[Kotlin]
 out_rename = "Main.jar"
-compile = "{java_home}/bin/javac Main.java && {java_home}/bin/jar -cvfe Main.jar Main ./*.class && rm -rf ./*.class"
-execute = "{java_home}/bin/java -jar Main.jar"
+compile = "kotlinc -include-runtime -d Main.jar {src_file}"
+execute = "java -jar Main.jar"
 
-[nodejs]
-execute = "{node_path}/node {src_file}"
+[Python]
+# -S: do not import site
+# TODO: Use virtualenv to isolate the environment.
+message = "使用 $(python3 -V)。"
+check = "python3 -m py_compile {src_file}"
+execute = "python3 -I -S {src_file}"
 
-[python3]
-execute = "/usr/bin/python3 -OO {src_file}"
+[Ruby]
+check = "ruby -c {src_file}"
+execute = "ruby {src_file}"
 
-[pypy3]
-execute = "/usr/bin/pypy3 -OO {src_file}"
+[Rust]
+message = "使用 $(rustc --version)。"
+compile = "rustc -O -o {out_file} {src_file}"
 
-[rust]
-compile = "{rustc_path}/rustc -O -o {out_file} {src_file}"
+[TypeScript]
+message = "使用 TypeScript $(tsc -v)、Node.js $(node -v)。"
+compile = "tsc {src_file} --outFile {out_file}"
+execute = "node {out_file}"
 
-[scala]
-# $scala_home and $java_home should be set to the directory containing the bin/ directory of the target scala version
-message = "主类需命名为 `Main`。"
-src_rename = "Main.scala"
-out_rename = "Main.jar"
-compile = "{scala_home}/bin/scalac Main.scala && {java_home}/bin/jar -cvfe Main.jar Main ./*.class && rm -rf ./*.class"
-execute = "{java_home}/bin/java -jar Main.jar"
+[Swift]
+compile = "swiftc -o {out_file} {src_file}"
 
-[typescript]
-compile = "{tsc_path}/tsc {src_file} --outFile {out_file}"
-execute = "{node_path}/node {out_file}"
+[Zig]
+compile = "zig build-exe -femit-bin={out_file} {src_file}"
