@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [package]
-name = "rsjudge-rabbitmq"
+name = "rsjudge-amqp"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true

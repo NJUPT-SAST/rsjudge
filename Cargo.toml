@@ -2,9 +2,9 @@
 
 [workspace]
 members = [
+    "crates/rsjudge-amqp",
     "crates/rsjudge-grpc",
     "crates/rsjudge-judger",
-    "crates/rsjudge-rabbitmq",
     "crates/rsjudge-rest",
     "crates/rsjudge-runner",
     "crates/rsjudge-traits",
@@ -145,8 +145,8 @@ rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
 rsjudge-utils.workspace = true
 
 # Optional dependencies
+rsjudge-amqp = { version = "0.1.0", path = "crates/rsjudge-amqp", optional = true }
 rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
-rsjudge-rabbitmq = { version = "0.1.0", path = "crates/rsjudge-rabbitmq", optional = true }
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 anyhow = "1.0.83"
@@ -166,9 +166,9 @@ toml = "0.8.12"
 [features]
 grpc = ["dep:rsjudge-grpc", "rsjudge-grpc/serde"]
 rest = ["dep:rsjudge-rest"]
-rabbitmq = ["dep:rsjudge-rabbitmq", "rsjudge-rabbitmq/serde"]
+amqp = ["dep:rsjudge-amqp", "rsjudge-amqp/serde"]
 mimalloc = ["dep:mimalloc"]
-default = ["grpc", "rest", "rabbitmq", "mimalloc"]
+default = ["grpc", "rest", "amqp", "mimalloc"]
 
 [build-dependencies]
 clap = { version = "4.5.4", features = ["derive"] }

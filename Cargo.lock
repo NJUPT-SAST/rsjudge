@@ -1246,9 +1246,9 @@ dependencies = [
  "env_logger",
  "log",
  "mimalloc",
+ "rsjudge-amqp",
  "rsjudge-grpc",
  "rsjudge-judger",
- "rsjudge-rabbitmq",
  "rsjudge-rest",
  "rsjudge-runner",
  "rsjudge-utils",
@@ -1256,6 +1256,17 @@ dependencies = [
  "sysinfo",
  "tokio",
  "toml",
+]
+
+[[package]]
+name = "rsjudge-amqp"
+version = "0.1.0"
+dependencies = [
+ "amqprs",
+ "rsjudge-traits",
+ "serde",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]
@@ -1285,17 +1296,6 @@ dependencies = [
  "futures",
  "rsjudge-utils",
  "tempfile",
- "tokio",
-]
-
-[[package]]
-name = "rsjudge-rabbitmq"
-version = "0.1.0"
-dependencies = [
- "amqprs",
- "rsjudge-traits",
- "serde",
- "thiserror",
  "tokio",
 ]
 
