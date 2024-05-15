@@ -1,1 +1,83 @@
-<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="1209.84" height="634.06" viewBox="0 0 320.1 167.77"><defs><filter id="c" width="1.1" height="1.1" x="-.05" y="-.05" style="color-interpolation-filters:sRGB"><feFlood flood-color="#000" flood-opacity=".5" result="flood"/><feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1"/><feOffset dx=".5" dy=".5" in="blur" result="offset"/><feComposite in="flood" in2="offset" operator="in" result="comp1"/><feComposite in="SourceGraphic" in2="comp1" result="comp2"/></filter><filter id="b" width="1.1" height="1.1" x="-.05" y="-.05" style="color-interpolation-filters:sRGB"><feFlood flood-color="#000" flood-opacity=".5" result="flood"/><feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1"/><feOffset dx=".5" dy=".5" in="blur" result="offset"/><feComposite in="flood" in2="offset" operator="in" result="comp1"/><feComposite in="SourceGraphic" in2="comp1" result="comp2"/></filter><filter id="a" width="1.02" height="1.03" x="-.01" y="-.02" style="color-interpolation-filters:sRGB"><feFlood flood-color="#000" flood-opacity=".5" result="flood"/><feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="4"/><feOffset dx="2" dy="2" in="blur" result="offset"/><feComposite in="flood" in2="offset" operator="in" result="comp1"/><feComposite in="SourceGraphic" in2="comp1" result="comp2"/></filter><filter id="d" width="1.43" height="1.27" x="-.2" y="-.12" style="color-interpolation-filters:sRGB"><feFlood flood-color="#000" flood-opacity=".5" result="flood"/><feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1"/><feOffset dx=".5" dy=".5" in="blur" result="offset"/><feComposite in="flood" in2="offset" operator="in" result="comp1"/><feComposite in="SourceGraphic" in2="comp1" result="comp2"/></filter><filter id="e" width="1.35" height="1.29" x="-.16" y="-.13" style="color-interpolation-filters:sRGB"><feFlood flood-color="#000" flood-opacity=".5" result="flood"/><feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1"/><feOffset dx=".5" dy=".5" in="blur" result="offset"/><feComposite in="flood" in2="offset" operator="in" result="comp1"/><feComposite in="SourceGraphic" in2="comp1" result="comp2"/></filter></defs><g style="filter:url(#a)" transform="translate(1.26 -21.3)scale(.26458)"><path d="m0-7.2-12.07-25q.1-1.43.1-2.86c0-28.35-29.47-54.47-79.06-75.4v17.4a349 349 0 0 0-15.12-5.6v-8.1c-70.87-25.56-176.38-41.78-294.24-41.78-102.97 0-196.53 12.38-265.79 32.56v28.24-34.19c-70.96 22.55-114.95 53.88-114.95 88.52 0 5.46 1.1 10.84 3.21 16.11l-7.23 12.87s-5.79 7.51 4.41 23.36c9 13.98 54.05 68.69 77.83 97.34 10.21 14.68 17.14 23.73 17.74 22.86.96-1.39-6.35-28.97-26.63-60.43-9.47-16.9-20.77-39.28-27.56-55.82 18.95 12 130.23 68.03 357.24 67.8C-150.13 90.45-47.01 17.83-35.7 7.95c-3.96 15.89-17.47 48.03-28.25 70.64-17.7 32.33-24.12 60.47-23.3 61.87.53.87 6.57-8.44 15.48-23.55C-51.03 87.37-11.75 30.97-3.9 16.61 5.01.32 0-7.2 0-7.2" style="fill:#a52b00;fill-rule:nonzero" transform="translate(1009.4 506.36)"/><path d="m0 204.14-79.34-58.45q-1.12-3.9-2.26-7.78l26.06-37.76a14.2 14.2 0 0 0 1.47-13.2 13.2 13.2 0 0 0-10-8.25l-44.06-7.48c-1.7-3.49-3.5-6.92-5.3-10.32l18.53-42.4a14.1 14.1 0 0 0-1.02-13.25A12.9 12.9 0 0 0-107.27-.8L-151.99.82a368 368 0 0 0-7.07-8.93l10.28-45.44a14 14 0 0 0-3.49-12.79 12.7 12.7 0 0 0-12.25-3.64l-43.56 10.71a376 376 0 0 0-8.59-7.36l1.57-46.65a13.8 13.8 0 0 0-5.82-11.82 12.6 12.6 0 0 0-12.7-1.08l-40.63 19.32a454 454 0 0 0-9.9-5.53l-7.18-45.97a13.6 13.6 0 0 0-7.92-10.41 12.6 12.6 0 0 0-12.64 1.53l-36.24 27.19a385 385 0 0 0-10.77-3.41l-15.62-43.58a13.2 13.2 0 0 0-9.72-8.63 12.8 12.8 0 0 0-12.11 4.08l-30.5 34.12q-5.53-.64-11.08-1.13l-23.55-39.68a13 13 0 0 0-11.13-6.46c-4.53 0-8.75 2.45-11.12 6.46l-23.56 39.68a400 400 0 0 0-11.09 1.13l-30.5-34.12a12.8 12.8 0 0 0-12.12-4.08 13.2 13.2 0 0 0-9.7 8.62l-15.63 43.59a428 428 0 0 0-10.78 3.4l-36.22-27.18a12.6 12.6 0 0 0-12.67-1.53 13.6 13.6 0 0 0-7.91 10.41l-7.19 45.97a443 443 0 0 0-9.9 5.53l-40.63-19.32a12.6 12.6 0 0 0-12.7 1.08 13.8 13.8 0 0 0-5.81 11.82l1.56 46.65a427 427 0 0 0-8.6 7.36l-43.55-10.7c-4.42-1.08-9.06.3-12.26 3.63a14 14 0 0 0-3.5 12.8l10.27 45.43a440 440 0 0 0-7.05 8.93L-837.99-.8a13 13 0 0 0-11.34 6.06 14.1 14.1 0 0 0-1.03 13.25l18.53 42.39c-1.8 3.4-3.6 6.83-5.31 10.32l-44.07 7.48a13.2 13.2 0 0 0-10 8.24 14.2 14.2 0 0 0 1.48 13.21l26.07 37.76-.59 2-73.7 78.3s-11.29 8.84 5.15 29.65c14.5 18.35 88.95 91.1 128.27 129.2 16.61 19.35 27.99 31.33 29.18 30.3 1.87-1.65-7.98-36.85-40.69-78.16-25.21-37.05-57.94-94.04-50.26-100.61 0 0 8.73-11.08 26.24-19.06.64.51-.66-.5 0 0 0 0 369.6 170.49 712.43 2.88 39.16-7.02 62.87 13.96 62.87 13.96 8.18 4.74-13 63.34-30.4 102.14-23.68 44.05-27.16 78.42-25.15 79.6 1.27.77 9.88-12.34 22.17-33.2C-67.8 332.64-10.49 252.1 0 232.52c11.9-22.18 0-28.4 0-28.4" style="fill:#f74c00;fill-rule:nonzero" transform="translate(1079.49 294.88)"/><path d="M0 232.47S53.18 230 123.03 159l9.9-21.98S24.51 29.18 193.05-45.27c0 0-14.76 24.12-10.43 117.28 0 0 50.82-17.65 65.72-99.94 0 0 74.12 97.72-80.5 189.37 0 0-72.55 116.3-174.81 105.15z" style="fill:#f74c00;fill-rule:nonzero" transform="translate(917.9 244.68)"/><path d="M0-78.2s36.94-40.43 73.87 0c0 0 29.02 53.94 0 80.9 0 0-47.49 37.74-73.87 0 0 0-31.66-29.66 0-80.9" style="fill-rule:nonzero" transform="translate(677 488.36)"/><path d="M0 0c0 15.75-9.28 28.52-20.73 28.52S-41.46 15.75-41.46 0s9.28-28.51 20.73-28.51S0-15.75 0 0" style="fill:#fff;fill-rule:nonzero" transform="translate(719.76 425.17)"/><path d="M0-83.6s63.36-28.06 80.65 34.55c0 0 18.11 72.98-52.03 77.1 0 0-89.45-17.23-28.62-111.66" style="fill-rule:nonzero" transform="translate(512.15 482.74)"/><path d="M0 0c0 16.24-9.57 29.41-21.38 29.41S-42.76 16.24-42.76.01c0-16.25 9.57-29.42 21.38-29.42S0-16.24 0 0" style="fill:#fff;fill-rule:nonzero" transform="translate(543.97 426.2)"/><path d="m0-40.27 80.8-6.48s-2.74 13-13.28 22.76c0 0-27.8 30.47-59.68-2.53 0 0-5.21-5.63-7.84-13.75" style="fill-rule:nonzero" transform="translate(593.32 576.57)"/><path d="M0 190.74q-1 .01-1.97.1c-26.24-5.97-99.98-25.18-119.47-56.36 0 0 99.23-112.87-55.86-185.02l18.06 124.88s-47.8-31.95-58.13-101.35c0 0-116.42 84.5 51.39 165.48 0 0 15.22 57.18 161.35 102.81l.1-.43a25 25 0 0 0 4.53.43c13.8 0 25-11.31 25-25.27s-11.2-25.27-25-25.27" style="fill:#f74c00;fill-rule:nonzero" transform="translate(269.8 270.78)"/></g><circle cx="28.16" cy="36.95" r="22.35" style="fill:#fff;stroke:#fff;stroke-width:.529176;paint-order:markers stroke fill"/><path d="M245.07 32.5a25.6 25.6 0 0 0-25.51 25.51 25.6 25.6 0 0 0 25.5 25.51 25.6 25.6 0 0 0 25.52-25.5 25.6 25.6 0 0 0-25.51-25.52m-5.1 38.27L227.2 58l3.6-3.6 9.16 9.14 19.36-19.36 3.6 3.62z" style="fill:#00c853;fill-opacity:1;stroke:none;stroke-width:2.55107;stroke-opacity:1;filter:url(#b)" transform="translate(-217.16 -21.3)"/><g transform="translate(-189.8 3.01)"><circle cx="481.5" cy="28.85" r="20.16" style="fill:#fff;fill-opacity:1;stroke:none;stroke-width:.243095;stroke-opacity:1"/><path d="M481.5 3.34a25.5 25.5 0 0 1 25.51 25.51 25.5 25.5 0 0 1-25.5 25.51 25.5 25.5 0 0 1-25.52-25.5A25.5 25.5 0 0 1 481.5 3.34m9.16 12.76-9.16 9.16-9.16-9.16-3.6 3.6 9.17 9.15-9.16 9.16 3.6 3.6 9.15-9.16 9.16 9.16 3.6-3.6-9.16-9.16 9.16-9.15z" style="fill:red;fill-opacity:1;stroke-width:2.55107;filter:url(#c)"/></g><path d="M313.7 44.79a26 26 0 0 0-3.88-8.75c-1.67 9.23-5.05 15.38-8.4 19.41A25.5 25.5 0 0 0 313.7 44.8" style="fill:#f74c00;stroke-width:.264583;filter:url(#d)"/><path d="M295.64 81.5c31.36-22.8 14.19-45.46 14.19-45.46-2.72 15.01-9.96 21.9-14.2 24.72z" style="fill:#f74c00;stroke-width:.264583"/><path d="M22.57 61.64a42 42 0 0 1-7.45-18.45s-4.6 3.35-7.68 8.7a25.6 25.6 0 0 0 15.13 9.75" style="fill:#f74c00;filter:url(#e)"/><path d="M24.75 84.94V64.51a42 42 0 0 1-9.62-21.32s-28.9 20.96 9.62 41.75" style="fill:#f74c00"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="1209.84" height="634.06" viewBox="0 0 320.1 167.77">
+    <defs>
+        <filter id="c" width="1.1" height="1.1" x="-.05" y="-.05" style="color-interpolation-filters:sRGB">
+            <feFlood flood-color="#000" flood-opacity=".5" result="flood" />
+            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1" />
+            <feOffset dx=".5" dy=".5" in="blur" result="offset" />
+            <feComposite in="flood" in2="offset" operator="in" result="comp1" />
+            <feComposite in="SourceGraphic" in2="comp1" result="comp2" />
+        </filter>
+        <filter id="b" width="1.1" height="1.1" x="-.05" y="-.05" style="color-interpolation-filters:sRGB">
+            <feFlood flood-color="#000" flood-opacity=".5" result="flood" />
+            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1" />
+            <feOffset dx=".5" dy=".5" in="blur" result="offset" />
+            <feComposite in="flood" in2="offset" operator="in" result="comp1" />
+            <feComposite in="SourceGraphic" in2="comp1" result="comp2" />
+        </filter>
+        <filter id="a" width="1.02" height="1.03" x="-.01" y="-.02" style="color-interpolation-filters:sRGB">
+            <feFlood flood-color="#000" flood-opacity=".5" result="flood" />
+            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="4" />
+            <feOffset dx="2" dy="2" in="blur" result="offset" />
+            <feComposite in="flood" in2="offset" operator="in" result="comp1" />
+            <feComposite in="SourceGraphic" in2="comp1" result="comp2" />
+        </filter>
+        <filter id="d" width="1.43" height="1.27" x="-.2" y="-.12" style="color-interpolation-filters:sRGB">
+            <feFlood flood-color="#000" flood-opacity=".5" result="flood" />
+            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1" />
+            <feOffset dx=".5" dy=".5" in="blur" result="offset" />
+            <feComposite in="flood" in2="offset" operator="in" result="comp1" />
+            <feComposite in="SourceGraphic" in2="comp1" result="comp2" />
+        </filter>
+        <filter id="e" width="1.35" height="1.29" x="-.16" y="-.13" style="color-interpolation-filters:sRGB">
+            <feFlood flood-color="#000" flood-opacity=".5" result="flood" />
+            <feGaussianBlur in="SourceGraphic" result="blur" stdDeviation="1" />
+            <feOffset dx=".5" dy=".5" in="blur" result="offset" />
+            <feComposite in="flood" in2="offset" operator="in" result="comp1" />
+            <feComposite in="SourceGraphic" in2="comp1" result="comp2" />
+        </filter>
+    </defs>
+    <g style="filter:url(#a)" transform="translate(1.26 -21.3)scale(.26458)">
+        <path
+            d="m0-7.2-12.07-25q.1-1.43.1-2.86c0-28.35-29.47-54.47-79.06-75.4v17.4a349 349 0 0 0-15.12-5.6v-8.1c-70.87-25.56-176.38-41.78-294.24-41.78-102.97 0-196.53 12.38-265.79 32.56v28.24-34.19c-70.96 22.55-114.95 53.88-114.95 88.52 0 5.46 1.1 10.84 3.21 16.11l-7.23 12.87s-5.79 7.51 4.41 23.36c9 13.98 54.05 68.69 77.83 97.34 10.21 14.68 17.14 23.73 17.74 22.86.96-1.39-6.35-28.97-26.63-60.43-9.47-16.9-20.77-39.28-27.56-55.82 18.95 12 130.23 68.03 357.24 67.8C-150.13 90.45-47.01 17.83-35.7 7.95c-3.96 15.89-17.47 48.03-28.25 70.64-17.7 32.33-24.12 60.47-23.3 61.87.53.87 6.57-8.44 15.48-23.55C-51.03 87.37-11.75 30.97-3.9 16.61 5.01.32 0-7.2 0-7.2"
+            style="fill:#a52b00;fill-rule:nonzero" transform="translate(1009.4 506.36)" />
+        <path
+            d="m0 204.14-79.34-58.45q-1.12-3.9-2.26-7.78l26.06-37.76a14.2 14.2 0 0 0 1.47-13.2 13.2 13.2 0 0 0-10-8.25l-44.06-7.48c-1.7-3.49-3.5-6.92-5.3-10.32l18.53-42.4a14.1 14.1 0 0 0-1.02-13.25A12.9 12.9 0 0 0-107.27-.8L-151.99.82a368 368 0 0 0-7.07-8.93l10.28-45.44a14 14 0 0 0-3.49-12.79 12.7 12.7 0 0 0-12.25-3.64l-43.56 10.71a376 376 0 0 0-8.59-7.36l1.57-46.65a13.8 13.8 0 0 0-5.82-11.82 12.6 12.6 0 0 0-12.7-1.08l-40.63 19.32a454 454 0 0 0-9.9-5.53l-7.18-45.97a13.6 13.6 0 0 0-7.92-10.41 12.6 12.6 0 0 0-12.64 1.53l-36.24 27.19a385 385 0 0 0-10.77-3.41l-15.62-43.58a13.2 13.2 0 0 0-9.72-8.63 12.8 12.8 0 0 0-12.11 4.08l-30.5 34.12q-5.53-.64-11.08-1.13l-23.55-39.68a13 13 0 0 0-11.13-6.46c-4.53 0-8.75 2.45-11.12 6.46l-23.56 39.68a400 400 0 0 0-11.09 1.13l-30.5-34.12a12.8 12.8 0 0 0-12.12-4.08 13.2 13.2 0 0 0-9.7 8.62l-15.63 43.59a428 428 0 0 0-10.78 3.4l-36.22-27.18a12.6 12.6 0 0 0-12.67-1.53 13.6 13.6 0 0 0-7.91 10.41l-7.19 45.97a443 443 0 0 0-9.9 5.53l-40.63-19.32a12.6 12.6 0 0 0-12.7 1.08 13.8 13.8 0 0 0-5.81 11.82l1.56 46.65a427 427 0 0 0-8.6 7.36l-43.55-10.7c-4.42-1.08-9.06.3-12.26 3.63a14 14 0 0 0-3.5 12.8l10.27 45.43a440 440 0 0 0-7.05 8.93L-837.99-.8a13 13 0 0 0-11.34 6.06 14.1 14.1 0 0 0-1.03 13.25l18.53 42.39c-1.8 3.4-3.6 6.83-5.31 10.32l-44.07 7.48a13.2 13.2 0 0 0-10 8.24 14.2 14.2 0 0 0 1.48 13.21l26.07 37.76-.59 2-73.7 78.3s-11.29 8.84 5.15 29.65c14.5 18.35 88.95 91.1 128.27 129.2 16.61 19.35 27.99 31.33 29.18 30.3 1.87-1.65-7.98-36.85-40.69-78.16-25.21-37.05-57.94-94.04-50.26-100.61 0 0 8.73-11.08 26.24-19.06.64.51-.66-.5 0 0 0 0 369.6 170.49 712.43 2.88 39.16-7.02 62.87 13.96 62.87 13.96 8.18 4.74-13 63.34-30.4 102.14-23.68 44.05-27.16 78.42-25.15 79.6 1.27.77 9.88-12.34 22.17-33.2C-67.8 332.64-10.49 252.1 0 232.52c11.9-22.18 0-28.4 0-28.4"
+            style="fill:#f74c00;fill-rule:nonzero" transform="translate(1079.49 294.88)" />
+        <path
+            d="M0 232.47S53.18 230 123.03 159l9.9-21.98S24.51 29.18 193.05-45.27c0 0-14.76 24.12-10.43 117.28 0 0 50.82-17.65 65.72-99.94 0 0 74.12 97.72-80.5 189.37 0 0-72.55 116.3-174.81 105.15z"
+            style="fill:#f74c00;fill-rule:nonzero" transform="translate(917.9 244.68)" />
+        <path d="M0-78.2s36.94-40.43 73.87 0c0 0 29.02 53.94 0 80.9 0 0-47.49 37.74-73.87 0 0 0-31.66-29.66 0-80.9"
+            style="fill-rule:nonzero" transform="translate(677 488.36)" />
+        <path d="M0 0c0 15.75-9.28 28.52-20.73 28.52S-41.46 15.75-41.46 0s9.28-28.51 20.73-28.51S0-15.75 0 0"
+            style="fill:#fff;fill-rule:nonzero" transform="translate(719.76 425.17)" />
+        <path d="M0-83.6s63.36-28.06 80.65 34.55c0 0 18.11 72.98-52.03 77.1 0 0-89.45-17.23-28.62-111.66"
+            style="fill-rule:nonzero" transform="translate(512.15 482.74)" />
+        <path d="M0 0c0 16.24-9.57 29.41-21.38 29.41S-42.76 16.24-42.76.01c0-16.25 9.57-29.42 21.38-29.42S0-16.24 0 0"
+            style="fill:#fff;fill-rule:nonzero" transform="translate(543.97 426.2)" />
+        <path d="m0-40.27 80.8-6.48s-2.74 13-13.28 22.76c0 0-27.8 30.47-59.68-2.53 0 0-5.21-5.63-7.84-13.75"
+            style="fill-rule:nonzero" transform="translate(593.32 576.57)" />
+        <path
+            d="M0 190.74q-1 .01-1.97.1c-26.24-5.97-99.98-25.18-119.47-56.36 0 0 99.23-112.87-55.86-185.02l18.06 124.88s-47.8-31.95-58.13-101.35c0 0-116.42 84.5 51.39 165.48 0 0 15.22 57.18 161.35 102.81l.1-.43a25 25 0 0 0 4.53.43c13.8 0 25-11.31 25-25.27s-11.2-25.27-25-25.27"
+            style="fill:#f74c00;fill-rule:nonzero" transform="translate(269.8 270.78)" />
+    </g>
+    <circle cx="28.16" cy="36.95" r="22.35"
+        style="fill:#fff;stroke:#fff;stroke-width:.529176;paint-order:markers stroke fill" />
+    <path
+        d="M245.07 32.5a25.6 25.6 0 0 0-25.51 25.51 25.6 25.6 0 0 0 25.5 25.51 25.6 25.6 0 0 0 25.52-25.5 25.6 25.6 0 0 0-25.51-25.52m-5.1 38.27L227.2 58l3.6-3.6 9.16 9.14 19.36-19.36 3.6 3.62z"
+        style="fill:#00c853;fill-opacity:1;stroke:none;stroke-width:2.55107;stroke-opacity:1;filter:url(#b)"
+        transform="translate(-217.16 -21.3)" />
+    <g transform="translate(-189.8 3.01)">
+        <circle cx="481.5" cy="28.85" r="20.16"
+            style="fill:#fff;fill-opacity:1;stroke:none;stroke-width:.243095;stroke-opacity:1" />
+        <path
+            d="M481.5 3.34a25.5 25.5 0 0 1 25.51 25.51 25.5 25.5 0 0 1-25.5 25.51 25.5 25.5 0 0 1-25.52-25.5A25.5 25.5 0 0 1 481.5 3.34m9.16 12.76-9.16 9.16-9.16-9.16-3.6 3.6 9.17 9.15-9.16 9.16 3.6 3.6 9.15-9.16 9.16 9.16 3.6-3.6-9.16-9.16 9.16-9.15z"
+            style="fill:red;fill-opacity:1;stroke-width:2.55107;filter:url(#c)" />
+    </g>
+    <path d="M313.7 44.79a26 26 0 0 0-3.88-8.75c-1.67 9.23-5.05 15.38-8.4 19.41A25.5 25.5 0 0 0 313.7 44.8"
+        style="fill:#f74c00;stroke-width:.264583;filter:url(#d)" />
+    <path d="M295.64 81.5c31.36-22.8 14.19-45.46 14.19-45.46-2.72 15.01-9.96 21.9-14.2 24.72z"
+        style="fill:#f74c00;stroke-width:.264583" />
+    <path d="M22.57 61.64a42 42 0 0 1-7.45-18.45s-4.6 3.35-7.68 8.7a25.6 25.6 0 0 0 15.13 9.75"
+        style="fill:#f74c00;filter:url(#e)" />
+    <path d="M24.75 84.94V64.51a42 42 0 0 1-9.62-21.32s-28.9 20.96 9.62 41.75" style="fill:#f74c00" />
+</svg>

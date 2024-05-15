@@ -12,8 +12,8 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-amqprs = { version = "1.6.0", features = ["urispec"] }
-thiserror = "1.0.59"
+amqprs = { version = "1.6.1", features = ["urispec"] }
+thiserror = "1.0.60"
 tokio = "1.37.0"
 
 rsjudge-traits = { version = "0.1.0", path = "../rsjudge-traits" }

@@ -25,7 +25,7 @@ rust-version = "1.74"
 [workspace.dependencies]
 log = "0.4.21"
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
-serde = { version = "1.0.200", features = ["derive"] }
+serde = { version = "1.0.202", features = ["derive"] }
 
 [package]
 name = "rsjudge"
@@ -149,7 +149,7 @@ rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = tru
 rsjudge-rabbitmq = { version = "0.1.0", path = "crates/rsjudge-rabbitmq", optional = true }
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
-anyhow = "1.0.82"
+anyhow = "1.0.83"
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
