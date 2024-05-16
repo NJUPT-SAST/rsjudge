@@ -3,7 +3,7 @@
 use std::net::SocketAddr;
 
 #[cfg(feature = "serde")]
-use rsjudge_traits::Config;
+use rsjudge_traits::ServiceConfig;
 
 #[derive(Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -12,4 +12,4 @@ pub struct GrpcConfig {
 }
 
 #[cfg(feature = "serde")]
-impl Config for GrpcConfig {}
+impl ServiceConfig for GrpcConfig {}

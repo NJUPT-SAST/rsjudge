@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 syntax = "proto3";
 
 package register.v1;
@@ -26,8 +28,6 @@ message LanguageDecl {
   //
   // Should match one on [GitHub Linguist](https://github.com/github-linguist/linguist/blob/master/lib/linguist/languages.yml) if presented.
   string name = 1;
-  // The highlight scheme of the language, should match one of [CodeMirror modes](https://github.com/codemirror/codemirror5/tree/master/mode).
-  string highlight_scheme = 2;
   // Optional configurations for the language.
   map<string, ConfigTypeDecl> configs = 4;
 }
@@ -41,6 +41,8 @@ message ConfigTypeDecl {
     // Value is an enum.
     EnumDecl enum = 2;
   }
+  // Display name for the configuration.
+  string description = 3;
 }
 
 // Message for an enum configuration.

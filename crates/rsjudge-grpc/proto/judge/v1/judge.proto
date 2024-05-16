@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 syntax = "proto3";
 
 package judge.v1;
@@ -15,7 +17,7 @@ service JudgeService {
 // The request of self-test info, containing user's code and input.
 message SelfTestRequest {
   // The language of the code.
-  string language = 1;
+  Language language = 1;
   // The code to be tested.
   string code = 2;
   // The input of the program.
@@ -72,7 +74,7 @@ message SelfTestSummary {
 // We only showed part of the fields.
 message SubmitRequest {
   // The language of the code.
-  string language = 1;
+  Language language = 1;
   // The code to be judged.
   string code = 2;
   // The problem id.
