@@ -1,47 +1,67 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::collections::HashMap;
+//! Language representation from configuration file.
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
+/// Language definition from configuration file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LanguageDef {
     #[serde(flatten)]
     exec_type: ExecType,
 
     #[serde(default)]
-    options: HashMap<String, ConfigDef>,
+    options: IndexMap<String, ConfigDef>,
     message: Option<String>,
 }
 
+/// Execution type of the language.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "exec_type")]
 pub enum ExecType {
+    /// The language is compiled to a binary, which can be executed directly.
     Binary {
+        /// Compilation command for the language.
         compile: String,
     },
+    /// The language is compiled to an intermediate representation, which is then executed with another command.
     ByteCode {
+        /// Compilation command for the language.
         compile: String,
+        /// Execution command for the intermediate representation.
         execute: String,
     },
+    /// The language is executed directly with a command.
     SourceCode {
+        /// An optional command to check the syntax of the code.
         check: Option<String>,
+        /// Execution command for the source code.
         execute: String,
     },
 }
 
+/// Additional dynamic configuration definition for the language.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum ConfigDef {
+    /// A boolean configuration.
     Bool {
+        /// Where to put the [`enable`] value. Often a variable in compilation or execution command.
         target: String,
+        /// Default value of the configuration.
         default: bool,
+        /// Value to enable the configuration.
         enable: String,
     },
+    /// An enumeration configuration.
     Enum {
+        /// Where to put the value of the [`variants`] configuration
         target: String,
+        /// Default variant of the configuration.
         default: String,
-        variants: HashMap<String, String>,
+        /// Variants of the configuration with their corresponding values.
+        variants: IndexMap<String, String>,
     },
 }
 
@@ -49,6 +69,7 @@ pub enum ConfigDef {
 mod tests {
     use std::{collections::HashMap, fs::File, io::Read};
 
+    use indexmap::indexmap;
     use toml::toml;
 
     use super::{ConfigDef, ExecType, LanguageDef};
@@ -59,27 +80,22 @@ mod tests {
             exec_type: ExecType::Binary {
                 compile: "gcc {...flags} -o {out_file} {src_file}".into(),
             },
-            options: HashMap::from([
-                (
-                    "O2".into(),
-                    ConfigDef::Bool {
-                        default: true,
-                        target: "flags".into(),
-                        enable: "-O2".into(),
+
+            options: indexmap! {
+                "O2".into() => ConfigDef::Bool {
+                    default: true,
+                    target: "flags".into(),
+                    enable: "-O2".into()
+                },
+                "version".into() => ConfigDef::Enum {
+                    default: "C99".into(),
+                    variants: indexmap! {
+                        "C99".into() => "-std=c99".into(),
+                        "C11".into() => "-std=c11".into()
                     },
-                ),
-                (
-                    "version".into(),
-                    ConfigDef::Enum {
-                        default: "C99".into(),
-                        variants: HashMap::from([
-                            ("C99".into(), "-std=c99".into()),
-                            ("C11".into(), "-std=c11".into()),
-                        ]),
-                        target: "flags".into(),
-                    },
-                ),
-            ]),
+                    target: "flags".into()
+                }
+            },
             message: Some("使用 $(gcc --version)。".into()),
         };
 
