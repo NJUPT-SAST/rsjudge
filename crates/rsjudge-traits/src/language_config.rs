@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 pub struct LanguageDef {
     #[serde(flatten)]
     exec_type: ExecType,
+
+    #[serde(default)]
     options: HashMap<String, ConfigDef>,
     message: Option<String>,
 }
@@ -45,7 +47,7 @@ pub enum ConfigDef {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    use std::{collections::HashMap, fs::File, io::Read};
 
     use toml::toml;
 
@@ -142,8 +144,19 @@ mod tests {
             "C++20" = "-std=c++20"
         };
 
-        let languages = toml::from_str::<HashMap<String, LanguageDef>>(&toml.to_string()).unwrap();
+        let languages: HashMap<String, LanguageDef> = toml::from_str(&toml.to_string()).unwrap();
 
         println!("{:#?}", languages);
+    }
+
+    #[test]
+    #[ignore]
+    fn deserialize_config_demo() {
+        let mut demo = File::open("../../config-demo/executors.toml").unwrap();
+        let mut input = String::new();
+        demo.read_to_string(&mut input).unwrap();
+        let output = toml::from_str::<HashMap<String, LanguageDef>>(&input).unwrap();
+
+        println!("{:#?}", output);
     }
 }

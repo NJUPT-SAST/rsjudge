@@ -46,15 +46,22 @@ default = "C++17"
 
 ["C#"]
 # Only mono is supported now, .NET SDK is under development.
+exec_type = "byte_code"
 out_rename = "Program.exe"
 compile = "mcs -o+ -out:{out_file} {src_file}"
 execute = "mono {out_file}"
 
 [Dart]
 # Install Dart SDK as described in https://dart.dev/get-dart
-execute = "dart compile exe -o {out_file} {src_file}"
+exec_type = "binary"
+compile = "dart compile exe -o {out_file} {src_file}"
+
+[Go]
+exec_type = "binary"
+compile = "go build -o {out_file} {src_file}"
 
 [Java]
+exec_type = "byte_code"
 message = """
 Java 版本：
 
@@ -68,36 +75,45 @@ compile = "javac -d {tmp_dir} Main.java && jar -cvfe {out_file} Main -C {tmp_dir
 execute = "java -jar {out_file}"
 
 [JavaScript]
+exec_type = "source_code"
 message = "使用 Node.js $(node -v)。"
+check = "node -c {src_file}"
 execute = "node {src_file}"
 
 [Kotlin]
-out_rename = "Main.jar"
-compile = "kotlinc -include-runtime -d Main.jar {src_file}"
-execute = "java -jar Main.jar"
+exec_type = "byte_code"
+out_extension = "jar"
+compile = "kotlinc -include-runtime -d {out_file} {src_file}"
+execute = "java -jar {out_file}"
 
 [Python]
 # -S: do not import site
 # TODO: Use virtualenv to isolate the environment.
+exec_type = "source_code"
 message = "使用 $(python3 -V)。"
 check = "python3 -m py_compile {src_file}"
 execute = "python3 -I -S {src_file}"
 
 [Ruby]
+exec_type = "source_code"
 check = "ruby -c {src_file}"
 execute = "ruby {src_file}"
 
 [Rust]
+exec_type = "binary"
 message = "使用 $(rustc --version)。"
 compile = "rustc -O -o {out_file} {src_file}"
 
 [TypeScript]
+exec_type = "byte_code"
 message = "使用 TypeScript $(tsc -v)、Node.js $(node -v)。"
 compile = "tsc {src_file} --outFile {out_file}"
 execute = "node {out_file}"
 
 [Swift]
+exec_type = "binary"
 compile = "swiftc -o {out_file} {src_file}"
 
 [Zig]
+exec_type = "binary"
 compile = "zig build-exe -femit-bin={out_file} {src_file}"
