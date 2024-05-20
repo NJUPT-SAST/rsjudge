@@ -17,7 +17,7 @@ ignored = ["prost", "prost-types"]
 anyhow = "1.0.83"
 futures = "0.3.30"
 log.workspace = true
-prost = "0.12.4"
+prost = "0.12.6"
 prost-types = "0.12.4"
 tokio = { version = "1.37.0", features = ["net"] }
 tokio-stream = "0.1.15"
