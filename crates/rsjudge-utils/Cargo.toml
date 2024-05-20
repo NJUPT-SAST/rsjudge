@@ -18,5 +18,5 @@ thiserror = "1.0.60"
 tokio = { version = "1.37.0", features = ["process", "macros", "rt-multi-thread"] }
 
 [dev-dependencies]
-anyhow = "1.0.83"
+anyhow = "1.0.86"
 trybuild = "1.0.96"
