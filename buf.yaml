@@ -1,0 +1,14 @@
+version: v2
+modules:
+  - path: crates/rsjudge-grpc/proto
+    name: buf.build/sast-oj/rsjudge
+deps:
+  # - buf.build/googleapis/googleapis
+  - buf.build/protocolbuffers/wellknowntypes
+lint:
+  use:
+    - COMMENTS
+    - DEFAULT
+breaking:
+  use:
+    - FILE
