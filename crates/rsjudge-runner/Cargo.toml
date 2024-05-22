@@ -13,19 +13,19 @@ description = "Command runner for rsjudge"
 [dependencies]
 async-trait = "0.1.80"
 capctl = "0.2.4"
-libcgroups = "0.3.2"
+libcgroups = "0.3.3"
 libseccomp = { version = "0.3.0", features = ["const-syscall"] }
 log.workspace = true
 nix = { version = "0.28.0", features = ["user", "resource"] }
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
-thiserror = "1.0.60"
+thiserror = "1.0.61"
 tokio = { version = "1.37.0", features = ["process", "sync", "time"] }
 tokio-util = "0.7.11"
 uzers = "0.12.0"
 
 [dev-dependencies]
-anyhow = "1.0.83"
+anyhow = "1.0.86"
 
 [build-dependencies]
 rustversion = "1.0.17"

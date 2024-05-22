@@ -14,11 +14,11 @@ description = "gRPC server for rsjudge"
 ignored = ["prost", "prost-types"]
 
 [dependencies]
-anyhow = "1.0.83"
+anyhow = "1.0.86"
 futures = "0.3.30"
 log.workspace = true
-prost = "0.12.4"
-prost-types = "0.12.4"
+prost = "0.12.6"
+prost-types = "0.12.6"
 tokio = { version = "1.37.0", features = ["net"] }
 tokio-stream = "0.1.15"
 tonic = "0.11.0"
@@ -29,7 +29,7 @@ rsjudge-traits.workspace = true
 serde = { workspace = true, optional = true }
 
 [build-dependencies]
-anyhow = "1.0.83"
+anyhow = "1.0.86"
 rsjudge-utils.workspace = true
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread", "process"] }
 tonic-build = "0.11.0"
