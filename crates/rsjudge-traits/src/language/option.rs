@@ -2,14 +2,14 @@
 
 //! Language option for judging code.
 
-use indexmap::IndexMap;
+use std::collections::HashMap;
 
 /// Language option for judging code.
 pub struct LanguageOption {
     /// Name of the language.
     pub name: String,
     /// Customizable options for the language.
-    pub config: IndexMap<String, ConfigValue>,
+    pub config: HashMap<String, ConfigValue>,
 }
 
 /// Configuration value for a specific config item.

@@ -6,6 +6,7 @@
 
 pub mod judger;
 pub mod language;
+pub mod resource;
 pub mod service;
 
 pub use crate::{

@@ -17,6 +17,7 @@ libcgroups = "0.3.2"
 libseccomp = { version = "0.3.0", features = ["const-syscall"] }
 log.workspace = true
 nix = { version = "0.28.0", features = ["user", "resource"] }
+rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
 thiserror = "1.0.60"
 tokio = { version = "1.37.0", features = ["process", "sync", "time"] }

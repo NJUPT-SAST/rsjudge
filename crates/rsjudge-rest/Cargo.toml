@@ -11,6 +11,6 @@ rust-version.workspace = true
 
 [dependencies]
 axum = "0.7.5"
-rsjudge-traits = { version = "0.1.0", path = "../rsjudge-traits" }
+rsjudge-traits.workspace = true
 serde.workspace = true
 tokio = { version = "1.37.0", features = ["net"] }

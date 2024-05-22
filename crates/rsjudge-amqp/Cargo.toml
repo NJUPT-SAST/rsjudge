@@ -16,7 +16,7 @@ amqprs = { version = "1.6.1", features = ["urispec"] }
 thiserror = "1.0.60"
 tokio = "1.37.0"
 
-rsjudge-traits = { version = "0.1.0", path = "../rsjudge-traits" }
+rsjudge-traits.workspace = true
 serde = { workspace = true, optional = true }
 
 [features]

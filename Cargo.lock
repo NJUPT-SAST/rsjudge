@@ -1578,6 +1578,7 @@ dependencies = [
  "libseccomp",
  "log",
  "nix 0.28.0",
+ "rsjudge-traits",
  "rsjudge-utils",
  "rustversion",
  "thiserror",

@@ -7,7 +7,7 @@ use std::{path::Path, process::Output, time::Duration};
 use async_trait::async_trait;
 use indexmap::IndexMap;
 
-use crate::language::info::LanguageInfo;
+use crate::language::{info::LanguageInfo, option::LanguageOption};
 
 #[async_trait]
 /// A trait for judging code.
@@ -21,7 +21,7 @@ pub trait Judger {
     /// Execute the code of the specified language, with the given input and time limit.
     async fn exec(
         &self,
-        lang: &LanguageInfo,
+        lang: &LanguageOption,
         code: &str,
         input: &str,
         time_limit: Duration,
@@ -30,7 +30,7 @@ pub trait Judger {
     /// Run the code of a specified language, with the given input and time limit, and compare the output with the answer.
     async fn judge(
         &self,
-        lang: &LanguageInfo,
+        lang: &LanguageOption,
         code: &str,
         input_path: &Path,
         answer_path: &Path,

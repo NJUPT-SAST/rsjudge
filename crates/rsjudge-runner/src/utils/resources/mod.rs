@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pub mod rlimit;
 pub mod rusage;
 
 use std::{
@@ -10,9 +9,10 @@ use std::{
 
 use async_trait::async_trait;
 use nix::sys::resource::{setrlimit, Resource};
+use rsjudge_traits::resource::ResourceLimit;
 use tokio::process::{Child, Command};
 
-use self::{rlimit::ResourceLimit, rusage::ResourceUsage};
+use self::rusage::ResourceUsage;
 use crate::{utils::resources::rusage::WaitForResourceUsage, Result};
 
 #[derive(Debug)]
@@ -62,7 +62,7 @@ impl RunWithResourceLimit for Command {
         &mut self,
         resource_info: ResourceLimit,
     ) -> Result<ChildWithTimeout> {
-        if let Some(cpu_time_limit) = resource_info.cpu_time_limit {
+        if let Some(cpu_time_limit) = resource_info.cpu_time_limit() {
             let set_cpu_limit = move || {
                 setrlimit(
                     Resource::RLIMIT_CPU,
@@ -76,7 +76,7 @@ impl RunWithResourceLimit for Command {
                 self.pre_exec(set_cpu_limit);
             }
         }
-        if let Some(memory_limit) = resource_info.memory_limit {
+        if let Some(memory_limit) = resource_info.memory_limit() {
             let set_memory_limit = move || {
                 setrlimit(Resource::RLIMIT_AS, memory_limit, memory_limit)?;
 
@@ -87,7 +87,7 @@ impl RunWithResourceLimit for Command {
             }
         }
 
-        if let Some(max_file_size_limit) = resource_info.max_file_size_limit {
+        if let Some(max_file_size_limit) = resource_info.max_file_size_limit() {
             let set_max_file_size_limit = move || {
                 setrlimit(
                     Resource::RLIMIT_FSIZE,
@@ -106,7 +106,7 @@ impl RunWithResourceLimit for Command {
         Ok(ChildWithTimeout {
             child,
             start: Instant::now(),
-            timeout: resource_info.wall_time_limit,
+            timeout: resource_info.wall_time_limit(),
         })
     }
 
@@ -124,10 +124,10 @@ impl RunWithResourceLimit for Command {
 mod tests {
     use std::time::{Duration, Instant};
 
+    use rsjudge_traits::resource::ResourceLimit;
+
     use crate::{
-        utils::resources::{
-            rlimit::ResourceLimit, rusage::WaitForResourceUsage as _, RunWithResourceLimit,
-        },
+        utils::resources::{rusage::WaitForResourceUsage as _, RunWithResourceLimit},
         Error,
     };
 

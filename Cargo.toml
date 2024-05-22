@@ -24,6 +24,7 @@ rust-version = "1.74"
 
 [workspace.dependencies]
 log = "0.4.21"
+rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.202", features = ["derive"] }
 
@@ -168,7 +169,7 @@ grpc = ["dep:rsjudge-grpc", "rsjudge-grpc/serde"]
 rest = ["dep:rsjudge-rest"]
 amqp = ["dep:rsjudge-amqp", "rsjudge-amqp/serde"]
 mimalloc = ["dep:mimalloc"]
-default = ["grpc", "rest", "amqp", "mimalloc"]
+default = ["grpc", "rest", "mimalloc"]
 
 [build-dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
