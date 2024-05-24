@@ -17,5 +17,13 @@ allow = [
 ]
 
 [[bans.skip-tree]]
+crate = "libcgroups@0.3.3"
+reason = "libcgroups 0.3.3 ships with nix 0.27, see upstream https://github.com/containers/youki/pull/2791"
+
+[[bans.skip-tree]]
+crate = "petgraph@0.6.5"
+reason = "petgraph 0.6.5 ships with fixedbitset 0.4.2, see upstream https://github.com/petgraph/petgraph/pull/617"
+
+[[bans.skip-tree]]
 crate = "tonic@0.11.0"
 reason = "tonic 0.11.0 is not compatible with hyper 1.0 and axum 0.7, see upstream https://github.com/hyperium/tonic/pull/1595"
