@@ -7,9 +7,14 @@ use std::{
 use async_trait::async_trait;
 use nix::{
     errno::Errno,
-    libc::{rusage, wait4},
+    libc::{self, rusage},
 };
-use tokio::{process::Child, select, time::sleep};
+use tokio::{
+    process::Child,
+    select,
+    task::{spawn, spawn_blocking},
+    time::sleep,
+};
 use tokio_util::sync::CancellationToken;
 
 use crate::{utils::resources::ChildWithTimeout, Error, Result};
@@ -61,11 +66,11 @@ pub trait WaitForResourceUsage {
     async fn wait_for_resource_usage(&mut self) -> Result<(ExitStatus, Option<ResourceUsage>)>;
 }
 
-fn safe_wait4(pid: i32, options: i32) -> Result<(ExitStatus, ResourceUsage)> {
+fn wait4(pid: i32, options: i32) -> Result<(ExitStatus, ResourceUsage)> {
     dbg!();
     let mut status = MaybeUninit::uninit();
     let mut rusage = MaybeUninit::uninit();
-    let value = unsafe { wait4(pid, status.as_mut_ptr(), options, rusage.as_mut_ptr()) };
+    let value = unsafe { libc::wait4(pid, status.as_mut_ptr(), options, rusage.as_mut_ptr()) };
     Ok(Errno::result(value).map(|_| {
         (
             ExitStatusExt::from_raw(unsafe { status.assume_init() }),
@@ -81,8 +86,7 @@ impl WaitForResourceUsage for Child {
             let exit_status = self.try_wait()?.expect("Exit status not available");
             return Ok((exit_status, None));
         };
-        let (exit_status, resource_usage) =
-            tokio::task::spawn_blocking(move || safe_wait4(pid as _, 0)).await??;
+        let (exit_status, resource_usage) = spawn_blocking(move || wait4(pid as _, 0)).await??;
         Ok((exit_status, Some(resource_usage)))
     }
 }
@@ -99,7 +103,7 @@ impl WaitForResourceUsage for ChildWithTimeout {
 
         let start = self.start;
 
-        tokio::spawn(async move {
+        spawn(async move {
             loop {
                 if timeout <= start.elapsed() {
                     cancellation_token.cancel();

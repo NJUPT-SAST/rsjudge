@@ -3,9 +3,8 @@
 use std::{io, process::ExitStatus, result::Result as StdResult};
 
 use capctl::Cap;
-use nix::errno::Errno;
+use log::error;
 use thiserror::Error;
-use tokio::task::JoinError;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -17,32 +16,21 @@ pub enum Error {
     #[error("User '{username}' not found")]
     UserNotFound { username: &'static str },
 
-    /// A wrapper for `std::io::Error`.
+    /// A wrapper for [`std::io::Error`].
     #[error(transparent)]
-    Io(#[from] std::io::Error),
+    Io(std::io::Error),
 
     #[error("Time limit exceeded")]
     TimeLimitExceeded,
 
     #[error("Child process has exited with status: {0:?}")]
     ChildExited(ExitStatus),
-
-    /// Task failed to execute to completion.
-    #[error(transparent)]
-    Join(#[from] JoinError),
 }
 
-/// Convert a [`capctl::Error`] to an [`Error::Io`].
-impl From<capctl::Error> for Error {
-    fn from(value: capctl::Error) -> Self {
-        Self::Io(io::Error::from(value))
-    }
-}
-
-/// Convert a [`Errno`] to an [`Error::Io`].
-impl From<Errno> for Error {
-    fn from(value: Errno) -> Self {
-        Self::Io(io::Error::from(value))
+/// Convert any error implementing [`Into`]`<`[`io::Error`]`>` into [`Error`].
+impl<E: Into<io::Error>> From<E> for Error {
+    fn from(value: E) -> Self {
+        Self::Io(value.into())
     }
 }
 
