@@ -48,7 +48,7 @@ jobs:
         uses: bufbuild/buf-lint-action@v1
       - name: Run clippy lint
         run: cargo hack clippy --all-targets --each-feature --workspace
-              --message-format json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+          --message-format json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
         continue-on-error: true
       - name: Upload analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v3
@@ -76,6 +76,7 @@ jobs:
         with:
           channel: stable
           bins: cargo-deb
+          cache: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup mold
@@ -85,10 +86,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup protoc
-        uses: arduino/setup-protoc@v3
+        uses: Noelware/setup-protoc@1.2.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          version: 26.x
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.4
       - name: Enable sccache
@@ -116,6 +116,7 @@ jobs:
         with:
           channel: stable
           bins: cargo-generate-rpm
+          cache: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup buf
