@@ -13,4 +13,4 @@ rust-version.workspace = true
 axum = "0.7.5"
 rsjudge-traits.workspace = true
 serde.workspace = true
-tokio = { version = "1.37.0", features = ["net"] }
+tokio = { version = "1.38.0", features = ["net"] }
