@@ -53,7 +53,7 @@ pub trait RunWithResourceLimit {
     async fn wait_with_resource_limit(
         &mut self,
         resource_info: ResourceLimit,
-    ) -> Result<(ExitStatus, Option<ResourceUsage>)>;
+    ) -> Result<Option<(ExitStatus, ResourceUsage)>>;
 }
 
 #[async_trait]
@@ -102,9 +102,8 @@ impl RunWithResourceLimit for Command {
             }
         }
 
-        let child = self.spawn()?;
         Ok(ChildWithTimeout {
-            child,
+            child: self.spawn()?,
             start: Instant::now(),
             timeout: resource_info.wall_time_limit(),
         })
@@ -113,10 +112,9 @@ impl RunWithResourceLimit for Command {
     async fn wait_with_resource_limit(
         &mut self,
         resource_limit: ResourceLimit,
-    ) -> Result<(ExitStatus, Option<ResourceUsage>)> {
+    ) -> Result<Option<(ExitStatus, ResourceUsage)>> {
         let mut child = self.spawn_with_resource_limit(resource_limit)?;
-        let (exit_status, resource_usage) = child.wait_for_resource_usage().await?;
-        Ok((exit_status, resource_usage))
+        Ok(child.wait_for_resource_usage().await?)
     }
 }
 

@@ -16,7 +16,7 @@ capctl = "0.2.4"
 libcgroups = "0.3.3"
 libseccomp = { version = "0.3.0", features = ["const-syscall"] }
 log.workspace = true
-nix = { version = "0.29.0", features = ["user", "resource"] }
+nix = { version = "0.29.0", features = ["user", "resource", "process"] }
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
 thiserror = "1.0.61"

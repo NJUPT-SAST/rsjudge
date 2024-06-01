@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::{
-    mem::MaybeUninit, os::unix::process::ExitStatusExt, process::ExitStatus, time::Duration,
+    io, mem::MaybeUninit, os::unix::process::ExitStatusExt, process::ExitStatus, time::Duration,
 };
 
 use async_trait::async_trait;
 use nix::{
     errno::Errno,
     libc::{self, rusage},
+    sys::wait::WaitPidFlag,
+    unistd::Pid,
 };
 use tokio::{
     process::Child,
@@ -63,37 +65,57 @@ pub trait WaitForResourceUsage {
     /// Uses wait4(2) internally to wait for the process to exit and get the resource usage.
     ///
     /// See [`wait4`]
-    async fn wait_for_resource_usage(&mut self) -> Result<(ExitStatus, Option<ResourceUsage>)>;
+    async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>>;
 }
 
-fn wait4(pid: i32, options: i32) -> Result<(ExitStatus, ResourceUsage)> {
-    dbg!();
-    let mut status = MaybeUninit::uninit();
+/// A safe wrapper for the [wait4(2)](https://man7.org/linux/man-pages/man2/wait4.2.html) syscall.
+pub fn wait4<P: Into<Option<Pid>>>(
+    pid: P,
+    options: Option<WaitPidFlag>,
+) -> io::Result<Option<(ExitStatus, ResourceUsage)>> {
+    let mut status = 0;
     let mut rusage = MaybeUninit::uninit();
-    let value = unsafe { libc::wait4(pid, status.as_mut_ptr(), options, rusage.as_mut_ptr()) };
-    Ok(Errno::result(value).map(|_| {
-        (
-            ExitStatusExt::from_raw(unsafe { status.assume_init() }),
-            ResourceUsage(unsafe { rusage.assume_init() }),
+
+    let option_bits = match options {
+        Some(bits) => bits.bits(),
+        None => 0,
+    };
+
+    let res = unsafe {
+        libc::wait4(
+            pid.into().unwrap_or_else(|| Pid::from_raw(-1)).into(),
+            &mut status as *mut _,
+            option_bits,
+            rusage.as_mut_ptr(),
         )
-    })?)
+    };
+
+    Ok(match Errno::result(res)? {
+        0 => None,
+        _pid => Some((
+            ExitStatusExt::from_raw(status),
+            ResourceUsage(unsafe { rusage.assume_init() }),
+        )),
+    })
 }
 
 #[async_trait]
 impl WaitForResourceUsage for Child {
-    async fn wait_for_resource_usage(&mut self) -> Result<(ExitStatus, Option<ResourceUsage>)> {
-        let Some(pid) = self.id() else {
-            let exit_status = self.try_wait()?.expect("Exit status not available");
-            return Ok((exit_status, None));
-        };
-        let (exit_status, resource_usage) = spawn_blocking(move || wait4(pid as _, 0)).await??;
-        Ok((exit_status, Some(resource_usage)))
+    async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
+        if let Some(pid) = self.id() {
+            Ok(spawn_blocking(move || wait4(Pid::from_raw(pid as _), None)).await??)
+        } else {
+            let exit_status = self
+                .try_wait()?
+                .ok_or_else(|| io::Error::other("Exit status not available"))?;
+            Err(Error::ChildExited(exit_status))
+        }
     }
 }
 
 #[async_trait]
 impl WaitForResourceUsage for ChildWithTimeout {
-    async fn wait_for_resource_usage(&mut self) -> Result<(ExitStatus, Option<ResourceUsage>)> {
+    async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
         let Some(timeout) = self.timeout else {
             return self.child.wait_for_resource_usage().await;
         };
