@@ -30,6 +30,8 @@ enum Command {
     ///
     /// Requires `sudo` to set capabilities.
     CapTest,
+    /// Run integrated sleep test.
+    SleepTest,
     /// Debug a command.
     #[cfg(feature = "dbg")]
     Debug,
@@ -60,6 +62,15 @@ fn main() -> anyhow::Result<()> {
 
             "target/debug/examples/demo";
             "target/debug/examples/exploit";
+        },
+        Command::SleepTest => cmd! {
+            cargo build "--examples" "--workspace";
+
+            echo "Setting capabilities for sleep binary with sudo.";
+
+            sudo setcap "cap_dac_read_search=p" "target/debug/examples/sleep";
+
+            "target/debug/examples/sleep";
         },
 
         #[cfg(feature = "dbg")]
