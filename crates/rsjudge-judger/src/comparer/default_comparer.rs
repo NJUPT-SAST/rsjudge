@@ -86,6 +86,9 @@ impl Comparer for DefaultComparer {
         let mut ans_buf = Vec::new();
 
         loop {
+            // The "line" read by `read_until` includes the delimiter, i.e., the `b'\n'` byte.
+            // This is important since a trailing newline need to be detected,
+            // so we can perform exact match when needed.
             let (out_len, ans_len) = try_join!(
                 out.read_until(b'\n', &mut out_buf),
                 ans.read_until(b'\n', &mut ans_buf),
