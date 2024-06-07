@@ -21,6 +21,7 @@ pub struct ResourceLimit {
 
 impl ResourceLimit {
     /// Create a new [`ResourceLimit`] with the given limits.
+    #[must_use]
     pub fn new(
         cpu_time_limit: Option<Duration>,
         wall_time_limit: Option<Duration>,
@@ -36,21 +37,25 @@ impl ResourceLimit {
     }
 
     /// Get the CPU time limit.
+    #[must_use]
     pub fn cpu_time_limit(&self) -> Option<Duration> {
         self.cpu_time_limit
     }
 
     /// Get the wall time limit.
+    #[must_use]
     pub fn wall_time_limit(&self) -> Option<Duration> {
         self.wall_time_limit
     }
 
     /// Get the memory limit.
+    #[must_use]
     pub fn memory_limit(&self) -> Option<u64> {
         self.memory_limit
     }
 
     /// Get the max file size limit.
+    #[must_use]
     pub fn max_file_size_limit(&self) -> Option<u64> {
         self.max_file_size_limit
     }

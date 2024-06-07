@@ -8,17 +8,13 @@ use rsjudge_grpc::config::GrpcConfig;
 use rsjudge_rabbitmq::config::RabbitMqConfig;
 #[cfg(feature = "rest")]
 use rsjudge_rest::config::RestConfig;
+use rsjudge_traits::language::config::LanguageDef;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
-    pub executors: HashMap<String, Executor>,
+    pub executors: HashMap<String, LanguageDef>,
     pub services: Services,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Executor {
-    // TODO: Add fields here
 }
 
 #[derive(Debug, Deserialize, Serialize)]

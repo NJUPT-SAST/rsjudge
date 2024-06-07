@@ -62,6 +62,7 @@ impl ExecutionError {
     /// Get the output of the command, if any.
     ///
     /// This method will return `Some(&Output)` if the error is `NonZeroExitStatus`, otherwise `None`.
+    #[must_use]
     pub fn output(&self) -> Option<&Output> {
         match self {
             Self::NonZeroExitStatus { output, .. } => Some(output),
@@ -70,6 +71,7 @@ impl ExecutionError {
     }
 
     /// Get the exit status of the command, if any.
+    #[must_use]
     pub fn exit_status(&self) -> Option<ExitStatus> {
         match self {
             Self::NonZeroExitStatus { output, .. } => Some(output.status),

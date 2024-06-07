@@ -143,6 +143,7 @@ dest = "/usr/lib/sysusers.d/rsjudge.conf"
 # Workspace dependencies
 rsjudge-judger = { version = "0.1.0", path = "crates/rsjudge-judger" }
 rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
+rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
 
 # Optional dependencies

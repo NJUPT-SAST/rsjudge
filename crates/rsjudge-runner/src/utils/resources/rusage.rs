@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::{
-    io, mem::MaybeUninit, os::unix::process::ExitStatusExt, process::ExitStatus, time::Duration,
+    io, mem::MaybeUninit, os::unix::process::ExitStatusExt, process::ExitStatus, ptr::addr_of_mut,
+    time::Duration,
 };
 
 use async_trait::async_trait;
@@ -43,6 +44,7 @@ impl From<rusage> for ResourceUsage {
 }
 
 impl ResourceUsage {
+    #[must_use]
     pub fn cpu_time(&self) -> Duration {
         Duration::new(
             self.0.ru_utime.tv_sec as u64,
@@ -54,6 +56,7 @@ impl ResourceUsage {
     }
 
     /// Get the maximum RAM usage (resident set size) in bytes.
+    #[must_use]
     pub fn ram_usage(&self) -> u64 {
         self.0.ru_maxrss as u64
     }
@@ -69,6 +72,10 @@ pub trait WaitForResourceUsage {
 }
 
 /// A safe wrapper for the [wait4(2)](https://man7.org/linux/man-pages/man2/wait4.2.html) syscall.
+///
+/// # Errors
+///
+/// See manual page: [wait4(2)](https://man7.org/linux/man-pages/man2/wait4.2.html)
 pub fn wait4<P: Into<Option<Pid>>>(
     pid: P,
     options: Option<WaitPidFlag>,
@@ -84,7 +91,7 @@ pub fn wait4<P: Into<Option<Pid>>>(
     let res = unsafe {
         libc::wait4(
             pid.into().unwrap_or_else(|| Pid::from_raw(-1)).into(),
-            &mut status as *mut _,
+            addr_of_mut!(status),
             option_bits,
             rusage.as_mut_ptr(),
         )
@@ -130,15 +137,14 @@ impl WaitForResourceUsage for ChildWithTimeout {
                 if timeout <= start.elapsed() {
                     cancellation_token.cancel();
                     break;
-                } else {
-                    sleep(Duration::from_millis(10)).await;
                 }
+                sleep(Duration::from_millis(10)).await;
             }
         });
 
         select! {
             res = self.child.wait_for_resource_usage() => return res,
-            _ = child_token.cancelled() => {
+            () = child_token.cancelled() => {
                 self.child.start_kill()?;
                 return Err(Error::TimeLimitExceeded);
             }

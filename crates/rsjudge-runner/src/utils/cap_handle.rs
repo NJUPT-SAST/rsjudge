@@ -48,7 +48,7 @@ impl CapHandle {
         Self::LOCAL_CAPS.with_borrow_mut(|local_caps| {
             local_caps
                 .get(&cap)
-                .and_then(|weak| weak.upgrade())
+                .and_then(Weak::upgrade)
                 .map(|rc| Self { cap, rc })
                 .map_or_else(
                     || {

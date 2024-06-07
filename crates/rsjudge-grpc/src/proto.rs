@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-#![allow(clippy::match_single_binding)]
+#![allow(clippy::all)]
+#![allow(clippy::pedantic)]
+
 use tonic::include_proto;
 
 include_proto!("cases.v1");
