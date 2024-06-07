@@ -1,5 +1,5 @@
 error[E0308]: mismatched types
-  --> tests/logging_on_non_result.test:21:27
+  --> tests/cases/logging_on_non_result.rs:21:27
    |
 21 |     let _ = log_if_error!(S);
    |             --------------^-
