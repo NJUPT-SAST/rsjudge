@@ -6,6 +6,9 @@ use capctl::Cap;
 use log::error;
 use thiserror::Error;
 
+#[cfg(debug_assertions)]
+use crate::utils::resources::rusage::ResourceUsage;
+
 #[derive(Debug, Error)]
 pub enum Error {
     /// Capabilities required but not set.
@@ -21,7 +24,10 @@ pub enum Error {
     Io(std::io::Error),
 
     #[error("Time limit exceeded")]
-    TimeLimitExceeded,
+    TimeLimitExceeded(
+        #[cfg(debug_assertions)] Option<(ExitStatus, ResourceUsage)>,
+        #[cfg(not(debug_assertions))] (),
+    ),
 
     #[error("Child process has exited with status: {0:?}")]
     ChildExited(ExitStatus),

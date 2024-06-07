@@ -1,5 +1,6 @@
 use std::{path::PathBuf, time::Duration};
 
+use anyhow::bail;
 use rsjudge_runner::utils::resources::{rusage::WaitForResourceUsage, RunWithResourceLimit};
 use rsjudge_traits::resource::ResourceLimit;
 use tokio::{process::Command, time::Instant};
@@ -14,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
     let spin_lock = examples.join("spin_lock");
     eprintln!("Starting spin_lock with CPU time limit of 1s, wall time limit 2s:");
     let start_time = Instant::now();
-    let _ = Command::new(spin_lock)
+    let Some((status, rusage)) = Command::new(spin_lock)
         .spawn_with_resource_limit(ResourceLimit::new(
             Some(Duration::from_secs(1)),
             Some(Duration::from_secs(2)),
@@ -22,13 +23,18 @@ async fn main() -> anyhow::Result<()> {
             None,
         ))?
         .wait_for_resource_usage()
-        .await;
+        .await?
+    else {
+        bail!("Failed to get resource usage");
+    };
 
     dbg!(start_time.elapsed());
+    dbg!(status);
+    dbg!(rusage.cpu_time());
     let sleep = examples.join("sleep");
     eprintln!("Starting sleep with CPU time limit of 1s, wall time limit 2s:");
     let start_time = Instant::now();
-    let _ = Command::new(sleep)
+    let Some((status, rusage)) = Command::new(sleep)
         .spawn_with_resource_limit(ResourceLimit::new(
             Some(Duration::from_secs(1)),
             Some(Duration::from_secs(2)),
@@ -36,8 +42,14 @@ async fn main() -> anyhow::Result<()> {
             None,
         ))?
         .wait_for_resource_usage()
-        .await;
+        .await
+        .map_err(|err| dbg!(err))?
+    else {
+        bail!("Failed to get resource usage");
+    };
 
     dbg!(start_time.elapsed());
+    dbg!(status);
+    dbg!(rusage.cpu_time());
     Ok(())
 }

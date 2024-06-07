@@ -150,6 +150,6 @@ mod tests {
         dbg!(elapsed);
 
         assert!(elapsed < Duration::from_secs_f32(1.52));
-        assert!(matches!(error, Error::TimeLimitExceeded));
+        assert!(matches!(error, Error::TimeLimitExceeded(_)));
     }
 }
