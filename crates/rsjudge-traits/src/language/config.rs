@@ -69,7 +69,7 @@ pub enum ConfigDef {
 mod tests {
     use std::{collections::HashMap, fs::File, io::Read};
 
-    use indexmap::indexmap;
+    use indexmap::{indexmap, IndexMap};
     use toml::toml;
 
     use super::{ConfigDef, ExecType, LanguageDef};
@@ -166,12 +166,11 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn deserialize_config_demo() {
         let mut demo = File::open("../../config-demo/executors.toml").unwrap();
         let mut input = String::new();
         demo.read_to_string(&mut input).unwrap();
-        let output = toml::from_str::<HashMap<String, LanguageDef>>(&input).unwrap();
+        let output = toml::from_str::<IndexMap<String, LanguageDef>>(&input).unwrap();
 
         println!("{:#?}", output);
     }
