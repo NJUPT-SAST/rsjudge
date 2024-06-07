@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use capctl::{Cap, FullCapState};
+use capctl::{Cap, CapState};
 use rsjudge_runner::{use_caps, user::builder, RunAs};
 use rsjudge_utils::command::check_output;
 use tokio::process::Command;
@@ -19,11 +19,11 @@ use tokio::process::Command;
 /// ```
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dbg!(FullCapState::get_current().unwrap());
+    dbg!(CapState::get_current().unwrap());
 
     use_caps!(Cap::SETUID, Cap::SETGID, Cap::DAC_READ_SEARCH);
 
-    dbg!(FullCapState::get_current().unwrap());
+    dbg!(CapState::get_current().unwrap());
 
     // Get the path to the examples.
     // This crate is located at crates/rsjudge-runner,
