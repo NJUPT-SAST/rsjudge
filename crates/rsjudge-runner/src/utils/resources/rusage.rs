@@ -15,7 +15,8 @@ use nix::{
 use tokio::{
     process::Child,
     select,
-    task::{spawn, spawn_blocking},
+    signal::unix::{signal, SignalKind},
+    task::spawn,
     time::sleep,
 };
 use tokio_util::sync::CancellationToken;
@@ -110,7 +111,23 @@ pub fn wait4<P: Into<Option<Pid>>>(
 impl WaitForResourceUsage for Child {
     async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
         if let Some(pid) = self.id() {
-            Ok(spawn_blocking(move || wait4(Pid::from_raw(pid as _), None)).await??)
+            Ok(Some(
+                spawn(async move {
+                    let mut sigchld_stream = signal(SignalKind::child())?;
+                    loop {
+                        if let Some(status) =
+                            wait4(Pid::from_raw(pid as _), Some(WaitPidFlag::WNOHANG))?
+                        {
+                            return Ok::<_, Error>(status);
+                        }
+
+                        if sigchld_stream.recv().await.is_none() {
+                            Err(Errno::ECHILD)?
+                        }
+                    }
+                })
+                .await??,
+            ))
         } else {
             let exit_status = self
                 .try_wait()?
