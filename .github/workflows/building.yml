@@ -59,12 +59,45 @@ jobs:
           wait-for-processing: true
       - name: Run tests
         run: cargo hack test --all-targets --each-feature --verbose --workspace
+      - name: Check dependency graph
+        run: cargo deny --all-features --workspace check
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y wget clang
+      - name: Setup Rust toolchain
+        uses: moonrepo/setup-rust@v1
+        with:
+          channel: "1.74"
+          components: rust-src
+          bins: cargo-hack
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup mold
+        uses: rui314/setup-mold@v1
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup protoc
+        uses: Noelware/setup-protoc@1.2.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.4
+      - name: Enable sccache
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
       - name: Check for MSRV compliance
         env:
           TRYBUILD: overwrite
         run: cargo hack test --rust-version --all-targets --each-feature --workspace
-      - name: Check dependency graph
-        run: cargo deny --all-features --workspace check
   pkg-deb:
     runs-on: ubuntu-20.04
     steps:
