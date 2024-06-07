@@ -72,62 +72,59 @@ pub trait WaitForResourceUsage {
     async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>>;
 }
 
-/// A safe wrapper for the [wait4(2)](https://man7.org/linux/man-pages/man2/wait4.2.html) syscall.
+/// A safe wrapper for the [wait4(2)] syscall.
 ///
 /// # Errors
 ///
-/// See manual page: [wait4(2)](https://man7.org/linux/man-pages/man2/wait4.2.html)
+/// See manual page: [wait4(2)]
+///
+/// [wait4(2)]: https://man7.org/linux/man-pages/man2/wait4.2.html
 pub fn wait4<P: Into<Option<Pid>>>(
     pid: P,
     options: Option<WaitPidFlag>,
 ) -> io::Result<Option<(ExitStatus, ResourceUsage)>> {
-    let mut status = 0;
-    let mut rusage = MaybeUninit::uninit();
+    fn wait4_inner(
+        pid: Option<Pid>,
+        option_bits: i32,
+    ) -> io::Result<Option<(ExitStatus, ResourceUsage)>> {
+        let mut status = 0;
+        let mut rusage = MaybeUninit::uninit();
 
-    let option_bits = match options {
-        Some(bits) => bits.bits(),
-        None => 0,
-    };
+        let res = unsafe {
+            libc::wait4(
+                pid.unwrap_or_else(|| Pid::from_raw(-1)).into(),
+                addr_of_mut!(status),
+                option_bits,
+                rusage.as_mut_ptr(),
+            )
+        };
 
-    let res = unsafe {
-        libc::wait4(
-            pid.into().unwrap_or_else(|| Pid::from_raw(-1)).into(),
-            addr_of_mut!(status),
-            option_bits,
-            rusage.as_mut_ptr(),
-        )
-    };
+        Ok(match Errno::result(res)? {
+            0 => None,
+            _pid => Some((
+                ExitStatusExt::from_raw(status),
+                ResourceUsage(unsafe { rusage.assume_init() }),
+            )),
+        })
+    }
 
-    Ok(match Errno::result(res)? {
-        0 => None,
-        _pid => Some((
-            ExitStatusExt::from_raw(status),
-            ResourceUsage(unsafe { rusage.assume_init() }),
-        )),
-    })
+    wait4_inner(pid.into(), options.map_or(0, |bits| bits.bits()))
 }
 
 #[async_trait]
 impl WaitForResourceUsage for Child {
     async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
         if let Some(pid) = self.id() {
-            Ok(Some(
-                spawn(async move {
-                    let mut sigchld_stream = signal(SignalKind::child())?;
-                    loop {
-                        if let Some(status) =
-                            wait4(Pid::from_raw(pid as _), Some(WaitPidFlag::WNOHANG))?
-                        {
-                            return Ok::<_, Error>(status);
-                        }
+            let mut sigchld_stream = signal(SignalKind::child())?;
+            loop {
+                if let Some(status) = wait4(Pid::from_raw(pid as _), Some(WaitPidFlag::WNOHANG))? {
+                    return Ok(Some(status));
+                }
 
-                        if sigchld_stream.recv().await.is_none() {
-                            Err(Errno::ECHILD)?
-                        }
-                    }
-                })
-                .await??,
-            ))
+                if sigchld_stream.recv().await.is_none() {
+                    Err(Errno::ECHILD)?
+                }
+            }
         } else {
             let exit_status = self
                 .try_wait()?
