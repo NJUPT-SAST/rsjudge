@@ -6,7 +6,7 @@ use std::io;
 
 use async_trait::async_trait;
 use futures::try_join;
-use rsjudge_utils::trim_ascii_end;
+use rsjudge_utils::trim_space_end;
 use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 
 use crate::{CompareResult, Comparer};
@@ -53,7 +53,7 @@ impl DefaultComparer {
         };
 
         let (out, ans) = if self.ignore_trailing_whitespace {
-            (trim_ascii_end(out), trim_ascii_end(ans))
+            (trim_space_end(out), trim_space_end(ans))
         } else {
             (out, ans)
         };
@@ -86,9 +86,14 @@ impl Comparer for DefaultComparer {
         let mut ans_buf = Vec::new();
 
         loop {
-            // The "line" read by `read_until` includes the delimiter, i.e., the `b'\n'` byte.
-            // This is important since a trailing newline need to be detected,
-            // so we can perform exact match when needed.
+            // The "line" read by `read_until` includes the delimiter,
+            // i.e., the `b'\n'` byte.
+            // This is important since a trailing newline needs to be detected
+            // for an exact match.
+            //
+            // Read beyond the EOF will always return `Ok(0)` with an empty buffer.
+            // So any trailing content is compared with an empty buffer,
+            // leading to `CompareResult::WrongAnswer`.
             let (out_len, ans_len) = try_join!(
                 out.read_until(b'\n', &mut out_buf),
                 ans.read_until(b'\n', &mut ans_buf),
