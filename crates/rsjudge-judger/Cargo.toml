@@ -9,6 +9,10 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[[bench]]
+name = "default_comparer"
+harness = false
+
 [dependencies]
 async-trait = "0.1.80"
 futures = "0.3.30"
@@ -16,5 +20,6 @@ rsjudge-utils.workspace = true
 tokio = { version = "1.38.0", features = ["io-util", "fs", "macros"] }
 
 [dev-dependencies]
+criterion = { version = "0.5.1", features = ["async_tokio", "html_reports"] }
 tempfile = "3.10.1"
-tokio = { version = "1.38.0", features = ["rt-multi-thread"] }
+tokio = { version = "1.38.0", features = ["rt-multi-thread", "full"] }

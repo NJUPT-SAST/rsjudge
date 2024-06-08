@@ -10,6 +10,6 @@ mod error_macros;
 
 mod trim;
 
-pub use trim::{trim_ascii, trim_ascii_end, trim_ascii_start};
+pub use trim::{trim_space, trim_space_end, trim_space_start};
 
 pub mod command;
