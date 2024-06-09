@@ -20,6 +20,7 @@ rsjudge-utils.workspace = true
 tokio = { version = "1.38.0", features = ["io-util", "fs", "macros"] }
 
 [dev-dependencies]
-criterion = { version = "0.5.1", features = ["async_tokio", "html_reports"] }
+# criterion = { version = "0.5.1", features = ["async_tokio", "html_reports"] }
+criterion2 = { version = "0.10.0", features = ["async_tokio"] }
 tempfile = "3.10.1"
 tokio = { version = "1.38.0", features = ["rt-multi-thread", "full"] }

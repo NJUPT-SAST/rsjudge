@@ -12,15 +12,15 @@ fn bench(c: &mut Criterion) {
     let data_file_trimmed = data_dir.join("100M.trim");
     const MB: u64 = 1024 * 1024;
     const COMPARERS: &[(DefaultComparer, &str)] = &[
-        (DefaultComparer::common(), "Common comparer"),
-        (DefaultComparer::exact_match(), "Exact match comparer"),
+        (DefaultComparer::common(), "common"),
+        (DefaultComparer::exact_match(), "exact-match"),
         (
             DefaultComparer::new(false, true, true),
-            "Common case insensitive comparer",
+            "case-insensitive-common",
         ),
     ];
 
-    let mut group = c.benchmark_group("throughput");
+    let mut group = c.benchmark_group("DefaultComparer");
     group.sampling_mode(SamplingMode::Flat);
 
     for (comparer, id) in COMPARERS {
