@@ -1,7 +1,8 @@
 use std::{hint::black_box, io, path::Path};
 
 use criterion::{
-    criterion_group, criterion_main, BenchmarkId, Criterion, SamplingMode, Throughput,
+    criterion_group, criterion_main, AxisScale, BenchmarkId, Criterion, PlotConfiguration,
+    Throughput,
 };
 use rsjudge_judger::{comparer::DefaultComparer, Comparer as _};
 use tokio::{fs::File, runtime::Runtime};
@@ -20,7 +21,7 @@ fn bench(c: &mut Criterion) {
     ];
 
     let mut group = c.benchmark_group("DefaultComparer");
-    group.sampling_mode(SamplingMode::Flat);
+    group.plot_config(PlotConfiguration::default().summary_scale(AxisScale::Logarithmic));
     for (size_str, bytes) in [
         ("1k", KILO),
         ("16k", 16 * KILO),
