@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //! Resource limit for judging code.
 
 use std::time::Duration;
