@@ -20,7 +20,7 @@ use tokio::process::Command;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dbg!(CapState::get_current().unwrap());
-
+    eprintln!("Safely rise the required capabilities.");
     use_caps!(Cap::SETUID, Cap::SETGID, Cap::DAC_READ_SEARCH);
 
     dbg!(CapState::get_current().unwrap());
@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("cannot find crate root"))?
         .join("target/debug/examples");
 
-    let exploit_inner = examples.join("exploit_inner");
+    let exploit = examples.join("exploit");
 
     let normal = examples.join("normal");
     eprintln!("Starting normal program");
@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
     eprintln!("{}", String::from_utf8_lossy(&status.stderr));
 
     eprintln!("Starting evil program.");
-    let status = check_output(Command::new(exploit_inner).run_as(builder()?)?).await?;
+    let status = check_output(Command::new(exploit).run_as(builder()?)?).await?;
     println!("{}", String::from_utf8_lossy(&status.stdout));
     eprintln!("{}", String::from_utf8_lossy(&status.stderr));
 

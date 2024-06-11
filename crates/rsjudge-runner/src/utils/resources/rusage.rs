@@ -29,6 +29,7 @@ use crate::{utils::resources::ChildWithTimeout, Error, Result};
 #[derive(Debug, Clone, Copy)]
 pub struct ResourceUsage {
     cpu_time: Duration,
+    /// RAM usage in *kilobytes*
     ram_usage: u64,
 }
 
@@ -53,7 +54,7 @@ impl ResourceUsage {
         self.cpu_time
     }
 
-    /// Get the maximum RAM usage (resident set size) in bytes.
+    /// Get the maximum RAM usage (resident set size) in *kilobytes*.
     #[must_use]
     pub fn ram_usage(&self) -> u64 {
         self.ram_usage

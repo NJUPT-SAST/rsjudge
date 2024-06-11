@@ -1,6 +1,9 @@
-use std::{path::PathBuf, time::Duration};
+// SPDX-License-Identifier: Apache-2.0
+
+use std::{os::unix::process::ExitStatusExt, path::PathBuf, time::Duration};
 
 use anyhow::bail;
+use nix::{sys::wait::WaitStatus, unistd::Pid};
 use rsjudge_runner::utils::resources::{rusage::WaitForResourceUsage, RunWithResourceLimit};
 use rsjudge_traits::resource::ResourceLimit;
 use tokio::{process::Command, time::Instant};
@@ -12,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
         .and_then(|p| p.parent())
         .ok_or_else(|| anyhow::anyhow!("cannot find crate root"))?
         .join("target/debug/examples");
-    let spin_lock = examples.join("spin_lock");
+    let spin_lock = examples.join("spinning");
     eprintln!("Starting spin_lock with CPU time limit of 1s, wall time limit 2s:");
     let start_time = Instant::now();
     let Some((status, rusage)) = Command::new(spin_lock)
@@ -29,12 +32,14 @@ async fn main() -> anyhow::Result<()> {
     };
 
     dbg!(start_time.elapsed());
+    let status = WaitStatus::from_raw(Pid::from_raw(0), status.into_raw())?;
     dbg!(status);
     dbg!(rusage.cpu_time());
+
     let sleep = examples.join("sleep");
     eprintln!("Starting sleep with CPU time limit of 1s, wall time limit 2s:");
     let start_time = Instant::now();
-    let Some((status, rusage)) = Command::new(sleep)
+    let Err(e) = Command::new(sleep)
         .spawn_with_resource_limit(ResourceLimit::new(
             Some(Duration::from_secs(1)),
             Some(Duration::from_secs(2)),
@@ -43,13 +48,27 @@ async fn main() -> anyhow::Result<()> {
         ))?
         .wait_for_resource_usage()
         .await
-        .map_err(|err| dbg!(err))?
     else {
         bail!("Failed to get resource usage");
     };
 
     dbg!(start_time.elapsed());
+    dbg!(e);
+
+    let large_alloc = examples.join("large_alloc");
+    eprintln!("Starting `large_alloc` with RAM limit of 1MB");
+
+    let Ok(Some((status, rusage))) = Command::new(large_alloc)
+        .spawn_with_resource_limit(ResourceLimit::new(None, None, Some(1 << 30), None))?
+        .wait_for_resource_usage()
+        .await
+    else {
+        bail!("Failed to get resource usage");
+    };
+
+    let status = WaitStatus::from_raw(Pid::from_raw(0), status.into_raw())?;
     dbg!(status);
-    dbg!(rusage.cpu_time());
+    dbg!(rusage);
+
     Ok(())
 }
