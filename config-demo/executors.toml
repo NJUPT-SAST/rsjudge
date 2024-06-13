@@ -4,7 +4,7 @@
 # Example $flags: "-O2 -std=c99"
 message = "使用 $(gcc --version)。"
 exec_type = "binary"
-compile = "gcc {...flags} -lm -Wall -o {out_file} {src_file}"
+compile = "gcc {...flags} -fmax-errors=10 -lm -Wall -o {out_file} {src_file}"
 
 [C.options.O2]
 type = "bool"
@@ -24,7 +24,7 @@ C11 = "-std=c11"
 ["C++"]
 # Example $flags: "-O2 -std=c++14"
 exec_type = "binary"
-compile = "g++ {...flags} -lm -Wall -o {out_file} {src_file}"
+compile = "g++ {...flags} -fmax-errors=10 -lm -Wall -o {out_file} {src_file}"
 
 ["C++".options.O2]
 type = "bool"
