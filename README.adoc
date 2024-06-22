@@ -20,6 +20,10 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 * Highly extensible with plugins.
 * Blazingly fast and secured with Rust🦀.
 
+== Pronunciation and spelling
+
+The name "rsjudge" is a combination of "Rust" and "judge". It is pronounced as "R-S-judge". The word should be written in lowercase, with no space in between, even in the title or at the beginning of a sentence.
+
 == Repository structure
 
 `src/`::
@@ -49,13 +53,26 @@ https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
 
 === Prerequisites
 
-* Rust 1.74 or later,
+* Rust toolchain according to <<msrv, MSRV>>.
 * Linux kernel >= 4.5,
 ** Required for Seccomp BPF support.
 * For gRPC support (under `grpc` feature):
 ** https://github.com/protocolbuffers/protobuf?tab=readme-ov-file#protobuf-compiler-installation[`protoc`] >= 3.15,
 ** https://github.com/bufbuild/buf/[`buf`] for gRPC dependencies management.
 * For `.deb` package generation, a Debian/Ubuntu system with `dpkg-dev` and `liblzma-dev` installed.
+
+[#msrv]
+==== MSRV (Minimum Supported Rust Version)
+
+rsjudge uses the MSRV policy of N - 2, where N is the current stable version of Rust. For example, if the current stable version is 1.79, then the MSRV will be set to 1.77.
+
+The current MSRV can be found in the `rust-version` field in  link:Cargo.toml[]. We will not support any Rust version older than the MSRV after we update it. They may still work, or fail to compile or execute rsjudge correctly.
+
+[NOTE]
+.To maintainers:
+====
+When MSRV is updated, be sure to update the link:.github/workflows/building.yml[building workflow] at the same time.
+====
 
 === Install dependencies
 

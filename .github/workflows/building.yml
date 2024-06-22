@@ -73,7 +73,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
-          channel: "1.74"
+          channel: "1.77"
           components: rust-src
           bins: cargo-hack
         env:

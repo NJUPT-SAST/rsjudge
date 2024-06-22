@@ -19,8 +19,8 @@ edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/NJUPT-SAST/rsjudge"
 
-# clap requires Rust 1.74+ to work
-rust-version = "1.74"
+# MSRV is set to N - 2, where N is the current stable version.
+rust-version = "1.77"
 
 [workspace.dependencies]
 log = "0.4.21"
