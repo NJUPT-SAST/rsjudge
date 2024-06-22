@@ -9,10 +9,6 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
-[[bench]]
-name = "default_comparer"
-harness = false
-
 [dependencies]
 async-trait = "0.1.80"
 futures = "0.3.30"

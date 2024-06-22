@@ -1,3 +1,0 @@
-[submodule "crates/rsjudge-judger/benches/data"]
-	path = crates/rsjudge-judger/benches/data
-	url = https://github.com/Jisu-Woniu/rsjudge-bench-data.git
