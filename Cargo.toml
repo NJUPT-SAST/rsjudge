@@ -23,7 +23,7 @@ repository = "https://github.com/NJUPT-SAST/rsjudge"
 rust-version = "1.77"
 
 [workspace.dependencies]
-log = "0.4.21"
+log = "0.4.22"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.203", features = ["derive"] }
