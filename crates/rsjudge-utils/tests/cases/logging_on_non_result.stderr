@@ -12,8 +12,8 @@ error[E0308]: mismatched types
 note: method defined here
   --> $RUST/core/src/result.rs
    |
-   |     pub fn map_err<F, O: FnOnce(E) -> F>(self, op: O) -> Result<T, F> {
-   |            ^^^^^^^
+   |     pub fn inspect_err<F: FnOnce(&E)>(self, f: F) -> Self {
+   |            ^^^^^^^^^^^
 help: try wrapping the expression in a variant of `Result`
    |
 21 |     let _ = log_if_error!(Ok(S));

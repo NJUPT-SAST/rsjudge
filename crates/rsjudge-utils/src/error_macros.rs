@@ -19,9 +19,8 @@
 #[macro_export]
 macro_rules! log_if_error {
     ($expr: expr) => {
-        ::std::result::Result::map_err($expr, |err| {
+        ::std::result::Result::inspect_err($expr, |err| {
             ::log::error!("{}", err);
-            err
         })
     };
 }
