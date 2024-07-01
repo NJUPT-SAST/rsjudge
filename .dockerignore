@@ -3,3 +3,4 @@
 .github/
 .vscode/
 target/
+Dockerfile
