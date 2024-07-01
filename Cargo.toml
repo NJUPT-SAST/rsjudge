@@ -23,7 +23,7 @@ repository = "https://github.com/NJUPT-SAST/rsjudge"
 rust-version = "1.77"
 
 [workspace.dependencies]
-log = "0.4.21"
+log = "0.4.22"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.203", features = ["derive"] }
@@ -152,10 +152,10 @@ rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = tru
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 anyhow = "1.0.86"
-clap = { version = "4.5.7", features = ["derive"] }
+clap = { version = "4.5.8", features = ["derive"] }
 env_logger = "0.11.3"
 log.workspace = true
-mimalloc = { version = "0.1.42", optional = true }
+mimalloc = { version = "0.1.43", optional = true }
 serde.workspace = true
 sysinfo = { version = "0.30.12", features = ["serde"] }
 tokio = { version = "1.38.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
@@ -173,9 +173,9 @@ mimalloc = ["dep:mimalloc"]
 default = ["grpc", "rest", "mimalloc"]
 
 [build-dependencies]
-clap = { version = "4.5.7", features = ["derive"] }
-clap_complete = "4.5.6"
-clap_mangen = "0.2.21"
+clap = { version = "4.5.8", features = ["derive"] }
+clap_complete = "4.5.7"
+clap_mangen = "0.2.22"
 
 [profile.release]
 codegen-units = 1
