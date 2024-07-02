@@ -62,7 +62,7 @@ impl SetGroups for Command {
 
         let set_groups = move || {
             CapHandle::new(Cap::SETGID)
-                .map_err(|e| io::Error::new(ErrorKind::PermissionDenied, e.to_string()))?;
+                .map_err(|e| io::Error::new(ErrorKind::PermissionDenied, e))?;
             log_if_error!(setgroups(&groups))?;
             Ok(())
         };
