@@ -16,5 +16,5 @@ serde.workspace = true
 tokio = { version = "1.38.0", features = ["process"] }
 
 [dev-dependencies]
-serde_json = "1.0.119"
+serde_json = "1.0.120"
 toml = { version = "0.8.14", features = ["preserve_order"] }
