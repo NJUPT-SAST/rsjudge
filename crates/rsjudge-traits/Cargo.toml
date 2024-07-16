@@ -10,7 +10,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-async-trait = "0.1.80"
+async-trait = "0.1.81"
 indexmap = { version = "2.2.6", features = ["serde"] }
 serde.workspace = true
 tokio = { version = "1.38.0", features = ["process"] }

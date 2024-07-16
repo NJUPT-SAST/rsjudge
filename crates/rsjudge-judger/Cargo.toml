@@ -10,7 +10,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-async-trait = "0.1.80"
+async-trait = "0.1.81"
 futures = "0.3.30"
 rsjudge-utils.workspace = true
 tokio = { version = "1.38.0", features = ["io-util", "fs", "macros"] }
