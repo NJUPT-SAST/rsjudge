@@ -174,7 +174,7 @@ default = ["grpc", "rest", "mimalloc"]
 
 [build-dependencies]
 clap = { version = "4.5.9", features = ["derive"] }
-clap_complete = "4.5.7"
+clap_complete = "4.5.8"
 clap_mangen = "0.2.22"
 
 [profile.release]
