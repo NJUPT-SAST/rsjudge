@@ -13,7 +13,7 @@ rust-version.workspace = true
 log.workspace = true
 shell-words = "1.1.0"
 thiserror = "1.0.62"
-tokio = { version = "1.38.0", features = ["process", "macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["process", "macros", "rt-multi-thread"] }
 
 [dev-dependencies]
 anyhow = "1.0.86"

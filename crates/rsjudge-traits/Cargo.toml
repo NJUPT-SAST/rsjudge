@@ -13,7 +13,7 @@ rust-version.workspace = true
 async-trait = "0.1.81"
 indexmap = { version = "2.2.6", features = ["serde"] }
 serde.workspace = true
-tokio = { version = "1.38.0", features = ["process"] }
+tokio = { workspace = true, features = ["process"] }
 
 [dev-dependencies]
 serde_json = "1.0.120"

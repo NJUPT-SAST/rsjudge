@@ -27,6 +27,7 @@ log = "0.4.22"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.204", features = ["derive"] }
+tokio = "1.38.1"
 
 [package]
 name = "rsjudge"
@@ -158,7 +159,7 @@ log.workspace = true
 mimalloc = { version = "0.1.43", optional = true }
 serde.workspace = true
 sysinfo = { version = "0.30.13", features = ["serde"] }
-tokio = { version = "1.38.0", features = ["fs", "rt-multi-thread", "macros", "process"] }
+tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.14"
 
 # Unused for now:

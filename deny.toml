@@ -25,5 +25,5 @@ crate = "petgraph@0.6.5"
 reason = "petgraph 0.6.5 ships with fixedbitset 0.4.2, see upstream https://github.com/petgraph/petgraph/pull/617"
 
 [[bans.skip-tree]]
-crate = "tonic@0.11.0"
-reason = "tonic 0.11.0 is not compatible with hyper 1.0 and axum 0.7, see upstream https://github.com/hyperium/tonic/pull/1595"
+crate = "axum-core@0.4.3"
+reason = "axum 0.7.5 depends on sync_wrapper 1.0, but it also depends on axum-core 0.4.3, which depends on sync_wrapper 0.1.1"
