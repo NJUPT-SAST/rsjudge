@@ -24,7 +24,7 @@ xref:README.adoc[English]
 
 == 发音和拼写
 
-"rsjudge" 是 "Rust" 和 "judge" 的组合，发音为 "R-S-judge"。单词应该以小写字母书写，单词中间无空格，即使在标题或句子开头也是如此。
+“rsjudge” 是 “Rust” 和 “judge” 的组合，发音为 “R-S-judge”。单词应该以小写字母书写，单词中间无空格，即使在标题或句子开头也是如此。
 
 == 目录结构
 
@@ -58,7 +58,7 @@ https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
 * 符合 <<msrv, MSRV>> 的 Rust 工具链。
 * Linux 内核 >= 4.5
 ** 这是为了支持 Seccomp BPF。
-* 对于 gRPC 支持（在 `grpc` 特性下）
+* 对于 gRPC 支持（采用 `grpc` feature 控制）
 ** https://github.com/protocolbuffers/protobuf?tab=readme-ov-file#protobuf-compiler-installation[`protoc`] >= 3.15,
 ** https://github.com/bufbuild/buf/[`buf`] 用于 gRPC 依赖管理。
 * 对于 `.deb` 包的生成，需要安装了 `dpkg-dev` 和 `liblzma-dev` 的 Debian/Ubuntu 系统。
