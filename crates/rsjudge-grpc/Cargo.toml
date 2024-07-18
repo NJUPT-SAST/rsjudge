@@ -32,7 +32,7 @@ serde = { workspace = true, optional = true }
 anyhow = "1.0.86"
 rsjudge-utils.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "process"] }
-tonic-build = "0.12.0"
+tonic-build = "0.12.1"
 
 [features]
 serde = ["dep:serde"]
