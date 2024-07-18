@@ -47,4 +47,4 @@ macro_rules! log_if_error {
 /// let _ = log_if_error!(S);
 /// ```
 #[cfg(doctest)]
-pub struct LoggingOnNonResult;
+pub enum LoggingOnNonResult {}

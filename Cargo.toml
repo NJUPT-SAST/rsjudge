@@ -87,7 +87,7 @@ changelog = "packaging/deb/changelog"
 features = ["default"]
 conf-files = ["/etc/rsjudge/services.toml", "/etc/rsjudge/executors.toml"]
 extended-description = "An online judge sandbox server in Rust, inspired by go-judge, for SASTOJ."
-maintainer = "Xiaoqing Xuan <jswn@jswn9945.xyz>"
+maintainer = "JisuWoniu <jswn@jswn9945.xyz>"
 maintainer-scripts = "packaging/deb/"
 depends = "$auto, adduser, libc6, libgcc-s1, libstdc++6, libssl1.1, libzstd1, libzstd-dev"
 recommends = "gcc, g++, python3"
@@ -115,30 +115,37 @@ mode = "644"
 [[package.metadata.generate-rpm.assets]]
 source = "README.adoc"
 dest = "/usr/share/doc/rsjudge/README.adoc"
+mode = "644"
 
 [[package.metadata.generate-rpm.assets]]
 source = "target/assets/rsjudge.bash"
 dest = "/usr/share/bash-completion/completions/rsjudge"
+mode = "644"
 
 [[package.metadata.generate-rpm.assets]]
 source = "target/assets/_rsjudge"
 dest = "/usr/share/zsh/site-functions/_rsjudge"
+mode = "644"
 
 [[package.metadata.generate-rpm.assets]]
 source = "target/assets/rsjudge.fish"
 dest = "/usr/share/fish/vendor_completions.d/rsjudge.fish"
+mode = "644"
 
 [[package.metadata.generate-rpm.assets]]
 source = "packaging/shared/service"
 dest = "/usr/lib/systemd/system/rsjudge.service"
+mode = "644"
 
 [[package.metadata.generate-rpm.assets]]
 source = "packaging/shared/tmpfile"
 dest = "/usr/lib/tmpfiles.d/rsjudge.conf"
+mode = "644"
 
 [[package.metadata.generate-rpm.assets]]
 source = "packaging/shared/sysuser"
 dest = "/usr/lib/sysusers.d/rsjudge.conf"
+mode = "644"
 
 [dependencies]
 # Workspace dependencies
