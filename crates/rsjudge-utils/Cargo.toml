@@ -17,4 +17,3 @@ tokio = { workspace = true, features = ["process", "macros", "rt-multi-thread"] 
 
 [dev-dependencies]
 anyhow = "1.0.86"
-trybuild = "1.0.97"
