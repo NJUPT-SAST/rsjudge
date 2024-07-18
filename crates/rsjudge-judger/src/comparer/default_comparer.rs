@@ -9,7 +9,7 @@ use futures::try_join;
 use rsjudge_utils::trim_space_end;
 use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 
-use crate::{CompareResult, Comparer};
+use crate::comparer::{CompareResult, Comparer};
 
 /// A default comparer implementation with basic configurations.
 #[must_use = "Comparer makes no sense if it is not used"]
@@ -123,7 +123,7 @@ mod tests {
         io::{empty, AsyncWriteExt as _},
     };
 
-    use crate::{CompareResult, Comparer as _, DefaultComparer};
+    use crate::comparer::{CompareResult, Comparer as _, DefaultComparer};
 
     #[tokio::test]
     async fn compare_empty() -> io::Result<()> {
