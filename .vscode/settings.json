@@ -4,6 +4,7 @@
     "config",
     "deps",
     "devcontainer",
+    "msrv",
     "packaging",
     "rsjudge-amqp",
     "rsjudge-grpc",
