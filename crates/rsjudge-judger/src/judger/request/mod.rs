@@ -1,10 +1,10 @@
 use bytes::Bytes;
 
-use crate::judger::request::{source::Source, test_cases::TestCases};
+use crate::judger::request::{cases::CasesConfig, source::Source};
 
 mod source;
 
-mod test_cases;
+mod cases;
 
 pub struct JudgeRequest {
     source: Source,
@@ -27,5 +27,5 @@ impl JudgeRequest {
 
 pub enum JudgeType {
     SelfTest { input: Bytes },
-    Submit { cases: TestCases },
+    Submit { cases: CasesConfig },
 }
