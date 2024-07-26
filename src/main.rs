@@ -5,7 +5,7 @@
 use log::error;
 #[cfg(feature = "mimalloc")]
 use mimalloc::MiMalloc;
-use rsjudge::main_impl;
+use rsjudge::async_main;
 
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
@@ -15,7 +15,7 @@ mod cli;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    if let Err(err) = main_impl().await {
+    if let Err(err) = async_main().await {
         error!("{:?}", err);
     }
     Ok(())

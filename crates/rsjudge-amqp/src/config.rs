@@ -5,9 +5,9 @@ use rsjudge_traits::ServiceConfig;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct RabbitMqConfig {
+pub struct AmqpConfig {
     pub uri: String,
 }
 
 #[cfg(feature = "serde")]
-impl ServiceConfig for RabbitMqConfig {}
+impl ServiceConfig for AmqpConfig {}

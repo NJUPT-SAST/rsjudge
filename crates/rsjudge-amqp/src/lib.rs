@@ -5,13 +5,13 @@ use amqprs::{
     connection::{Connection, OpenConnectionArguments},
 };
 
-use crate::config::RabbitMqConfig;
+use crate::config::AmqpConfig;
 pub use crate::error::{Error, Result};
 
 pub mod config;
 mod error;
 
-pub async fn register(config: RabbitMqConfig) -> Result<()> {
+pub async fn register(config: AmqpConfig) -> Result<()> {
     // Build arguments for new connection.
     let args = OpenConnectionArguments::try_from(&*config.uri)?;
     let connection = Connection::open(&args).await?;

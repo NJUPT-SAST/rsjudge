@@ -19,7 +19,7 @@ mod config;
 
 /// # Errors
 ///
-pub async fn main_impl() -> anyhow::Result<()> {
+pub async fn async_main() -> anyhow::Result<()> {
     env_logger::Builder::from_env(
         Env::new()
             .filter_or("RSJUDGE_LOG", "info")

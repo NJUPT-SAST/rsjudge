@@ -2,10 +2,10 @@
 
 use std::collections::HashMap;
 
+#[cfg(feature = "amqp")]
+use rsjudge_amqp::config::AmqpConfig;
 #[cfg(feature = "grpc")]
 use rsjudge_grpc::config::GrpcConfig;
-#[cfg(feature = "rabbitmq")]
-use rsjudge_rabbitmq::config::RabbitMqConfig;
 #[cfg(feature = "rest")]
 use rsjudge_rest::config::RestConfig;
 use rsjudge_traits::language::config::LanguageDef;
@@ -21,8 +21,8 @@ pub struct Config {
 pub struct Services {
     #[cfg(feature = "grpc")]
     pub grpc: GrpcConfig,
-    #[cfg(feature = "rabbitmq")]
-    pub rabbitmq: RabbitMqConfig,
+    #[cfg(feature = "amqp")]
+    pub amqp: AmqpConfig,
     #[cfg(feature = "rest")]
     pub rest: RestConfig,
 }
@@ -32,10 +32,10 @@ mod tests {
     #[cfg(any(feature = "grpc", feature = "rest"))]
     use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 
+    #[cfg(feature = "amqp")]
+    use rsjudge_amqp::config::AmqpConfig;
     #[cfg(feature = "grpc")]
     use rsjudge_grpc::config::GrpcConfig;
-    #[cfg(feature = "rabbitmq")]
-    use rsjudge_rabbitmq::config::RabbitMqConfig;
     #[cfg(feature = "rest")]
     use rsjudge_rest::config::RestConfig;
 
@@ -60,8 +60,8 @@ mod tests {
                         SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, 80, 0, 0))
                     ]
                 },
-                #[cfg(feature = "rabbitmq")]
-                rabbitmq: RabbitMqConfig {
+                #[cfg(feature = "amqp")]
+                amqp: AmqpConfig {
                     uri: "amqp://user:bitnami@localhost".to_owned()
                 },
             })?
