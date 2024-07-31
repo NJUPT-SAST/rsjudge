@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 use std::{num::NonZeroU32, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
