@@ -165,7 +165,7 @@ env_logger = "0.11.5"
 log.workspace = true
 mimalloc = { version = "0.1.43", optional = true }
 serde.workspace = true
-sysinfo = { version = "0.30.13", features = ["serde"] }
+sysinfo = { version = "0.31.0", features = ["serde"] }
 tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.17"
 
