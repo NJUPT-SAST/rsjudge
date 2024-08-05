@@ -39,15 +39,15 @@ dependencies = [
 
 [[package]]
 name = "amqprs"
-version = "1.6.3"
+version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b541ffb2ab4704775069c12732bcc8cce14f1f3e591e5af98eeba3f3d5690429"
+checksum = "d4173302f657e24f1b914edc992549077ec7f4971599e1aea42a01b17eb6e079"
 dependencies = [
  "amqp_serde",
  "async-trait",
  "bytes",
  "serde",
- "serde_bytes_ng",
+ "serde_bytes",
  "tokio",
  "uriparse",
 ]
@@ -1616,6 +1616,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc76f558e0cbb2a839d37354c575f1dc3fdc6546b5be373ba43d95f231bf7c12"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde_bytes"
+version = "0.11.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "387cc504cb06bb40a96c8e04e951fe01854cf6bc921053c954e4a606d9675c6a"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
