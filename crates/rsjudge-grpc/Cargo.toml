@@ -21,7 +21,7 @@ prost = "0.13.1"
 prost-types = "0.13.1"
 tokio = { workspace = true, features = ["net"] }
 tokio-stream = "0.1.15"
-tonic = "0.12.1"
+tonic = "0.12.2"
 
 # Optional dependencies
 axum = "0.7.5"
@@ -32,7 +32,7 @@ serde = { workspace = true, optional = true }
 anyhow = "1.0.86"
 rsjudge-utils.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "process"] }
-tonic-build = "0.12.1"
+tonic-build = "0.12.2"
 
 [features]
 serde = ["dep:serde"]
