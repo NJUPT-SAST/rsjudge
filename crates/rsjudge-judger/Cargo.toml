@@ -10,7 +10,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-async-trait = "0.1.81"
+async-trait = "0.1.82"
 bytes = "1.7.1"
 futures = "0.3.30"
 rsjudge-traits.workspace = true
