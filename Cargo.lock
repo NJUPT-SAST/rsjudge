@@ -940,9 +940,9 @@ checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
 name = "libcgroups"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98bd8b3fb6f822a1cc5fb8da1591afe8b4dc4865dde9d27f155733e29a81ff95"
+checksum = "ef6c844cd81f0e078bb07896a14fddcec9f9582833ce18f99c2d4c9b69081d53"
 dependencies = [
  "fixedbitset 0.5.7",
  "nix 0.28.0",

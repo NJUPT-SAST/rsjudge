@@ -13,7 +13,7 @@ description = "Command runner for rsjudge"
 [dependencies]
 async-trait = "0.1.82"
 capctl = "0.2.4"
-libcgroups = "0.4.0"
+libcgroups = "0.4.1"
 libseccomp = { version = "0.3.0", features = ["const-syscall"] }
 log.workspace = true
 nix = { version = "0.29.0", features = ["user", "resource", "process"] }
