@@ -20,7 +20,7 @@ log.workspace = true
 prost = "0.13.2"
 prost-types = "0.13.2"
 tokio = { workspace = true, features = ["net"] }
-tokio-stream = "0.1.15"
+tokio-stream = "0.1.16"
 tonic = "0.12.2"
 
 # Optional dependencies
