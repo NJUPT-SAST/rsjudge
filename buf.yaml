@@ -9,7 +9,7 @@ deps:
 lint:
   use:
     - COMMENTS
-    - DEFAULT
+    - STANDARD
 breaking:
   use:
     - FILE
