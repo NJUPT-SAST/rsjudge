@@ -21,7 +21,7 @@ prost = "0.13.3"
 prost-types = "0.13.2"
 tokio = { workspace = true, features = ["net"] }
 tokio-stream = "0.1.16"
-tonic = "0.12.2"
+tonic = "0.12.3"
 
 # Optional dependencies
 axum = "0.7.6"
