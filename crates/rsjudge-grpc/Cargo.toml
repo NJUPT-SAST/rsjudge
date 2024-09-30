@@ -24,7 +24,7 @@ tokio-stream = "0.1.16"
 tonic = "0.12.3"
 
 # Optional dependencies
-axum = "0.7.6"
+axum = "0.7.7"
 rsjudge-traits.workspace = true
 serde = { workspace = true, optional = true }
 
