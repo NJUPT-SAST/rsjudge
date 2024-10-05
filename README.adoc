@@ -1,7 +1,7 @@
 = rsjudge
 :toc: preamble
 
-image:assets/rsjudge.svg[Rsjudge logo]
+image:assets/rsjudge.svg[rsjudge logo]
 
 xref:README.zh-CN.adoc[中文]
 
@@ -16,7 +16,7 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 * Monitoring and limiting resource usage.
 * Works well with SASTOJ.
 * RESTful API, gRPC and RabbitMQ support, enable or disable them with feature flags or config file.
-* Streaming test results in real-time with SSE or gRPC stream.
+* Streaming test results in real-time with server-sent events(SSE) or gRPC stream.
 * Highly extensible with plugins.
 * Blazingly fast and secured with Rust🦀.
 

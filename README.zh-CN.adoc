@@ -3,7 +3,7 @@
 :toc: preamble
 :toc-title: 目录
 
-image:assets/rsjudge.svg[Rsjudge logo]
+image:assets/rsjudge.svg[rsjudge logo]
 
 xref:README.adoc[English]
 
@@ -18,7 +18,7 @@ xref:README.adoc[English]
 * 可以监控和限制资源使用。
 * 与 SASTOJ 良好兼容。
 * 支持 RESTful API、gRPC 和 RabbitMQ，可通过 feature flag 或配置文件启用或禁用。
-* 采用 SSE 或 gRPC 流实时流式返回评测结果。
+* 采用服务器发送事件（SSE）或 gRPC 流实时流式返回评测结果。
 * 支持使用插件进行扩展。
 * 使用 Rust🦀编写，速度极快，安全性高。
 
