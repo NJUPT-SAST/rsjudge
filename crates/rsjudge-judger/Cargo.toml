@@ -12,7 +12,7 @@ rust-version.workspace = true
 [dependencies]
 async-trait = "0.1.83"
 bytes = "1.7.2"
-futures = "0.3.30"
+futures = "0.3.31"
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
 serde.workspace = true
