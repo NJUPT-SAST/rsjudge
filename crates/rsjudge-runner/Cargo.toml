@@ -28,7 +28,7 @@ uzers = "0.12.1"
 anyhow = "1.0.89"
 
 [build-dependencies]
-rustversion = "1.0.17"
+rustversion = "1.0.18"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(setgroups)'] }
