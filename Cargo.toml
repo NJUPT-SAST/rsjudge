@@ -26,7 +26,7 @@ rust-version = "1.79"
 log = "0.4.22"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
-serde = { version = "1.0.210", features = ["derive"] }
+serde = { version = "1.0.211", features = ["derive"] }
 tokio = "1.40.0"
 
 [package]
