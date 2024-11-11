@@ -949,7 +949,7 @@ dependencies = [
  "oci-spec",
  "procfs",
  "serde",
- "thiserror",
+ "thiserror 1.0.69",
  "tracing",
 ]
 
@@ -1142,7 +1142,7 @@ dependencies = [
  "serde_json",
  "strum",
  "strum_macros",
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -1490,7 +1490,7 @@ dependencies = [
  "amqprs",
  "rsjudge-traits",
  "serde",
- "thiserror",
+ "thiserror 2.0.3",
  "tokio",
 ]
 
@@ -1552,7 +1552,7 @@ dependencies = [
  "rsjudge-traits",
  "rsjudge-utils",
  "rustversion",
- "thiserror",
+ "thiserror 2.0.3",
  "tokio",
  "tokio-util",
  "uzers",
@@ -1577,7 +1577,7 @@ dependencies = [
  "anyhow",
  "log",
  "shell-words",
- "thiserror",
+ "thiserror 2.0.3",
  "tokio",
 ]
 
@@ -1706,7 +1706,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40748b229ba0f836ef0d162b4f479b7adc660494bb89c527dafaa7e98f9eb5a2"
 dependencies = [
  "sh-macro",
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -1849,18 +1849,38 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02dd99dc800bbb97186339685293e1cc5d9df1f8fae2d0aecd9ff1c77efea892"
+checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
 dependencies = [
- "thiserror-impl",
+ "thiserror-impl 1.0.69",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c006c85c7651b3cf2ada4584faa36773bd07bac24acfb39f3c431b36d7e667aa"
+dependencies = [
+ "thiserror-impl 2.0.3",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7c61ec9a6f64d2793d8a45faba21efbe3ced62a886d44c36a009b2b519b4c7e"
+checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f077553d607adc1caf65430528a576c757a71ed73944b66ebb58ef2bbd243568"
 dependencies = [
  "proc-macro2",
  "quote",
