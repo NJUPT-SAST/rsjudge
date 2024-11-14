@@ -11,7 +11,7 @@ rust-version.workspace = true
 description = "A task runner for cargo workspaces"
 
 [dependencies]
-anyhow = "1.0.92"
+anyhow = "1.0.93"
 clap = { version = "4.5.21", features = ["derive"] }
 sh = "0.2.1"
 
