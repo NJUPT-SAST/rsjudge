@@ -11,7 +11,7 @@ rust-version.workspace = true
 
 [dependencies]
 amqprs = { version = "2.1.0", features = ["urispec"] }
-thiserror = "2.0.3"
+thiserror = "2.0.4"
 tokio = "1.41.1"
 
 rsjudge-traits.workspace = true
