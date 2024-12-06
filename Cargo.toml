@@ -27,7 +27,7 @@ log = "0.4.22"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.215", features = ["derive"] }
-tokio = "1.41.1"
+tokio = "1.42.0"
 
 [package]
 name = "rsjudge"
@@ -160,12 +160,12 @@ rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = tru
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 anyhow = "1.0.94"
-clap = { version = "4.5.22", features = ["derive"] }
+clap = { version = "4.5.23", features = ["derive"] }
 env_logger = "0.11.5"
 log.workspace = true
 mimalloc = { version = "0.1.43", optional = true }
 serde.workspace = true
-sysinfo = { version = "0.32.1", features = ["serde"] }
+sysinfo = { version = "0.33.0", features = ["serde"] }
 tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.19"
 
@@ -181,7 +181,7 @@ mimalloc = ["dep:mimalloc"]
 default = ["grpc", "rest", "mimalloc"]
 
 [build-dependencies]
-clap = { version = "4.5.22", features = ["derive"] }
+clap = { version = "4.5.23", features = ["derive"] }
 clap_complete = "4.5.38"
 clap_mangen = "0.2.24"
 

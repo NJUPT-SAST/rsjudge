@@ -21,7 +21,7 @@ rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
 thiserror = "2.0.4"
 tokio = { workspace = true, features = ["process", "sync", "time", "signal"] }
-tokio-util = "0.7.12"
+tokio-util = "0.7.13"
 uzers = "0.12.1"
 
 [dev-dependencies]
