@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
     configure()
         .emit_rerun_if_changed(false)
         .bytes(["."])
-        .compile(&proto_files, &[&proto_out_dir])?;
+        .compile_protos(&proto_files, &[&proto_out_dir])?;
 
     println!("cargo:rerun-if-changed=proto");
 
