@@ -8,16 +8,12 @@ targets = [
     "aarch64-unknown-linux-musl",
 ]
 
-[[advisories.ignore]]
-id = "RUSTSEC-2024-0370"
-reason = "proc-macro-error is a transitive dependency of libcgroups"
-
 [licenses]
 allow = [
     "Apache-2.0",
     "BSD-3-Clause",
     "MIT",
-    "Unicode-DFS-2016",
+    "Unicode-3.0",
 ]
 
 [[bans.skip-tree]]
@@ -25,11 +21,11 @@ crate = "petgraph@0.6.5"
 reason = "petgraph 0.6.5 ships with fixedbitset 0.4.2, see upstream https://github.com/petgraph/petgraph/pull/617"
 
 [[bans.skip-tree]]
-crate = "nix@0.28"
+crate = "libcgroups@0.4.1"
 reason = "libcgroups 0.4.1 ships with nix 0.28, see upstream https://github.com/containers/youki/pull/2791"
 
 [[bans.skip-tree]]
-crate = "axum-core@0.4.3"
+crate = "axum-core@0.4.5"
 reason = "axum 0.7.5 depends on sync_wrapper 1.0, but it also depends on axum-core 0.4.3, which depends on sync_wrapper 0.1.1, see upstream https://github.com/tokio-rs/axum/issues/2871"
 
 [[bans.skip-tree]]
