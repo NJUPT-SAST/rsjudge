@@ -18,7 +18,7 @@ anyhow = "1.0.94"
 futures = "0.3.31"
 log.workspace = true
 prost = "0.13.4"
-prost-types = "0.13.3"
+prost-types = "0.13.4"
 tokio = { workspace = true, features = ["net"] }
 tokio-stream = "0.1.17"
 tonic = "0.12.3"
