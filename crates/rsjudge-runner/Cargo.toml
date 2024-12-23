@@ -19,7 +19,7 @@ log.workspace = true
 nix = { version = "0.29.0", features = ["user", "resource", "process"] }
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
-thiserror = "2.0.8"
+thiserror = "2.0.9"
 tokio = { workspace = true, features = ["process", "sync", "time", "signal"] }
 tokio-util = "0.7.13"
 uzers = "0.12.1"
