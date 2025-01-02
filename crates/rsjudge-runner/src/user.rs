@@ -4,7 +4,7 @@
 //!
 //! All functions return a reference to a static instance of [`uzers::User`] if succeeded.
 
-use std::sync::OnceLock;
+use std::sync::LazyLock;
 
 use uzers::{get_user_by_name, User};
 
@@ -19,9 +19,8 @@ macro_rules! users {
             /// # Errors
             /// Returns an error if the user is not found.
             $vis fn $id() -> Result<&'static User> {
-                static INNER: OnceLock<Option<User>> = OnceLock::new();
+                static INNER: LazyLock<Option<User>> = LazyLock::new(|| get_user_by_name($name));
                 INNER
-                    .get_or_init(|| get_user_by_name($name))
                     .as_ref()
                     .ok_or_else(|| Error::UserNotFound { username: $name })
             }
