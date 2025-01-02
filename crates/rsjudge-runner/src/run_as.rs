@@ -56,11 +56,11 @@ trait SetGroups {
 impl SetGroups for Command {
     #[cfg(not(setgroups))]
     fn set_groups(&mut self, groups: &[u32]) -> &mut Self {
-        use std::io::{self, ErrorKind};
-
         let groups: Vec<_> = groups.iter().map(|&g| Gid::from_raw(g)).collect();
 
         let set_groups = move || {
+            use std::io::{self, ErrorKind};
+
             CapHandle::new(Cap::SETGID)
                 .map_err(|e| io::Error::new(ErrorKind::PermissionDenied, e))?;
             log_if_error!(setgroups(&groups))?;
