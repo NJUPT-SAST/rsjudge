@@ -2,9 +2,8 @@
 
 mod default_comparer;
 
-use std::io;
+use std::{future::Future, io};
 
-use async_trait::async_trait;
 use tokio::io::AsyncRead;
 
 pub use self::default_comparer::DefaultComparer;
@@ -16,9 +15,12 @@ pub enum CompareResult {
     PresentationError,
 }
 
-#[async_trait]
 pub trait Comparer {
-    async fn compare<Out, Ans>(&self, out: Out, ans: Ans) -> io::Result<CompareResult>
+    fn compare<Out, Ans>(
+        &self,
+        out: Out,
+        ans: Ans,
+    ) -> impl Future<Output = io::Result<CompareResult>> + Send
     where
         Out: AsyncRead + Send + Unpin,
         Ans: AsyncRead + Send + Unpin;

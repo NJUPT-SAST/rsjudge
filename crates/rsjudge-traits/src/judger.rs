@@ -2,14 +2,12 @@
 
 //! Abstraction for judger.
 
-use std::{path::Path, process::Output, time::Duration};
+use std::{future::Future, path::Path, process::Output, time::Duration};
 
-use async_trait::async_trait;
 use indexmap::IndexMap;
 
 use crate::language::{info::LanguageInfo, option::LanguageOption};
 
-#[async_trait]
 /// A trait for judging code.
 pub trait Judger {
     /// The error type of the judger.
@@ -19,23 +17,23 @@ pub trait Judger {
     fn accept_languages(&self) -> IndexMap<String, LanguageInfo>;
 
     /// Execute the code of the specified language, with the given input and time limit.
-    async fn exec(
+    fn exec(
         &self,
         lang: &LanguageOption,
         code: &str,
         input: &str,
         time_limit: Duration,
-    ) -> Result<Output, Self::Error>;
+    ) -> impl Future<Output = Result<Output, Self::Error>> + Send;
 
     /// Run the code of a specified language, with the given input and time limit, and compare the output with the answer.
-    async fn judge(
+    fn judge(
         &self,
         lang: &LanguageOption,
         code: &str,
         input_path: &Path,
         answer_path: &Path,
         time_limit: Duration,
-    ) -> Result<(Output, JudgeResult), Self::Error>;
+    ) -> impl Future<Output = Result<(Output, JudgeResult), Self::Error>> + Send;
 }
 
 #[derive(Debug)]

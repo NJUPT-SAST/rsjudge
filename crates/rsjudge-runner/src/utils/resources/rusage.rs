@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::{
-    io, mem::MaybeUninit, os::unix::process::ExitStatusExt, process::ExitStatus, ptr::addr_of_mut,
-    time::Duration,
+    future::Future, io, mem::MaybeUninit, os::unix::process::ExitStatusExt, process::ExitStatus,
+    ptr::addr_of_mut, time::Duration,
 };
 
-use async_trait::async_trait;
 use nix::{
     errno::Errno,
     libc::{self, rusage},
@@ -60,14 +59,15 @@ impl ResourceUsage {
         self.ram_usage
     }
 }
-#[async_trait]
 pub trait WaitForResourceUsage {
     /// Wait for the resource usage of the process.
     ///
     /// Uses wait4(2) internally to wait for the process to exit and get the resource usage.
     ///
     /// See [`wait4`]
-    async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>>;
+    fn wait_for_resource_usage(
+        &mut self,
+    ) -> impl Future<Output = Result<Option<(ExitStatus, ResourceUsage)>>> + Send;
 }
 
 /// A safe wrapper for the [wait4(2)] syscall.
@@ -109,19 +109,18 @@ pub fn wait4<P: Into<Option<Pid>>>(
     wait4_inner(pid.into(), options.map_or(0, |bits| bits.bits()))
 }
 
-#[async_trait]
 impl WaitForResourceUsage for Child {
     async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
         if let Some(pid) = self.id() {
             let pid = Pid::from_raw(pid as _);
-            let mut sigchld_stream = signal(SignalKind::child())?;
+            let mut sigchld = signal(SignalKind::child())?;
             loop {
                 if let Some(status) = wait4(pid, Some(WaitPidFlag::WNOHANG))? {
                     return Ok(Some(status));
                 }
 
-                if sigchld_stream.recv().await.is_none() {
-                    Err(Errno::ECHILD)?
+                if sigchld.recv().await.is_none() {
+                    Err(Errno::ECHILD)?;
                 }
             }
         } else {
@@ -133,7 +132,6 @@ impl WaitForResourceUsage for Child {
     }
 }
 
-#[async_trait]
 impl WaitForResourceUsage for ChildWithTimeout {
     async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
         let Some(timeout) = self.timeout else {
@@ -156,14 +154,12 @@ impl WaitForResourceUsage for ChildWithTimeout {
         });
 
         select! {
-            res = self.child.wait_for_resource_usage() => return res,
+            res = self.child.wait_for_resource_usage() => res,
             () = child_token.cancelled() => {
                 self.child.start_kill()?;
                 return Err(Error::TimeLimitExceeded(
                     #[cfg(debug_assertions)]
                     self.child.wait_for_resource_usage().await?,
-                    #[cfg(not(debug_assertions))]
-                    (),
                 ));
             }
         }

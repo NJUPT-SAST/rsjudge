@@ -24,10 +24,7 @@ pub enum Error {
     Io(std::io::Error),
 
     #[error("Time limit exceeded")]
-    TimeLimitExceeded(
-        #[cfg(debug_assertions)] Option<(ExitStatus, ResourceUsage)>,
-        #[cfg(not(debug_assertions))] (),
-    ),
+    TimeLimitExceeded(#[cfg(debug_assertions)] Option<(ExitStatus, ResourceUsage)>),
 
     #[error("Child process has exited with status: {0:?}")]
     ChildExited(ExitStatus),
