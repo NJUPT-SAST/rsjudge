@@ -4,7 +4,6 @@
 
 use std::io;
 
-use async_trait::async_trait;
 use futures::try_join;
 use rsjudge_utils::trim_space_end;
 use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
@@ -72,7 +71,6 @@ impl Default for DefaultComparer {
     }
 }
 
-#[async_trait]
 impl Comparer for DefaultComparer {
     async fn compare<Out, Ans>(&self, out: Out, ans: Ans) -> io::Result<CompareResult>
     where

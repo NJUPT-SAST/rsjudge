@@ -3,11 +3,11 @@
 pub mod rusage;
 
 use std::{
+    future::Future,
     process::ExitStatus,
     time::{Duration, Instant},
 };
 
-use async_trait::async_trait;
 use nix::sys::resource::{setrlimit, Resource};
 use rsjudge_traits::resource::ResourceLimit;
 use tokio::process::{Child, Command};
@@ -34,7 +34,6 @@ impl AsMut<Child> for ChildWithTimeout {
     }
 }
 
-#[async_trait]
 pub trait RunWithResourceLimit {
     /// Spawn [`Self`] with optional resource limit.
     ///
@@ -44,19 +43,22 @@ pub trait RunWithResourceLimit {
     /// However, the wall time limit can be applied by using [`WaitForResourceUsage::wait_for_resource_usage`].
     ///
     /// This function is synchronous.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the child process cannot be spawned.
     fn spawn_with_resource_limit(
         &mut self,
         resource_info: ResourceLimit,
     ) -> Result<ChildWithTimeout>;
 
     /// Run [`Self`] with given resource limit.
-    async fn wait_with_resource_limit(
+    fn wait_with_resource_limit(
         &mut self,
         resource_info: ResourceLimit,
-    ) -> Result<Option<(ExitStatus, ResourceUsage)>>;
+    ) -> impl Future<Output = Result<Option<(ExitStatus, ResourceUsage)>>> + Send;
 }
 
-#[async_trait]
 impl RunWithResourceLimit for Command {
     fn spawn_with_resource_limit(
         &mut self,
@@ -113,8 +115,9 @@ impl RunWithResourceLimit for Command {
         &mut self,
         resource_limit: ResourceLimit,
     ) -> Result<Option<(ExitStatus, ResourceUsage)>> {
-        let mut child = self.spawn_with_resource_limit(resource_limit)?;
-        Ok(child.wait_for_resource_usage().await?)
+        self.spawn_with_resource_limit(resource_limit)?
+            .wait_for_resource_usage()
+            .await
     }
 }
 
