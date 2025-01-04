@@ -11,6 +11,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@master
       - name: Update diagram
-        uses: hirako2000/repo-visualizer@main
+        uses: Jisu-Woniu/repo-visualizer@main
         with:
           branch: diagram
