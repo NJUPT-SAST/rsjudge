@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-#[rustversion::nightly]
 fn main() {
-    println!("cargo:rustc-cfg=setgroups");
+    if rustversion::cfg!(since(1.80)) {
+        println!("cargo:rustc-check-cfg=cfg(feature, values(\"setgroups\"))");
+    }
+    if rustversion::cfg!(nightly) {
+        println!("cargo:rustc-cfg=feature=\"setgroups\"");
+    }
 }
-
-#[rustversion::not(nightly)]
-fn main() {}

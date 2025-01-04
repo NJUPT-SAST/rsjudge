@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use capctl::Cap;
-#[cfg(not(setgroups))]
+#[cfg(not(feature = "setgroups"))]
 use nix::unistd::{setgroups, Gid};
 use rsjudge_utils::log_if_error;
 use tokio::process::Command;
@@ -54,7 +54,7 @@ trait SetGroups {
 }
 
 impl SetGroups for Command {
-    #[cfg(not(setgroups))]
+    #[cfg(not(feature = "setgroups"))]
     fn set_groups(&mut self, groups: &[u32]) -> &mut Self {
         let groups: Vec<_> = groups.iter().map(|&g| Gid::from_raw(g)).collect();
 
@@ -72,7 +72,7 @@ impl SetGroups for Command {
         self
     }
 
-    #[cfg(setgroups)]
+    #[cfg(feature = "setgroups")]
     fn set_groups(&mut self, groups: &[u32]) -> &mut Self {
         use std::os::unix::process::CommandExt as _;
 
