@@ -14,3 +14,4 @@ jobs:
         uses: Jisu-Woniu/repo-visualizer@main
         with:
           branch: diagram
+          amend_commit: "true"
