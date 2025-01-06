@@ -26,12 +26,6 @@ enum Command {
     },
     /// Build Docker image.
     Docker,
-    /// Run integrated capability checks on project.
-    ///
-    /// Requires `sudo` to set capabilities.
-    CapTest,
-    /// Run integrated sleep test.
-    RusageTest,
     /// Debug a command.
     #[cfg(feature = "dbg")]
     Debug,
@@ -45,29 +39,13 @@ fn main() -> anyhow::Result<()> {
 
     match command {
         Command::Dist { package } => match package {
-            Package::Deb => cmd!(cargo deb "-v"),
+            Package::Deb => cmd!(cargo deb "-v" "--locked"),
             Package::Rpm => cmd! {
-                cargo build "--release";
+                cargo build "--release" "--locked";
                 cargo "generate-rpm"
             },
         },
         Command::Docker => cmd!(docker build "-t" rsjudge "."),
-        Command::CapTest => cmd! {
-            cargo build "--examples" "--workspace";
-
-            echo "Setting capabilities for get_user_info and cap_test binaries with sudo.";
-
-            sudo setcap "cap_setuid,cap_setgid=p" "target/debug/examples/get_user_info";
-            sudo setcap "cap_setuid,cap_setgid,cap_dac_read_search=p" "target/debug/examples/cap_test";
-
-            "target/debug/examples/get_user_info";
-            "target/debug/examples/cap_test";
-        },
-        Command::RusageTest => cmd! {
-            cargo build "--examples" "--workspace";
-
-            "target/debug/examples/rusage_test";
-        },
 
         #[cfg(feature = "dbg")]
         Command::Debug => return Ok(()),
