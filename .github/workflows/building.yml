@@ -47,7 +47,7 @@ jobs:
         uses: bufbuild/buf-lint-action@v1
       - name: Run clippy lint
         run: >
-          cargo hack clippy --all-targets --each-feature --workspace --message-format json
+          cargo hack clippy --all-targets --each-feature --workspace --message-format json --locked
           | clippy-sarif
           | tee rust-clippy-results.sarif
           | sarif-fmt
@@ -58,7 +58,7 @@ jobs:
           sarif_file: rust-clippy-results.sarif
           wait-for-processing: true
       - name: Run tests
-        run: cargo hack test --each-feature --verbose --workspace
+        run: cargo hack test --each-feature --verbose --workspace --locked
       - name: Check dependency graph
         run: cargo deny --all-features --workspace check
   msrv:
@@ -93,7 +93,7 @@ jobs:
         env:
           SCCACHE_GHA_ENABLED: true
           RUSTC_WRAPPER: sccache
-        run: cargo hack test --rust-version --each-feature --verbose --workspace
+        run: cargo hack test --rust-version --each-feature --verbose --workspace --locked
   pkg-deb:
     runs-on: ubuntu-20.04
     steps:
