@@ -1,7 +1,7 @@
 [alias]
-xtask = "run --package xtask --"
-xtask-dbg = "run --package xtask --features dbg --"
+xtask = "run --package xtask --locked --"
+xtask-dbg = "run --package xtask --features dbg --locked --"
 
-# Use custom linker for faster linking
+# # Use custom linker for faster linking
 # [build]
 # rustflags = ["-Clink-arg=-fuse-ld=mold"]
