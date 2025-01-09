@@ -41,8 +41,8 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.7
       - name: Enable sccache
         run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
       - name: Lint protobuf files
         uses: bufbuild/buf-lint-action@v1
       - name: Run clippy lint
@@ -124,8 +124,8 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.7
       - name: Enable sccache
         run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
       - name: Build Debian package
         run: cargo xtask dist deb && dpkg-deb -c target/debian/*.deb
       - name: Lint Debian package
@@ -158,8 +158,8 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.7
       - name: Enable sccache
         run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
       - name: Build RPM package
         run: cargo xtask dist rpm && rpm -qlp target/generate-rpm/*.rpm
       - uses: actions/upload-artifact@v4
