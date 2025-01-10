@@ -2,7 +2,7 @@
 
 //! Resource limit for judging code.
 
-use std::time::Duration;
+use std::{num::NonZeroU64, time::Duration};
 
 /// Resource limit for judging code.
 #[derive(Debug, Default, Clone, Copy)]
@@ -16,9 +16,9 @@ pub struct ResourceLimit {
     /// Wall time limit may be inaccurate, due to the implementation of "wait-and-check" strategy.
     wall_time_limit: Option<Duration>,
     /// The memory limit **in bytes**.
-    memory_limit: Option<u64>,
+    memory_limit: Option<NonZeroU64>,
     /// Max file size limit **in bytes**.
-    max_file_size_limit: Option<u64>,
+    max_file_size_limit: Option<NonZeroU64>,
 }
 
 impl ResourceLimit {
@@ -27,8 +27,8 @@ impl ResourceLimit {
     pub fn new(
         cpu_time_limit: Option<Duration>,
         wall_time_limit: Option<Duration>,
-        memory_limit: Option<u64>,
-        max_file_size_limit: Option<u64>,
+        memory_limit: Option<NonZeroU64>,
+        max_file_size_limit: Option<NonZeroU64>,
     ) -> Self {
         Self {
             cpu_time_limit,
@@ -53,13 +53,13 @@ impl ResourceLimit {
     /// Get the memory limit.
     #[must_use]
     pub fn memory_limit(&self) -> Option<u64> {
-        self.memory_limit
+        self.memory_limit.map(From::from)
     }
 
     /// Get the max file size limit.
     #[must_use]
     pub fn max_file_size_limit(&self) -> Option<u64> {
-        self.max_file_size_limit
+        self.max_file_size_limit.map(From::from)
     }
 
     /// Set the CPU time limit.
@@ -75,13 +75,16 @@ impl ResourceLimit {
     }
 
     /// Set the memory limit.
-    pub fn set_memory_limit(&mut self, memory_limit: Option<u64>) -> &mut Self {
+    pub fn set_memory_limit(&mut self, memory_limit: Option<NonZeroU64>) -> &mut Self {
         self.memory_limit = memory_limit;
         self
     }
 
     /// Set the max file size limit.
-    pub fn set_max_file_size_limit(&mut self, max_file_size_limit: Option<u64>) -> &mut Self {
+    pub fn set_max_file_size_limit(
+        &mut self,
+        max_file_size_limit: Option<NonZeroU64>,
+    ) -> &mut Self {
         self.max_file_size_limit = max_file_size_limit;
         self
     }

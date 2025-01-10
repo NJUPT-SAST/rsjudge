@@ -15,12 +15,11 @@ use tokio::{
     process::Child,
     select,
     signal::unix::{signal, SignalKind},
-    task::spawn,
-    time::sleep,
+    time::sleep_until,
 };
-use tokio_util::sync::CancellationToken;
 
-use crate::{utils::resources::ChildWithTimeout, Error, Result};
+// use tokio_util::sync::CancellationToken;
+use crate::{utils::resources::ChildWithDeadline, Error, Result};
 
 /// Resource usage of a process.
 ///
@@ -36,9 +35,11 @@ impl From<rusage> for ResourceUsage {
     fn from(rusage: rusage) -> Self {
         Self {
             cpu_time: Duration::new(
+                // User time
                 rusage.ru_utime.tv_sec as u64,
                 rusage.ru_utime.tv_usec as u32 * 1000,
             ) + Duration::new(
+                // System time
                 rusage.ru_stime.tv_sec as u64,
                 rusage.ru_stime.tv_usec as u32 * 1000,
             ),
@@ -59,6 +60,7 @@ impl ResourceUsage {
         self.ram_usage
     }
 }
+
 pub trait WaitForResourceUsage {
     /// Wait for the resource usage of the process.
     ///
@@ -127,35 +129,24 @@ impl WaitForResourceUsage for Child {
             let exit_status = self
                 .try_wait()?
                 .ok_or_else(|| io::Error::other("Exit status not available"))?;
-            Err(Error::ChildExited(exit_status))
+            if exit_status.success() {
+                Ok(None)
+            } else {
+                Err(Error::EarlyExited(exit_status))
+            }
         }
     }
 }
 
-impl WaitForResourceUsage for ChildWithTimeout {
+impl WaitForResourceUsage for ChildWithDeadline {
     async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
-        let Some(timeout) = self.timeout else {
+        let Some(deadline) = self.deadline else {
             return self.child.wait_for_resource_usage().await;
         };
 
-        let cancellation_token = CancellationToken::new();
-        let child_token = cancellation_token.child_token();
-
-        let start = self.start;
-
-        spawn(async move {
-            loop {
-                if timeout <= start.elapsed() {
-                    cancellation_token.cancel();
-                    break;
-                }
-                sleep(Duration::from_millis(10)).await;
-            }
-        });
-
         select! {
             res = self.child.wait_for_resource_usage() => res,
-            () = child_token.cancelled() => {
+            () = sleep_until(deadline) => {
                 self.child.start_kill()?;
                 return Err(Error::TimeLimitExceeded(
                     #[cfg(debug_assertions)]

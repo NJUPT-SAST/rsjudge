@@ -27,7 +27,7 @@ pub enum Error {
     TimeLimitExceeded(#[cfg(debug_assertions)] Option<(ExitStatus, ResourceUsage)>),
 
     #[error("Child process has exited with status: {0:?}")]
-    ChildExited(ExitStatus),
+    EarlyExited(ExitStatus),
 }
 
 /// Convert any error implementing [`Into`]`<`[`io::Error`]`>` into [`Error`].
@@ -37,4 +37,7 @@ impl<E: Into<io::Error>> From<E> for Error {
     }
 }
 
+/// A specialized [`Result`] type for this crate.
+///
+/// See the [`Error`] type for the error variants.
 pub type Result<T, E = Error> = StdResult<T, E>;

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{os::unix::process::ExitStatusExt, path::PathBuf, time::Duration};
+use std::{num::NonZeroU64, os::unix::process::ExitStatusExt, path::PathBuf, time::Duration};
 
 use anyhow::bail;
 use nix::{sys::wait::WaitStatus, unistd::Pid};
-use rsjudge_runner::utils::resources::{rusage::WaitForResourceUsage, RunWithResourceLimit};
+use rsjudge_runner::utils::resources::{rusage::WaitForResourceUsage, WithResourceLimit as _};
 use rsjudge_traits::resource::ResourceLimit;
 use tokio::{process::Command, time::Instant};
 
@@ -28,7 +28,10 @@ async fn main() -> anyhow::Result<()> {
         .wait_for_resource_usage()
         .await?
     else {
-        bail!("Failed to get resource usage");
+        bail!(
+            "Failed to get resource usage for `{}`",
+            stringify!(spin_lock)
+        );
     };
 
     dbg!(start_time.elapsed());
@@ -49,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
         .wait_for_resource_usage()
         .await
     else {
-        bail!("Failed to get resource usage");
+        bail!("Failed to get resource usage for `{}`", stringify!(sleep));
     };
 
     dbg!(start_time.elapsed());
@@ -59,11 +62,19 @@ async fn main() -> anyhow::Result<()> {
     eprintln!("Starting `large_alloc` with RAM limit of 1MB");
 
     let Ok(Some((status, rusage))) = Command::new(large_alloc)
-        .spawn_with_resource_limit(ResourceLimit::new(None, None, Some(1 << 30), None))?
+        .spawn_with_resource_limit(ResourceLimit::new(
+            None,
+            None,
+            NonZeroU64::new(1 << 30),
+            None,
+        ))?
         .wait_for_resource_usage()
         .await
     else {
-        bail!("Failed to get resource usage");
+        bail!(
+            "Failed to get resource usage for `{}`",
+            stringify!(large_alloc)
+        );
     };
 
     let status = WaitStatus::from_raw(Pid::from_raw(0), status.into_raw())?;
