@@ -20,7 +20,7 @@ license = "Apache-2.0"
 repository = "https://github.com/NJUPT-SAST/rsjudge"
 
 # MSRV is set to N - 2, where N is the current stable version.
-rust-version = "1.81"
+rust-version = "1.82"
 
 [workspace.dependencies]
 log = "0.4.22"
@@ -170,7 +170,7 @@ tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "proc
 toml = "0.8.19"
 
 # Unused for now:
-# nix = { version = "0.27.1", features = ["fs"] }
+# nix = { version = "0.29.0", features = ["fs"] }
 # strfmt = "0.2.4"
 
 [features]
@@ -183,7 +183,7 @@ default = ["grpc", "rest", "mimalloc"]
 [build-dependencies]
 clap = { version = "4.5.26", features = ["derive"] }
 clap_complete = "4.5.42"
-clap_mangen = "0.2.25"
+clap_mangen = "0.2.26"
 
 [profile.release]
 codegen-units = 1
