@@ -2,7 +2,7 @@
 
 use std::{
     future::Future, io, mem::MaybeUninit, os::unix::process::ExitStatusExt, process::ExitStatus,
-    ptr::addr_of_mut, time::Duration,
+    time::Duration,
 };
 
 use nix::{
@@ -93,7 +93,7 @@ pub fn wait4<P: Into<Option<Pid>>>(
         let res = unsafe {
             libc::wait4(
                 pid.unwrap_or_else(|| Pid::from_raw(-1)).into(),
-                addr_of_mut!(status),
+                &raw mut status,
                 option_bits,
                 rusage.as_mut_ptr(),
             )
