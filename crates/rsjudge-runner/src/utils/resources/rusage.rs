@@ -13,9 +13,8 @@ use nix::{
 };
 use tokio::{
     process::Child,
-    select,
     signal::unix::{signal, SignalKind},
-    time::sleep_until,
+    time::timeout_at,
 };
 
 // use tokio_util::sync::CancellationToken;
@@ -144,14 +143,14 @@ impl WaitForResourceUsage for ChildWithDeadline {
             return self.child.wait_for_resource_usage().await;
         };
 
-        select! {
-            res = self.child.wait_for_resource_usage() => res,
-            () = sleep_until(deadline) => {
+        match timeout_at(deadline, self.child.wait_for_resource_usage()).await {
+            Ok(res) => res,
+            Err(_) => {
                 self.child.start_kill()?;
-                return Err(Error::TimeLimitExceeded(
+                Err(Error::TimeLimitExceeded(
                     #[cfg(debug_assertions)]
                     self.child.wait_for_resource_usage().await?,
-                ));
+                ))
             }
         }
     }
