@@ -29,6 +29,9 @@ rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.217", features = ["derive"] }
 tokio = "1.43.0"
 
+[workspace.lints.rust]
+rust-2024-compatibility = "warn"
+
 [package]
 name = "rsjudge"
 version.workspace = true
