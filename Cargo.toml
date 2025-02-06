@@ -170,7 +170,7 @@ mimalloc = { version = "0.1.43", optional = true }
 serde.workspace = true
 sysinfo = { version = "0.33.1", features = ["serde"] }
 tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
-toml = "0.8.19"
+toml = "0.8.20"
 
 # Unused for now:
 # nix = { version = "0.29.0", features = ["fs"] }
