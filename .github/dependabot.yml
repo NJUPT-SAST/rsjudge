@@ -18,6 +18,12 @@ updates:
       tonic:
         patterns:
           - "tonic*"
+      prost:
+        patterns:
+          - "prost*"
+      clap:
+        patterns:
+          - "clap*"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
