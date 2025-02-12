@@ -97,7 +97,7 @@ jobs:
           cargo hack nextest --rust-version --each-feature --verbose
           run --workspace --locked --no-tests=pass
   pkg-deb:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
