@@ -2,7 +2,7 @@
 
 [C]
 # Example $flags: "-O2 -std=c99"
-message = "使用 $(gcc --version)。"
+version = "$(gcc --version)"
 exec_type = "binary"
 compile = "gcc {...flags} -fmax-errors=10 -lm -Wall -o {out_file} {src_file}"
 
@@ -23,6 +23,7 @@ C11 = "-std=c11"
 
 ["C++"]
 # Example $flags: "-O2 -std=c++14"
+version = "$(g++ --version | head -n1)"
 exec_type = "binary"
 compile = "g++ {...flags} -fmax-errors=10 -lm -Wall -o {out_file} {src_file}"
 
@@ -47,6 +48,7 @@ default = "C++17"
 ["C#"]
 # Only mono is supported now, .NET SDK is under development.
 exec_type = "byte_code"
+version = "$(mono --version | head -n1)"
 out_rename = "Program.exe"
 compile = "mcs -o+ -out:{out_file} {src_file}"
 execute = "mono {out_file}"
@@ -58,17 +60,12 @@ compile = "dart compile exe -o {out_file} {src_file}"
 
 [Go]
 exec_type = "binary"
+version = "$(go version)"
 compile = "go build -o {out_file} {src_file}"
 
 [Java]
 exec_type = "byte_code"
-message = """
-Java 版本：
-
-```
-$(java --version)
-```
-"""
+version = "$(java --version | head -n1)"
 src_rename = "Main.java"
 out_extension = "jar"
 compile = "javac -d {tmp_dir} Main.java && jar -cvfe {out_file} Main -C {tmp_dir} *"
@@ -76,12 +73,13 @@ execute = "java -jar {out_file}"
 
 [JavaScript]
 exec_type = "source_code"
-message = "使用 Node.js $(node -v)。"
+version = "Node.js $(node -v)"
 check = "node -c {src_file}"
 execute = "node {src_file}"
 
 [Kotlin]
 exec_type = "byte_code"
+version = "$(kotlin -version)"
 out_extension = "jar"
 compile = "kotlinc -include-runtime -d {out_file} {src_file}"
 execute = "java -jar {out_file}"
@@ -90,23 +88,24 @@ execute = "java -jar {out_file}"
 # -S: do not import site
 # TODO: Use virtualenv to isolate the environment.
 exec_type = "source_code"
-message = "使用 $(python3 -V)。"
+version = "$(python3 -V)"
 check = "python3 -m py_compile {src_file}"
 execute = "python3 -I -S {src_file}"
 
 [Ruby]
 exec_type = "source_code"
+version = "$(ruby --version)"
 check = "ruby -c {src_file}"
 execute = "ruby {src_file}"
 
 [Rust]
 exec_type = "binary"
-message = "使用 $(rustc --version)。"
+version = "$(rustc --version)"
 compile = "rustc -O -o {out_file} {src_file}"
 
 [TypeScript]
 exec_type = "byte_code"
-message = "使用 TypeScript $(tsc -v)、Node.js $(node -v)。"
+version = "TypeScript $(tsc -v), Node.js $(node -v)"
 compile = "tsc {src_file} --outFile {out_file}"
 execute = "node {out_file}"
 
@@ -116,4 +115,5 @@ compile = "swiftc -o {out_file} {src_file}"
 
 [Zig]
 exec_type = "binary"
+version = "Zig $(zig version)"
 compile = "zig build-exe -femit-bin={out_file} {src_file}"

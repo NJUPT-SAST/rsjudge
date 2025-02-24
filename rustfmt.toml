@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 edition = "2021"
+style_edition = "2024"
 group_imports = "StdExternalCrate"
 imports_granularity = "Crate"
 unstable_features = true

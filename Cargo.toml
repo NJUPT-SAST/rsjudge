@@ -1,4 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
+[package]
+name = "rsjudge"
+version.workspace = true
+authors.workspace = true
+edition = "2021"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "online judge sandbox server in Rust"
 
 [workspace]
 members = [
@@ -18,7 +27,6 @@ authors = ["NJUPT-SAST"]
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/NJUPT-SAST/rsjudge"
-
 # MSRV is set to N - 2, where N is the current stable version.
 rust-version = "1.83"
 
@@ -32,15 +40,57 @@ tokio = "1.43.0"
 [workspace.lints.rust]
 rust-2024-compatibility = "warn"
 
-[package]
-name = "rsjudge"
-version.workspace = true
-authors.workspace = true
-edition = "2021"
-license.workspace = true
-repository.workspace = true
-rust-version.workspace = true
-description = "online judge sandbox server in Rust"
+[dependencies]
+# Workspace dependencies
+rsjudge-judger = { version = "0.1.0", path = "crates/rsjudge-judger" }
+rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
+rsjudge-traits.workspace = true
+rsjudge-utils.workspace = true
+
+# Optional dependencies
+rsjudge-amqp = { version = "0.1.0", path = "crates/rsjudge-amqp", optional = true }
+rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
+rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
+
+anyhow = "1.0.96"
+chrono = "0.4.39"
+clap = { version = "4.5.30", features = ["derive"] }
+env_logger = { version = "0.11.6", default-features = false, features = [
+    "auto-color",
+] }
+log.workspace = true
+mimalloc = { version = "0.1.43", optional = true }
+serde.workspace = true
+sysinfo = { version = "0.33.1", features = ["serde"] }
+tokio = { workspace = true, features = [
+    "fs",
+    "rt-multi-thread",
+    "macros",
+    "process",
+] }
+toml = "0.8.20"
+
+# Unused for now:
+# nix = { version = "0.29.0", features = ["fs"] }
+# strfmt = "0.2.4"
+
+[features]
+default = ["grpc", "rest", "mimalloc"]
+amqp = ["dep:rsjudge-amqp", "rsjudge-amqp/serde"]
+grpc = ["dep:rsjudge-grpc", "rsjudge-grpc/serde"]
+mimalloc = ["dep:mimalloc"]
+rest = ["dep:rsjudge-rest"]
+
+[build-dependencies]
+clap = { version = "4.5.30", features = ["derive"] }
+clap_complete = "4.5.45"
+clap_mangen = "0.2.26"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true
+panic = "abort"
 
 [package.metadata.deb]
 assets = [
@@ -85,8 +135,8 @@ assets = [
         "644",
     ],
 ]
-copyright = "2023-2024 NJUPT-SAST"
 changelog = "packaging/deb/changelog"
+copyright = "2023-2025 NJUPT-SAST"
 features = ["default"]
 conf-files = ["/etc/rsjudge/services.toml", "/etc/rsjudge/executors.toml"]
 extended-description = "An online judge sandbox server in Rust, inspired by go-judge, for SASTOJ."
@@ -149,47 +199,3 @@ mode = "644"
 source = "packaging/shared/sysuser"
 dest = "/usr/lib/sysusers.d/rsjudge.conf"
 mode = "644"
-
-[dependencies]
-# Workspace dependencies
-rsjudge-judger = { version = "0.1.0", path = "crates/rsjudge-judger" }
-rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
-rsjudge-traits.workspace = true
-rsjudge-utils.workspace = true
-
-# Optional dependencies
-rsjudge-amqp = { version = "0.1.0", path = "crates/rsjudge-amqp", optional = true }
-rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
-rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
-
-anyhow = "1.0.96"
-clap = { version = "4.5.30", features = ["derive"] }
-env_logger = "0.11.6"
-log.workspace = true
-mimalloc = { version = "0.1.43", optional = true }
-serde.workspace = true
-sysinfo = { version = "0.33.1", features = ["serde"] }
-tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
-toml = "0.8.20"
-
-# Unused for now:
-# nix = { version = "0.29.0", features = ["fs"] }
-# strfmt = "0.2.4"
-
-[features]
-grpc = ["dep:rsjudge-grpc", "rsjudge-grpc/serde"]
-rest = ["dep:rsjudge-rest"]
-amqp = ["dep:rsjudge-amqp", "rsjudge-amqp/serde"]
-mimalloc = ["dep:mimalloc"]
-default = ["grpc", "rest", "mimalloc"]
-
-[build-dependencies]
-clap = { version = "4.5.30", features = ["derive"] }
-clap_complete = "4.5.45"
-clap_mangen = "0.2.26"
-
-[profile.release]
-codegen-units = 1
-lto = true
-strip = true
-panic = "abort"
