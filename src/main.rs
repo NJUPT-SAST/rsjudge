@@ -7,16 +7,20 @@ use log::error;
 use mimalloc::MiMalloc;
 use rsjudge::async_main;
 
+use crate::logging::setup_logger;
+
 #[cfg(feature = "mimalloc")]
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
 mod cli;
+mod logging;
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
+    setup_logger();
+
     if let Err(err) = async_main().await {
         error!("{:?}", err);
     }
-    Ok(())
 }

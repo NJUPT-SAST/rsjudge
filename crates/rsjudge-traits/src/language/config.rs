@@ -13,7 +13,7 @@ pub struct LanguageDef {
 
     #[serde(default)]
     options: IndexMap<String, ConfigDef>,
-    message: Option<String>,
+    version: Option<String>,
 }
 
 /// Execution type of the language.
@@ -69,7 +69,7 @@ pub enum ConfigDef {
 mod tests {
     use std::{collections::HashMap, fs::File, io::Read};
 
-    use indexmap::{indexmap, IndexMap};
+    use indexmap::{IndexMap, indexmap};
     use toml::toml;
 
     use super::{ConfigDef, ExecType, LanguageDef};
@@ -96,7 +96,7 @@ mod tests {
                     target: "flags".into()
                 }
             },
-            message: Some("使用 $(gcc --version)。".into()),
+            version: Some("$(gcc --version)".into()),
         };
 
         let languages = HashMap::from([("C".to_string(), c_def)]);

@@ -7,53 +7,36 @@
 //！ inspired by [go-judge](https://github.com/criyle/go-judge), for SASTOJ.
 
 use clap::Parser as _;
-use env_logger::Env;
-use log::{debug, info, warn};
-use rsjudge_runner::{user::builder, Cap, CapHandle, RunAs as _};
-use tokio::{fs::read, process::Command};
+use log::debug;
+use sysinfo::System;
+use tokio::fs::read;
 
 use crate::cli::Args;
 
 mod cli;
 mod config;
 
+/// Main Entry point. This function assumes the global logger is correctly setup.
+///
 /// # Errors
 ///
+/// This function returns error if an internal error is not handled.
 pub async fn async_main() -> anyhow::Result<()> {
-    env_logger::Builder::from_env(
-        Env::new()
-            .filter_or("RSJUDGE_LOG", "info")
-            .write_style("RSJUDGE_LOG_STYLE"),
-    )
-    .format_timestamp_millis()
-    .format_module_path(true)
-    .try_init()?;
-
     let args = Args::try_parse()?;
     debug!("{:?}", args);
 
     let config = read(args.config_dir.join("executors.toml")).await?;
 
-    info!("Executing \"captest\" as rsjudge-builder");
-
-    CapHandle::new(Cap::SETUID)?;
-    CapHandle::new(Cap::SETGID)?;
-
-    match Command::new("captest")
-        .run_as(builder()?)
-        .and_then(|cmd| Ok(cmd.spawn()?))
-    {
-        Ok(mut child) => {
-            debug!("Command exited with {}", child.wait().await?);
-        }
-        Err(err) => {
-            warn!("Failed to run \"id\" as rsjudge-builder: {}", err);
-        }
-    };
-
     debug!(
         "Config:\n{:#?}",
         String::from_utf8_lossy(&config).parse::<toml::Value>()?
+    );
+
+    debug!(
+        "System Version: {}",
+        System::long_os_version()
+            .as_deref()
+            .unwrap_or("Unspecified")
     );
 
     Ok(())
