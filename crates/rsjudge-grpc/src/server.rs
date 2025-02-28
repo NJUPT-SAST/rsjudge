@@ -2,11 +2,11 @@
 
 use log::debug;
 use tokio_stream::wrappers::ReceiverStream;
-use tonic::{async_trait, Request, Response, Status};
+use tonic::{Request, Response, Status, async_trait};
 
 use crate::proto::{
-    judge_service_server::JudgeService, SelfTestRequest, SelfTestResponse, SubmitRequest,
-    SubmitResponse,
+    SelfTestRequest, SelfTestResponse, SubmitRequest, SubmitResponse,
+    judge_service_server::JudgeService,
 };
 
 #[derive(Debug, Default)]

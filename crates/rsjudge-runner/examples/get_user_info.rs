@@ -3,9 +3,8 @@
 use anyhow::anyhow;
 use capctl::Cap;
 use rsjudge_runner::{
-    use_caps,
+    RunAs, use_caps,
     user::{builder, runner},
-    RunAs,
 };
 use tokio::process::Command;
 use uzers::{get_current_uid, get_user_by_uid};

@@ -6,7 +6,7 @@
 
 use std::sync::LazyLock;
 
-use uzers::{get_user_by_name, User};
+use uzers::{User, get_user_by_name};
 
 use crate::error::{Error, Result};
 

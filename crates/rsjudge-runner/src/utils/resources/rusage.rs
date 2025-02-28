@@ -13,12 +13,12 @@ use nix::{
 };
 use tokio::{
     process::Child,
-    signal::unix::{signal, SignalKind},
+    signal::unix::{SignalKind, signal},
     time::timeout_at,
 };
 
 // use tokio_util::sync::CancellationToken;
-use crate::{utils::resources::ChildWithDeadline, Error, Result};
+use crate::{Error, Result, utils::resources::ChildWithDeadline};
 
 /// Resource usage of a process.
 ///

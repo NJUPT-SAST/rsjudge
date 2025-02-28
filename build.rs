@@ -5,7 +5,7 @@ mod cli;
 
 use std::{
     env::var_os,
-    fs::{create_dir_all, File},
+    fs::{File, create_dir_all},
     io::{self, Write},
     path::Path,
 };

@@ -2,7 +2,7 @@
 
 use capctl::Cap;
 #[cfg(not(feature = "setgroups"))]
-use nix::unistd::{setgroups, Gid};
+use nix::unistd::{Gid, setgroups};
 use rsjudge_utils::log_if_error;
 use tokio::process::Command;
 use uzers::User;

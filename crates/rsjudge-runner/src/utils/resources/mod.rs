@@ -4,7 +4,7 @@ pub mod rusage;
 
 use std::{future::Future, process::ExitStatus, time::Duration};
 
-use nix::sys::resource::{setrlimit, Resource};
+use nix::sys::resource::{Resource, setrlimit};
 use rsjudge_traits::resource::ResourceLimit;
 use tokio::{
     process::{Child, Command},
@@ -168,8 +168,8 @@ mod tests {
     use rsjudge_traits::resource::ResourceLimit;
 
     use crate::{
-        utils::resources::{rusage::WaitForResourceUsage as _, WithResourceLimit as _},
         Error,
+        utils::resources::{WithResourceLimit as _, rusage::WaitForResourceUsage as _},
     };
 
     #[tokio::test]

@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use capctl::{Cap, CapState};
-use rsjudge_runner::{use_caps, user::builder, RunAs};
+use rsjudge_runner::{RunAs, use_caps, user::builder};
 use rsjudge_utils::command::check_output;
 use tokio::process::Command;
 
