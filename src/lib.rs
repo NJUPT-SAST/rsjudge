@@ -7,7 +7,7 @@
 //！ inspired by [go-judge](https://github.com/criyle/go-judge), for SASTOJ.
 
 use clap::Parser as _;
-use log::debug;
+use log::{debug, warn};
 use sysinfo::System;
 use tokio::fs::read;
 
@@ -32,12 +32,17 @@ pub async fn async_main() -> anyhow::Result<()> {
         String::from_utf8_lossy(&config).parse::<toml::Value>()?
     );
 
-    debug!(
-        "System Version: {}",
-        System::long_os_version()
-            .as_deref()
-            .unwrap_or("Unspecified")
-    );
+    match (System::name(), System::os_version()) {
+        (Some(distro_name), Some(distro_version)) => {
+            debug!("OS: {distro_name} {distro_version}");
+        }
+        (Some(distro_name), None) => {
+            debug!("OS: {distro_name}");
+        }
+        _ => {
+            warn!("Failed to detect OS information.")
+        }
+    }
 
     Ok(())
 }
