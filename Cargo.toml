@@ -55,19 +55,12 @@ rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = tru
 anyhow = "1.0.96"
 chrono = "0.4.40"
 clap = { version = "4.5.31", features = ["derive"] }
-env_logger = { version = "0.11.6", default-features = false, features = [
-    "auto-color",
-] }
+env_logger = { version = "0.11.6", default-features = false, features = ["auto-color"] }
 log.workspace = true
 mimalloc = { version = "0.1.43", optional = true }
 serde.workspace = true
 sysinfo = { version = "0.33.1", features = ["serde"] }
-tokio = { workspace = true, features = [
-    "fs",
-    "rt-multi-thread",
-    "macros",
-    "process",
-] }
+tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
 toml = "0.8.20"
 
 # Unused for now:

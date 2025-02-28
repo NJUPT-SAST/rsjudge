@@ -11,6 +11,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  check-code-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: moonrepo/setup-rust@v1
+        with:
+          channel: nightly
+          components: rustfmt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check code format with dprint
+        uses: dprint/check@v2.2
   lint-and-test:
     runs-on: ubuntu-latest
     steps:

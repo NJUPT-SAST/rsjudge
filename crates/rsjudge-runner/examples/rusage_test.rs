@@ -4,7 +4,7 @@ use std::{num::NonZeroU64, os::unix::process::ExitStatusExt, path::PathBuf, time
 
 use anyhow::bail;
 use nix::{sys::wait::WaitStatus, unistd::Pid};
-use rsjudge_runner::utils::resources::{rusage::WaitForResourceUsage, WithResourceLimit as _};
+use rsjudge_runner::utils::resources::{WithResourceLimit as _, rusage::WaitForResourceUsage};
 use rsjudge_traits::resource::ResourceLimit;
 use tokio::{process::Command, time::Instant};
 

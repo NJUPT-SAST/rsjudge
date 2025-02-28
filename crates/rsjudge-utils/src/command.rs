@@ -129,7 +129,7 @@ mod tests {
 
     use tokio::process::Command;
 
-    use crate::command::{check_output, ExecutionError};
+    use crate::command::{ExecutionError, check_output};
 
     #[tokio::test]
     #[ignore = "execute `nonexistent` on the platform"]

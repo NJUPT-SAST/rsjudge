@@ -118,7 +118,7 @@ mod tests {
     use tempfile::TempDir;
     use tokio::{
         fs::File,
-        io::{empty, AsyncWriteExt as _},
+        io::{AsyncWriteExt as _, empty},
     };
 
     use crate::comparer::{CompareResult, Comparer as _, DefaultComparer};
