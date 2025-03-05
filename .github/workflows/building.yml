@@ -20,6 +20,7 @@ jobs:
         with:
           channel: nightly
           components: rustfmt
+          cache: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check code format with dprint
