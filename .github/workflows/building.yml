@@ -52,7 +52,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.7
+        uses: mozilla-actions/sccache-action@v0.0.8
       - name: Enable sccache
         run: |
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
@@ -102,7 +102,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.7
+        uses: mozilla-actions/sccache-action@v0.0.8
       - name: Check for MSRV compliance
         env:
           SCCACHE_GHA_ENABLED: true
@@ -137,7 +137,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.7
+        uses: mozilla-actions/sccache-action@v0.0.8
       - name: Enable sccache
         run: |
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
@@ -171,7 +171,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.7
+        uses: mozilla-actions/sccache-action@v0.0.8
       - name: Enable sccache
         run: |
           echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
