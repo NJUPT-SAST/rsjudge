@@ -55,7 +55,7 @@ rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = tru
 anyhow = "1.0.97"
 chrono = "0.4.40"
 clap = { version = "4.5.32", features = ["derive"] }
-env_logger = { version = "0.11.6", default-features = false, features = ["auto-color"] }
+env_logger = { version = "0.11.7", default-features = false, features = ["auto-color"] }
 log.workspace = true
 mimalloc = { version = "0.1.43", optional = true }
 serde.workspace = true
