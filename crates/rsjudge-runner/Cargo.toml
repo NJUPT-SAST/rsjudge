@@ -19,7 +19,7 @@ rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
 thiserror = "2.0.12"
 tokio = { workspace = true, features = ["process", "sync", "time", "signal"] }
-tokio-util = "0.7.13"
+tokio-util = "0.7.14"
 uzers = "0.12.1"
 
 # Unused dependencies
