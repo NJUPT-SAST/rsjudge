@@ -57,7 +57,7 @@ chrono = "0.4.40"
 clap = { version = "4.5.32", features = ["derive"] }
 env_logger = { version = "0.11.7", default-features = false, features = ["auto-color"] }
 log.workspace = true
-mimalloc = { version = "0.1.43", optional = true }
+mimalloc = { version = "0.1.44", optional = true }
 serde.workspace = true
 sysinfo = { version = "0.33.1", features = ["serde"] }
 tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
