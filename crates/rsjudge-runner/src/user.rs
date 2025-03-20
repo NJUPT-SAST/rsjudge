@@ -8,8 +8,6 @@ use std::sync::LazyLock;
 
 use uzers::{User, get_user_by_name};
 
-use crate::error::{Error, Result};
-
 /// Generate functions to get user instances.
 macro_rules! users {
     ($($vis:vis fn $id:ident() => $name:literal);* $(;)?) => {
@@ -18,11 +16,11 @@ macro_rules! users {
             ///
             /// # Errors
             /// Returns an error if the user is not found.
-            $vis fn $id() -> Result<&'static User> {
+            $vis fn $id() -> $crate::error::Result<&'static User, $crate::error::UserNotFoundError> {
                 static INNER: LazyLock<Option<User>> = LazyLock::new(|| get_user_by_name($name));
                 INNER
                     .as_ref()
-                    .ok_or_else(|| Error::UserNotFound { username: $name })
+                    .ok_or_else(|| $crate::error::UserNotFoundError { username: $name.into() })
             }
         )*
     };

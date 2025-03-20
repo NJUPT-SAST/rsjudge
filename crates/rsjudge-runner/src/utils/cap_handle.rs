@@ -11,7 +11,7 @@ pub use capctl::Cap;
 use capctl::CapState;
 use rsjudge_utils::log_if_error;
 
-use crate::{Error, Result};
+use crate::{Result, error::CapRequiredError};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct NonCopy;
@@ -98,6 +98,6 @@ fn try_raise_cap(cap: Cap) -> Result<()> {
         state.set_current()?;
         Ok(())
     } else {
-        Err(Error::CapRequired(cap))
+        Err(CapRequiredError(cap))?
     }
 }
