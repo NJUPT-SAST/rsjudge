@@ -47,7 +47,7 @@ pub enum ExecType {
 pub enum ConfigDef {
     /// A boolean configuration.
     Bool {
-        /// Where to put the [`enable`] value. Often a variable in compilation or execution command.
+        /// Where to put the `enable` value. Often a variable in compilation or execution command.
         target: String,
         /// Default value of the configuration.
         default: bool,
@@ -56,7 +56,7 @@ pub enum ConfigDef {
     },
     /// An enumeration configuration.
     Enum {
-        /// Where to put the value of the [`variants`] configuration
+        /// Where to put the value of the `variants` configuration
         target: String,
         /// Default variant of the configuration.
         default: String,
