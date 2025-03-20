@@ -51,7 +51,7 @@ pub trait WithResourceLimit {
     /// Returns a [`CommandWithResourceLimit`] which can be spawned.
     ///
     /// You can also use [`command`][fn.command] or [`command_mut`][fn.command_mut]
-    /// to get the inner [`Command`][tokio::process::Command] object as needed.
+    /// to get the inner [`Command`] object as needed.
     ///
     /// [fn.command]: CommandWithResourceLimit::command
     /// [fn.command_mut]: CommandWithResourceLimit::command_mut
@@ -76,7 +76,7 @@ pub trait WithResourceLimit {
     fn wait_with_resource_limit(
         self,
         resource_limit: ResourceLimit,
-    ) -> impl Future<Output = Result<Option<(ExitStatus, ResourceUsage)>>> + Send;
+    ) -> impl Future<Output = Result<(ExitStatus, ResourceUsage)>> + Send;
 }
 
 impl WithResourceLimit for Command {
@@ -135,7 +135,7 @@ impl WithResourceLimit for Command {
     async fn wait_with_resource_limit(
         self,
         resource_limit: ResourceLimit,
-    ) -> Result<Option<(ExitStatus, ResourceUsage)>> {
+    ) -> Result<(ExitStatus, ResourceUsage)> {
         self.spawn_with_resource_limit(resource_limit)?
             .wait_for_resource_usage()
             .await

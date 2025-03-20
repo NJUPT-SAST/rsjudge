@@ -68,14 +68,21 @@ pub trait WaitForResourceUsage {
     /// See [`wait4`]
     fn wait_for_resource_usage(
         &mut self,
-    ) -> impl Future<Output = Result<Option<(ExitStatus, ResourceUsage)>>> + Send;
+    ) -> impl Future<Output = Result<(ExitStatus, ResourceUsage)>> + Send;
 }
 
+/// Wait for process to change state, BSD style.
+///
 /// A safe wrapper for the [wait4(2)] syscall.
 ///
 /// # Errors
 ///
 /// See manual page: [wait4(2)]
+///
+/// # Note
+///
+/// If you have already run this function on a [`Child`]'s PID and got a result of `Some`,
+/// *DO NOT RUN* `wait`, `try_wait`, etc. again on the `Child`, or you will get an errno of `ECHILD`.
 ///
 /// [wait4(2)]: https://man7.org/linux/man-pages/man2/wait4.2.html
 pub fn wait4<P: Into<Option<Pid>>>(
@@ -111,47 +118,34 @@ pub fn wait4<P: Into<Option<Pid>>>(
 }
 
 impl WaitForResourceUsage for Child {
-    async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
-        if let Some(pid) = self.id() {
-            let pid = Pid::from_raw(pid as _);
-            let mut sigchld = signal(SignalKind::child())?;
-            loop {
-                if let Some(status) = wait4(pid, Some(WaitPidFlag::WNOHANG))? {
-                    return Ok(Some(status));
-                }
-
-                if sigchld.recv().await.is_none() {
-                    Err(Errno::ECHILD)?;
-                }
-            }
-        } else {
-            let exit_status = self
-                .try_wait()?
-                .ok_or_else(|| io::Error::other("Exit status not available"))?;
-            if exit_status.success() {
-                Ok(None)
-            } else {
-                Err(Error::EarlyExited(exit_status))
+    async fn wait_for_resource_usage(&mut self) -> Result<(ExitStatus, ResourceUsage)> {
+        let pid = Pid::from_raw(self.id().ok_or(Error::AlreadyExited)? as _);
+        let mut sigchld = signal(SignalKind::child())?;
+        loop {
+            if let Some(status) = wait4(pid, Some(WaitPidFlag::WNOHANG))? {
+                return Ok(status);
+            } else if sigchld.recv().await.is_none() {
+                Err(Error::AlreadyExited)?;
             }
         }
     }
 }
 
 impl WaitForResourceUsage for ChildWithDeadline {
-    async fn wait_for_resource_usage(&mut self) -> Result<Option<(ExitStatus, ResourceUsage)>> {
-        let Some(deadline) = self.deadline else {
-            return self.child.wait_for_resource_usage().await;
-        };
-
-        match timeout_at(deadline, self.child.wait_for_resource_usage()).await {
-            Ok(res) => res,
-            Err(_) => {
-                self.child.start_kill()?;
-                Err(Error::TimeLimitExceeded(
-                    #[cfg(debug_assertions)]
-                    self.child.wait_for_resource_usage().await?,
-                ))
+    async fn wait_for_resource_usage(&mut self) -> Result<(ExitStatus, ResourceUsage)> {
+        if let Some(deadline) = self.deadline {
+            match timeout_at(deadline, self.child.wait_for_resource_usage()).await {
+                Ok(res) => res,
+                Err(_) => {
+                    self.child.start_kill()?;
+                    Err(Error::TimeLimitExceeded(
+                        #[cfg(debug_assertions)]
+                        self.child.wait_for_resource_usage().await?,
+                    ))
+                }
             }
+        } else {
+            self.child.wait_for_resource_usage().await
         }
     }
 }

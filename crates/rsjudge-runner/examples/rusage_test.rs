@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
     let spin_lock = examples.join("spinning");
     eprintln!("Starting spin_lock with CPU time limit of 1s, wall time limit 2s:");
     let start_time = Instant::now();
-    let Some((status, rusage)) = Command::new(spin_lock)
+    let (status, rusage) = Command::new(spin_lock)
         .spawn_with_resource_limit(ResourceLimit::new(
             Some(Duration::from_secs(1)),
             Some(Duration::from_secs(2)),
@@ -26,13 +26,7 @@ async fn main() -> anyhow::Result<()> {
             None,
         ))?
         .wait_for_resource_usage()
-        .await?
-    else {
-        bail!(
-            "Failed to get resource usage for `{}`",
-            stringify!(spin_lock)
-        );
-    };
+        .await?;
 
     dbg!(start_time.elapsed());
     let status = WaitStatus::from_raw(Pid::from_raw(0), status.into_raw())?;
@@ -61,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
     let large_alloc = examples.join("large_alloc");
     eprintln!("Starting `large_alloc` with RAM limit of 1MB");
 
-    let Ok(Some((status, rusage))) = Command::new(large_alloc)
+    let Ok((status, rusage)) = Command::new(large_alloc)
         .spawn_with_resource_limit(ResourceLimit::new(
             None,
             None,
