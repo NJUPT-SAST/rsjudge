@@ -61,7 +61,8 @@ pub enum ExecutionError {
 impl ExecutionError {
     /// Get the output of the command, if any.
     ///
-    /// This method will return `Some(&Output)` if the error is `NonZeroExitStatus`, otherwise `None`.
+    /// This method will return `Some(&Output)` if the error is
+    /// `NonZeroExitStatus`, otherwise `None`.
     #[must_use]
     pub fn output(&self) -> Option<&Output> {
         match self {
@@ -98,8 +99,8 @@ impl ExecutionError {
 ///
 /// # Errors
 ///
-/// This function returns an error if the command was not found, failed to start,
-/// or failed with a non-zero exit status.
+/// This function returns an error if the command was not found, failed to
+/// start, or failed with a non-zero exit status.
 pub async fn check_output(cmd: &mut Command) -> Result<Output, ExecutionError> {
     let child = cmd
         .stdout(Stdio::piped())

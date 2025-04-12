@@ -2,7 +2,8 @@
 
 //! Functions to get user instances.
 //!
-//! All functions return a reference to a static instance of [`uzers::User`] if succeeded.
+//! All functions return a reference to a static instance of [`uzers::User`] if
+//! succeeded.
 
 use std::sync::LazyLock;
 

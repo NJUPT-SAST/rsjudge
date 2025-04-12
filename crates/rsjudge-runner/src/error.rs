@@ -41,7 +41,8 @@ pub enum Error {
     AlreadyExited,
 }
 
-/// Convert any error implementing [`Into`]`<`[`io::Error`]`>` into [`enum@Error`].
+/// Convert any error implementing [`Into`]`<`[`io::Error`]`>` into
+/// [`enum@Error`].
 impl<E: Into<io::Error>> From<E> for Error {
     fn from(value: E) -> Self {
         Self::Io(value.into())

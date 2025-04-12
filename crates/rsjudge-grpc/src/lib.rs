@@ -16,6 +16,8 @@ mod server;
 ///
 /// # Errors
 ///
+/// This will error when the server fails to start or when the address is
+/// invalid.
 pub async fn serve(addr: SocketAddr) -> Result<(), Error> {
     Server::builder()
         .add_service(JudgeServiceServer::new(JudgeServerImpl))

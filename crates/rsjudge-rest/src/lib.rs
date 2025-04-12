@@ -11,6 +11,8 @@ use tokio::net::TcpListener;
 ///
 /// # Errors
 ///
+/// This will error when the server fails to start or when the address is
+/// invalid.
 pub async fn serve(addr: SocketAddr) -> io::Result<()> {
     let app = Router::new().route("/", get(|| async { "Hello, World!" }));
     let listener = TcpListener::bind(addr).await?;

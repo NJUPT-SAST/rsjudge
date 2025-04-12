@@ -44,14 +44,16 @@ impl CommandWithResourceLimit {
 
 /// Setting resource limits for a [`Command`].
 ///
-/// This will take the [`Command`] by value and set the [`ResourceLimit`] for it.
+/// This will take the [`Command`] by value and set the [`ResourceLimit`] for
+/// it.
 pub trait WithResourceLimit {
     /// Register resource limit for the command.
     ///
     /// Returns a [`CommandWithResourceLimit`] which can be spawned.
     ///
-    /// You can also use [`command`][fn.command] or [`command_mut`][fn.command_mut]
-    /// to get the inner [`Command`] object as needed.
+    /// You can also use [`command`][fn.command] or
+    /// [`command_mut`][fn.command_mut] to get the inner [`Command`] object
+    /// as needed.
     ///
     /// [fn.command]: CommandWithResourceLimit::command
     /// [fn.command_mut]: CommandWithResourceLimit::command_mut
@@ -61,13 +63,15 @@ pub trait WithResourceLimit {
     /// This function won't wait for the child to exit.
     /// Nor will it apply the [`ResourceLimit::wall_time_limit`] automatically.
     ///
-    /// However, the wall time limit can be applied by using [`wait_for_resource_usage`].
+    /// However, the wall time limit can be applied by using
+    /// [`wait_for_resource_usage`].
     ///
     /// This function is synchronous.
     ///
     /// # Errors
     ///
-    /// This function will return an error if the child process cannot be spawned.
+    /// This function will return an error if the child process cannot be
+    /// spawned.
     ///
     /// [`wait_for_resource_usage`]: WaitForResourceUsage::wait_for_resource_usage
     fn spawn_with_resource_limit(self, resource_limit: ResourceLimit) -> Result<ChildWithDeadline>;

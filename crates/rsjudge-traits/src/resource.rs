@@ -13,7 +13,8 @@ pub struct ResourceLimit {
     ///
     /// # Note
     ///
-    /// Wall time limit may be inaccurate, due to the implementation of "wait-and-check" strategy.
+    /// Wall time limit may be inaccurate, due to the implementation of
+    /// "wait-and-check" strategy.
     wall_time_limit: Option<Duration>,
     /// The memory limit **in bytes**.
     memory_limit: Option<NonZeroU64>,

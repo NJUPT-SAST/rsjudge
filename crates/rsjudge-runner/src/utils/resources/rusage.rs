@@ -63,7 +63,8 @@ impl ResourceUsage {
 pub trait WaitForResourceUsage {
     /// Wait for the resource usage of the process.
     ///
-    /// Uses wait4(2) internally to wait for the process to exit and get the resource usage.
+    /// Uses wait4(2) internally to wait for the process to exit and get the
+    /// resource usage.
     ///
     /// See [`wait4`]
     fn wait_for_resource_usage(
@@ -81,8 +82,9 @@ pub trait WaitForResourceUsage {
 ///
 /// # Note
 ///
-/// If you have already run this function on a [`Child`]'s PID and got a result of `Some`,
-/// *DO NOT RUN* `wait`, `try_wait`, etc. again on the `Child`, or you will get an errno of `ECHILD`.
+/// If you have already run this function on a [`Child`]'s PID and got a result
+/// of `Some`, *DO NOT RUN* `wait`, `try_wait`, etc. again on the `Child`, or
+/// you will get an errno of `ECHILD`.
 ///
 /// [wait4(2)]: https://man7.org/linux/man-pages/man2/wait4.2.html
 pub fn wait4<P: Into<Option<Pid>>>(

@@ -16,7 +16,8 @@ use crate::cli::Args;
 mod cli;
 mod config;
 
-/// Main Entry point. This function assumes the global logger is correctly setup.
+/// Main Entry point. This function assumes the global logger is correctly
+/// setup.
 ///
 /// # Errors
 ///
