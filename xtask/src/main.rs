@@ -38,7 +38,8 @@ fn exec(program: &str, args: &[&str]) -> io::Result<()> {
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    // chdir to the workspace root so that `cargo xtask` can be invoked from anywhere.
+    // chdir to the workspace root so that `cargo xtask` can be invoked from
+    // anywhere.
     set_current_dir(Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap())?;
 
     match args {

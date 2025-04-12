@@ -18,7 +18,8 @@ pub trait RunAs {
 
     /// Run the [`Command`] as the given [`User`].
     ///
-    /// This function will set the UID, GID, and supplementary groups of the command.
+    /// This function will set the UID, GID, and supplementary groups of the
+    /// command.
     ///
     /// # Errors
     ///

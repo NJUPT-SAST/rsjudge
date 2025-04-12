@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! A default comparer implementation, supporting ignoring trailing whitespace and/or trailing newline.
+//! A default comparer implementation, supporting ignoring trailing whitespace
+//! and/or trailing newline.
 
 use std::io;
 

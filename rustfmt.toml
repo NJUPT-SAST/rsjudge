@@ -5,3 +5,4 @@ style_edition = "2024"
 group_imports = "StdExternalCrate"
 imports_granularity = "Crate"
 unstable_features = true
+wrap_comments = true

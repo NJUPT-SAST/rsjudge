@@ -8,8 +8,8 @@ use tonic_build::configure;
 
 /// Generate Rust code from the proto files.
 ///
-/// The build script uses `buf` to list all the proto files in the `proto` directory and then
-/// compiles them using `tonic_build`.
+/// The build script uses `buf` to list all the proto files in the `proto`
+/// directory and then compiles them using `tonic_build`.
 ///
 /// `buf` is needed to run this build script.
 #[tokio::main]

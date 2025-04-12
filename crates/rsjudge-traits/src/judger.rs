@@ -16,7 +16,8 @@ pub trait Judger {
     /// Get a list of all supported languages.
     fn accept_languages(&self) -> IndexMap<String, LanguageInfo>;
 
-    /// Execute the code of the specified language, with the given input and time limit.
+    /// Execute the code of the specified language, with the given input and
+    /// time limit.
     fn exec(
         &self,
         lang: &LanguageOption,
@@ -25,7 +26,8 @@ pub trait Judger {
         time_limit: Duration,
     ) -> impl Future<Output = Result<Output, Self::Error>> + Send;
 
-    /// Run the code of a specified language, with the given input and time limit, and compare the output with the answer.
+    /// Run the code of a specified language, with the given input and time
+    /// limit, and compare the output with the answer.
     fn judge(
         &self,
         lang: &LanguageOption,

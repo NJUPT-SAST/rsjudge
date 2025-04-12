@@ -25,7 +25,8 @@ pub enum ExecType {
         /// Compilation command for the language.
         compile: String,
     },
-    /// The language is compiled to an intermediate representation, which is then executed with another command.
+    /// The language is compiled to an intermediate representation, which is
+    /// then executed with another command.
     ByteCode {
         /// Compilation command for the language.
         compile: String,
@@ -47,7 +48,8 @@ pub enum ExecType {
 pub enum ConfigDef {
     /// A boolean configuration.
     Bool {
-        /// Where to put the `enable` value. Often a variable in compilation or execution command.
+        /// Where to put the `enable` value. Often a variable in compilation or
+        /// execution command.
         target: String,
         /// Default value of the configuration.
         default: bool,
