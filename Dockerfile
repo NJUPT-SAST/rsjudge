@@ -1,12 +1,9 @@
-FROM rust:slim AS chef
-# We only pay the installation cost once,
-# it will be cached from the second build onwards
-RUN cargo install cargo-chef --locked
+FROM docker.io/lukemathwalker/cargo-chef:latest-rust-slim AS chef
 WORKDIR /src
 
 FROM chef AS planner
 COPY . .
-RUN cargo chef prepare  --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json
 
 FROM docker.io/bufbuild/buf:latest AS buf
 
