@@ -16,4 +16,4 @@ tokio = { workspace = true, features = ["process"] }
 
 [dev-dependencies]
 serde_json = "1.0.140"
-toml = { version = "0.8.20", features = ["preserve_order"] }
+toml = { version = "0.8.21", features = ["preserve_order"] }
