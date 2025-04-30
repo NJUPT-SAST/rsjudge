@@ -53,7 +53,7 @@ rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = tru
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
 anyhow = "1.0.98"
-chrono = "0.4.40"
+chrono = "0.4.41"
 clap = { version = "4.5.37", features = ["derive"] }
 env_logger = { version = "0.11.8", default-features = false, features = ["auto-color"] }
 log.workspace = true
