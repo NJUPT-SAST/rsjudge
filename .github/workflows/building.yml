@@ -25,10 +25,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check code format with dprint
         uses: dprint/check@v2.2
-  lint-and-test:
+  lint-debug:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Optimize APT
+        run: |
+          sudo apt-mark hold firefox
+          echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
+          sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -60,11 +65,103 @@ jobs:
       - name: Lint protobuf files
         uses: bufbuild/buf-lint-action@v1
       - name: Run clippy lint
-        run: >
-          cargo hack clippy --all-targets --each-feature --workspace --message-format json --locked
-          | clippy-sarif
-          | tee rust-clippy-results.sarif
-          | sarif-fmt
+        run: |
+          cargo hack clippy --all-targets --each-feature --workspace --message-format json --locked |
+            clippy-sarif |
+            tee rust-clippy-results.sarif |
+            sarif-fmt
+        continue-on-error: true
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: rust-clippy-results.sarif
+          wait-for-processing: true
+      - name: Check dependency graph
+        run: cargo deny --all-features --workspace check
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Optimize APT
+        run: |
+          sudo apt-mark hold firefox
+          echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
+          sudo dpkg-reconfigure man-db
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y wget clang
+      - name: Setup Rust toolchain
+        uses: moonrepo/setup-rust@v1
+        with:
+          channel: stable
+          bins: cargo-hack, cargo-deny, clippy-sarif, sarif-fmt, cargo-nextest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup mold
+        uses: rui314/setup-mold@v1
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup protoc
+        uses: Noelware/setup-protoc@1.2.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Enable sccache
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+      - name: Run tests
+        run: cargo hack nextest --each-feature --verbose run --workspace --locked --no-tests=pass
+      - name: Check dependency graph
+        run: cargo deny --all-features --workspace check
+  lint-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Optimize APT
+        run: |
+          sudo apt-mark hold firefox
+          echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
+          sudo dpkg-reconfigure man-db
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y wget clang
+      - name: Setup Rust toolchain
+        uses: moonrepo/setup-rust@v1
+        with:
+          channel: stable
+          bins: cargo-hack, cargo-deny, clippy-sarif, sarif-fmt, cargo-nextest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup mold
+        uses: rui314/setup-mold@v1
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup protoc
+        uses: Noelware/setup-protoc@1.2.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Enable sccache
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+      - name: Run clippy lint
+        run: |
+          cargo hack clippy --each-feature --workspace --message-format json --locked --release |
+            clippy-sarif |
+            tee rust-clippy-results.sarif |
+            sarif-fmt
         continue-on-error: true
       - name: Upload analysis results to GitHub
         uses: github/codeql-action/upload-sarif@v3
@@ -79,6 +176,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Optimize APT
+        run: |
+          sudo apt-mark hold firefox
+          echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
+          sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -114,9 +216,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - name: Optimize APT
+        run: |
+          sudo apt-mark hold firefox
+          echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
+          sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
+          sudo apt-get upgrade -y
           sudo apt-get install -y wget lintian clang
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
