@@ -6,12 +6,12 @@
 //！ An online judge sandbox server in Rust,
 //！ inspired by [go-judge](https://github.com/criyle/go-judge), for SASTOJ.
 
-use clap::Parser as _;
+use anyhow::Context;
 use log::{debug, warn};
 use sysinfo::System;
 use tokio::fs::read;
 
-use crate::cli::Args;
+pub use crate::cli::Args;
 
 mod cli;
 mod config;
@@ -22,15 +22,25 @@ mod config;
 /// # Errors
 ///
 /// This function returns error if an internal error is not handled.
-pub async fn async_main() -> anyhow::Result<()> {
-    let args = Args::try_parse()?;
+pub async fn async_main(args: Args) -> anyhow::Result<()> {
     debug!("{:?}", args);
 
-    let config = read(args.config_dir.join("executors.toml")).await?;
+    let executor_config_path = &args.config_dir.join("executors.toml");
+    let config = read(executor_config_path).await.with_context(|| {
+        format!(
+            "Cannot load executor config at {}",
+            executor_config_path.display()
+        )
+    })?;
 
     debug!(
         "Config:\n{:#?}",
-        String::from_utf8_lossy(&config).parse::<toml::Value>()?
+        String::from_utf8_lossy(&config)
+            .parse::<toml::Value>()
+            .with_context(|| format!(
+                "Failed to parse executor config at {}",
+                executor_config_path.display()
+            ))?
     );
 
     match (System::name(), System::os_version()) {
