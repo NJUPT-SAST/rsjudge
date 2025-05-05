@@ -7,6 +7,9 @@ on:
     branches: ["main"]
   merge_group:
 
+permissions:
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -27,6 +30,9 @@ jobs:
         uses: dprint/check@v2.2
   lint-debug:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
       - name: Optimize APT
@@ -121,6 +127,9 @@ jobs:
         run: cargo deny --all-features --workspace check
   lint-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
       - name: Optimize APT
