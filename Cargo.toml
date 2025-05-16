@@ -3,7 +3,7 @@
 name = "rsjudge"
 version.workspace = true
 authors.workspace = true
-edition = "2021"
+edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
@@ -24,11 +24,11 @@ members = [
 [workspace.package]
 version = "0.1.0"
 authors = ["NJUPT-SAST"]
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/NJUPT-SAST/rsjudge"
 # MSRV is set to N - 2, where N is the current stable version.
-rust-version = "1.84"
+rust-version = "1.85"
 
 [workspace.dependencies]
 log = "0.4.27"
