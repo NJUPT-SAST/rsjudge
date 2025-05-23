@@ -29,4 +29,4 @@ uzers = "0.12.1"
 anyhow = "1.0.98"
 
 [build-dependencies]
-rustversion = "1.0.20"
+rustversion = "1.0.21"
