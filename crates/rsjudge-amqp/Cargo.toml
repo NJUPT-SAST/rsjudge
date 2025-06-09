@@ -10,7 +10,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-amqprs = { version = "2.1.1", features = ["urispec"] }
+amqprs = { version = "2.1.2", features = ["urispec"] }
 thiserror = "2.0.12"
 tokio.workspace = true
 
