@@ -27,7 +27,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check code format with dprint
-        uses: dprint/check@v2.2
+        uses: dprint/check@v2.3
   lint-debug:
     runs-on: ubuntu-latest
     permissions:
