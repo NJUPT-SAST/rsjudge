@@ -105,7 +105,7 @@ mod tests {
 
         let json = serde_json::to_string_pretty(&languages).unwrap();
 
-        println!("{}", json);
+        println!("{json}");
 
         println!(
             "{:#?}",
@@ -113,7 +113,7 @@ mod tests {
         );
 
         let toml = toml::to_string(&languages).unwrap();
-        println!("{}", toml);
+        println!("{toml}");
     }
 
     #[test]
@@ -164,7 +164,7 @@ mod tests {
 
         let languages: HashMap<String, LanguageDef> = toml::from_str(&toml.to_string()).unwrap();
 
-        println!("{:#?}", languages);
+        println!("{languages:#?}");
     }
 
     #[test]
@@ -174,6 +174,6 @@ mod tests {
         demo.read_to_string(&mut input).unwrap();
         let output = toml::from_str::<IndexMap<String, LanguageDef>>(&input).unwrap();
 
-        println!("{:#?}", output);
+        println!("{output:#?}");
     }
 }

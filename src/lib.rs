@@ -23,7 +23,7 @@ mod config;
 ///
 /// This function returns error if an internal error is not handled.
 pub async fn async_main(args: Args) -> anyhow::Result<()> {
-    debug!("{:?}", args);
+    debug!("{args:?}");
 
     let executor_config_path = &args.config_dir.join("executors.toml");
     let config = read(executor_config_path).await.with_context(|| {

@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
     setup_logger();
 
     if let Err(err) = async_main(args).await {
-        error!("{:#}", err);
+        error!("{err:#}");
         Err(err)?
     } else {
         Ok(())
