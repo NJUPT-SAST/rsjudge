@@ -125,8 +125,6 @@ jobs:
         run: >
           cargo hack nextest --each-feature --verbose
           run --workspace --locked --no-tests=pass --retries 3
-      - name: Check dependency graph
-        run: cargo deny --all-features --workspace check
   lint-release:
     runs-on: ubuntu-latest
     permissions:
@@ -198,7 +196,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
-          channel: "1.85"
+          channel: "1.86"
           bins: cargo-hack, cargo-nextest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

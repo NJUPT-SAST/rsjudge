@@ -28,7 +28,7 @@ edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/NJUPT-SAST/rsjudge"
 # MSRV is set to N - 2, where N is the current stable version.
-rust-version = "1.85"
+rust-version = "1.86"
 
 [workspace.dependencies]
 log = "0.4.27"
