@@ -1,14 +1,9 @@
 {
   "features": {
-    "ghcr.io/devcontainers-contrib/features/dprint-asdf:2": {
-      "version": "2.0.14",
-      "resolved": "ghcr.io/devcontainers-contrib/features/dprint-asdf@sha256:056ad0c43ded376371c6a80d6067453a37316adaf03f9e467a09ecba7c13669e",
-      "integrity": "sha256:056ad0c43ded376371c6a80d6067453a37316adaf03f9e467a09ecba7c13669e"
-    },
-    "ghcr.io/devcontainers-contrib/features/protoc:1": {
-      "version": "1.0.2",
-      "resolved": "ghcr.io/devcontainers-contrib/features/protoc@sha256:436d25961d1c3bbc39a565c004d0eca8dd9c0cb80c0319d089d0aa49dc2ad070",
-      "integrity": "sha256:436d25961d1c3bbc39a565c004d0eca8dd9c0cb80c0319d089d0aa49dc2ad070"
+    "ghcr.io/devcontainers-contrib/features/protoc:": {
+      "version": "1.0.3",
+      "resolved": "ghcr.io/devcontainers-extra/features/protoc@sha256:57ec0b9c074c3c764d5b43386f5fd219586b2548d5a99da8c3307f29fc1deafc",
+      "integrity": "sha256:57ec0b9c074c3c764d5b43386f5fd219586b2548d5a99da8c3307f29fc1deafc"
     },
     "ghcr.io/marcozac/devcontainer-features/buf:1": {
       "version": "1.0.0",
