@@ -2,9 +2,15 @@
   "name": "Rust",
   "image": "mcr.microsoft.com/devcontainers/rust:1-1-bookworm",
   "features": {
-    "ghcr.io/devcontainers-contrib/features/protoc:": {},
-    "ghcr.io/marcozac/devcontainer-features/buf:1": {}
+    "ghcr.io/devcontainers-extra/features/dprint-asdf:2": {},
+    "ghcr.io/devcontainers-extra/features/protoc:1": {},
+    "ghcr.io/mrsimonemms/devcontainers/buf:1": {}
   },
-  "containerUser": "vscode",
-  "remoteUser": "vscode"
+  "mounts": [
+    {
+      "source": "devcontainer-cargo-cache-${devcontainerId}",
+      "target": "/usr/local/cargo",
+      "type": "volume"
+    }
+  ]
 }
