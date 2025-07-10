@@ -54,7 +54,7 @@ rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = tru
 
 anyhow = "1.0.98"
 chrono = "0.4.41"
-clap = { version = "4.5.40", features = ["derive"] }
+clap = { version = "4.5.41", features = ["derive"] }
 env_logger = { version = "0.11.8", default-features = false, features = ["auto-color"] }
 log.workspace = true
 mimalloc = { version = "0.1.47", optional = true }
@@ -75,9 +75,9 @@ mimalloc = ["dep:mimalloc"]
 rest = ["dep:rsjudge-rest"]
 
 [build-dependencies]
-clap = { version = "4.5.40", features = ["derive"] }
-clap_complete = "4.5.54"
-clap_mangen = "0.2.27"
+clap = { version = "4.5.41", features = ["derive"] }
+clap_complete = "4.5.55"
+clap_mangen = "0.2.28"
 
 [profile.release]
 codegen-units = 1
