@@ -4,7 +4,7 @@ use std::{env, io::BufRead, path::PathBuf};
 
 use rsjudge_utils::command::check_output;
 use tokio::process::Command;
-use tonic_build::configure;
+use tonic_prost_build::configure;
 
 /// Generate Rust code from the proto files.
 ///
@@ -39,8 +39,8 @@ async fn main() -> anyhow::Result<()> {
 
     configure()
         .emit_rerun_if_changed(false)
-        .bytes(["."])
-        .compile_protos(&proto_files, &[&proto_out_dir])?;
+        .bytes(".")
+        .compile_protos(&proto_files, &[proto_out_dir])?;
 
     println!("cargo:rerun-if-changed=proto");
 
