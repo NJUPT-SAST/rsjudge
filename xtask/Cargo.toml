@@ -12,7 +12,7 @@ description = "A task runner for cargo workspaces"
 
 [dependencies]
 anyhow = "1.0.98"
-clap = { version = "4.5.41", features = ["derive"] }
+clap = { version = "4.5.42", features = ["derive"] }
 
 [features]
 dbg = []
