@@ -136,12 +136,10 @@ extended-description = "An online judge sandbox server in Rust, inspired by go-j
 maintainer = "JisuWoniu <jswn@jswn9945.xyz>"
 maintainer-scripts = "packaging/deb/"
 depends = "$auto, adduser, libc6, libgcc-s1, libstdc++6, libssl1.1, libzstd1, libzstd-dev"
-recommends = "gcc, g++, python3"
+recommends = "gcc, g++, java-sdk-headless, python3"
 suggests = "pypy3"
 section = "net"
 systemd-units = { unit-scripts = "packaging/shared", enable = false }
-
-[package.metadata.generate-rpm]
 
 [[package.metadata.generate-rpm.assets]]
 source = "target/release/rsjudge"
@@ -189,6 +187,12 @@ dest = "/usr/lib/tmpfiles.d/rsjudge.conf"
 mode = "644"
 
 [[package.metadata.generate-rpm.assets]]
-source = "packaging/shared/sysuser"
 dest = "/usr/lib/sysusers.d/rsjudge.conf"
 mode = "644"
+source = "packaging/shared/sysuser"
+
+[package.metadata.generate-rpm.recommends]
+gcc = "*"
+"g++" = "*"
+java-devel = "*"
+python3 = "*"
