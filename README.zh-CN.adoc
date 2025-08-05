@@ -3,11 +3,12 @@
 :toc: preamble
 :toc-title: 目录
 
-image::assets/rsjudge.svg[rsjudge logo]
+image::assets/rsjudge.svg[rsjudge logo, 80%, opts=inline, align=center]
 
+[.text-center]
 xref:README.adoc[English]
 
-一个用 Rust 编写的在线评测沙箱服务器，受到 https://github.com/criyle/go-judge[go-judge] 的启发，服务于 SASTOJ。
+一款用 Rust 编写的在线评测沙箱服务器，受到 https://github.com/criyle/go-judge[go-judge] 的启发，服务于 SASTOJ。
 
 == 特性
 
@@ -24,7 +25,7 @@ xref:README.adoc[English]
 
 == 发音和拼写
 
-“rsjudge” 是 “Rust” 和 “judge” 的组合，发音为 “R-S-judge”。单词应该以小写字母书写，单词中间无空格，即使在标题或句子开头也是如此。
+“rsjudge” 是 “Rust” 和 “judge” 的组合，发音为 “R-S-judge”（/ɑːr-ɛs-dʒʌdʒ/）。单词应该以小写字母书写，单词中间无空格，即使在标题或句子开头也是如此。
 
 == 目录结构
 
@@ -45,11 +46,9 @@ xref:README.adoc[English]
 `packaging/`::
     用于生成 `.deb` 与 `.rpm` 包的附加文件。
 
-https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
-    image:https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[
-        目录结构可视化
-    ]
-]
+
+image::https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[目录结构可视化, link=https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge, window=_blank]
+
 
 == 从源代码构建
 

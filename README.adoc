@@ -1,9 +1,10 @@
 = rsjudge
 :toc: preamble
 
-image::assets/rsjudge.svg[rsjudge logo]
+image::assets/rsjudge.svg[rsjudge logo, 80%, opts=inline, align=center]
 
-xref:README.zh-CN.adoc[中文]
+[.text-center]
+xref:README.zh-CN.adoc[简体中文]
 
 An online judge sandbox server in Rust, inspired by https://github.com/criyle/go-judge[go-judge], for SASTOJ.
 
@@ -22,7 +23,7 @@ An online judge sandbox server in Rust, inspired by https://github.com/criyle/go
 
 == Pronunciation and spelling
 
-The name "rsjudge" is a combination of "Rust" and "judge". It is pronounced as "R-S-judge". The word should be written in lowercase, with no space in between, even in the title or at the beginning of a sentence.
+The name “rsjudge” is a combination of “Rust” and “judge”. It is pronounced as “R-S-judge” (/ɑːr-ɛs-dʒʌdʒ/). The word should be written in lowercase, with no space in between, even in the title or at the beginning of a sentence.
 
 == Repository structure
 
@@ -43,11 +44,9 @@ The name "rsjudge" is a combination of "Rust" and "judge". It is pronounced as "
 `packaging/`::
     Files for generating `.deb` and `.rpm` package.
 
-https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge[
-    image:https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[
-        Repository structure visualized
-    ]
-]
+
+image::https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[Repository structure visualized, opts=inline, link=https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=NJUPT-SAST%2Frsjudge, window=_blank]
+
 
 == Build from source
 
