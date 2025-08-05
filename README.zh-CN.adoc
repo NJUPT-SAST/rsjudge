@@ -3,7 +3,7 @@
 :toc: preamble
 :toc-title: 目录
 
-image:assets/rsjudge.svg[rsjudge logo]
+image::assets/rsjudge.svg[rsjudge logo]
 
 xref:README.adoc[English]
 
