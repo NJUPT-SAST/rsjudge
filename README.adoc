@@ -1,7 +1,7 @@
 = rsjudge
 :toc: preamble
 
-image:assets/rsjudge.svg[rsjudge logo]
+image::assets/rsjudge.svg[rsjudge logo]
 
 xref:README.zh-CN.adoc[中文]
 
