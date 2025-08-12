@@ -16,4 +16,4 @@ thiserror = "2.0.14"
 tokio = { workspace = true, features = ["process", "macros", "rt-multi-thread"] }
 
 [dev-dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.99"
