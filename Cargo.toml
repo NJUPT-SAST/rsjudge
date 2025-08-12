@@ -52,7 +52,7 @@ rsjudge-amqp = { version = "0.1.0", path = "crates/rsjudge-amqp", optional = tru
 rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
 rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
 
-anyhow = "1.0.98"
+anyhow = "1.0.99"
 chrono = "0.4.41"
 clap = { version = "4.5.44", features = ["derive"] }
 env_logger = { version = "0.11.8", default-features = false, features = ["auto-color"] }
