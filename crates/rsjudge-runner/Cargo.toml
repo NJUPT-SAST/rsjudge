@@ -18,7 +18,7 @@ nix = { version = "0.30.1", features = ["user", "resource", "process"] }
 oci-spec = "0.8.1"
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
-thiserror = "2.0.12"
+thiserror = "2.0.14"
 tokio = { workspace = true, features = ["process", "sync", "time", "signal"] }
 tokio-util = "0.7.16"
 uzers = "0.12.1"
