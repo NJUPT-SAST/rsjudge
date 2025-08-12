@@ -59,8 +59,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup protoc
-        uses: Noelware/setup-protoc@1.2.0
+        uses: arduino/setup-protoc@master
         with:
+          version: v31.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
@@ -112,8 +113,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup protoc
-        uses: Noelware/setup-protoc@1.2.0
+        uses: arduino/setup-protoc@master
         with:
+          version: v31.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
@@ -156,8 +158,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup protoc
-        uses: Noelware/setup-protoc@1.2.0
+        uses: arduino/setup-protoc@master
         with:
+          version: v31.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
@@ -207,8 +210,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup protoc
-        uses: Noelware/setup-protoc@1.2.0
+        uses: arduino/setup-protoc@master
         with:
+          version: v31.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
@@ -248,8 +252,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup protoc
-        uses: Noelware/setup-protoc@1.2.0
+        uses: arduino/setup-protoc@master
         with:
+          version: v31.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.9
