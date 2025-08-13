@@ -199,7 +199,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
-          channel: "1.86"
+          channel: "1.87"
           bins: cargo-hack, cargo-nextest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -272,7 +272,7 @@ jobs:
           path: target/debian/*.deb
   pkg-rpm:
     runs-on: ubuntu-latest
-    container: fedora:38
+    container: fedora:41
     steps:
       - uses: actions/checkout@v5
       - name: Install dependencies
