@@ -2,7 +2,8 @@
 
 //! Resource limit for judging code.
 
-use std::{num::NonZeroU64, time::Duration};
+use std::num::NonZeroU64;
+use std::time::Duration;
 
 /// Resource limit for judging code.
 #[derive(Debug, Default, Clone, Copy)]

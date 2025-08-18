@@ -2,11 +2,15 @@
 
 //! Abstraction for judger.
 
-use std::{future::Future, path::Path, process::Output, time::Duration};
+use std::future::Future;
+use std::path::Path;
+use std::process::Output;
+use std::time::Duration;
 
 use indexmap::IndexMap;
 
-use crate::language::{info::LanguageInfo, option::LanguageOption};
+use crate::language::info::LanguageInfo;
+use crate::language::option::LanguageOption;
 
 /// A trait for judging code.
 pub trait Judger {

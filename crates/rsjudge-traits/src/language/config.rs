@@ -69,7 +69,9 @@ pub enum ConfigDef {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, fs::File, io::Read};
+    use std::collections::HashMap;
+    use std::fs::File;
+    use std::io::Read;
 
     use indexmap::{IndexMap, indexmap};
     use toml::toml;

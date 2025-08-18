@@ -2,6 +2,6 @@
 
 edition = "2024"
 group_imports = "StdExternalCrate"
-imports_granularity = "Crate"
+imports_granularity = "Module"
 unstable_features = true
 wrap_comments = true

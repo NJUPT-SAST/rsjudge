@@ -2,7 +2,8 @@
 
 //! Abstraction for services.
 
-use std::{error::Error, future::Future};
+use std::error::Error;
+use std::future::Future;
 
 use serde::de::DeserializeOwned;
 

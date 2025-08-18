@@ -6,7 +6,8 @@ use std::net::SocketAddr;
 
 use tonic::transport::{Error, Server};
 
-use crate::{proto::judge_service_server::JudgeServiceServer, server::JudgeServerImpl};
+use crate::proto::judge_service_server::JudgeServiceServer;
+use crate::server::JudgeServerImpl;
 
 pub mod config;
 mod proto;

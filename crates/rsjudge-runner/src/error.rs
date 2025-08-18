@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
+use std::borrow::Cow;
+use std::io;
 #[cfg(debug_assertions)]
 use std::process::ExitStatus;
-use std::{borrow::Cow, io, result::Result as StdResult};
+use std::result::Result as StdResult;
 
 use capctl::Cap;
 use log::error;

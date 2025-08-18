@@ -9,7 +9,5 @@ pub mod language;
 pub mod resource;
 pub mod service;
 
-pub use crate::{
-    judger::Judger,
-    service::{Service, ServiceConfig},
-};
+pub use crate::judger::Judger;
+pub use crate::service::{Service, ServiceConfig};

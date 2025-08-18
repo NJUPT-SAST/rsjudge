@@ -2,7 +2,8 @@
 
 use bytes::Bytes;
 
-use crate::judger::request::{cases::CasesConfig, source::Source};
+use crate::judger::request::cases::CasesConfig;
+use crate::judger::request::source::Source;
 
 mod source;
 

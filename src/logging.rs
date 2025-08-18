@@ -3,10 +3,8 @@
 use std::io::Write as _;
 
 use chrono::{Local, SubsecRound};
-use env_logger::{
-    Builder, Env,
-    fmt::style::{AnsiColor, Style},
-};
+use env_logger::fmt::style::{AnsiColor, Style};
+use env_logger::{Builder, Env};
 
 pub(crate) fn setup_logger() {
     Builder::from_env(

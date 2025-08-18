@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! RAII-style Capability handle.
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    rc::{Rc, Weak},
-};
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::{Rc, Weak};
 
 pub use capctl::Cap;
 use capctl::CapState;
 use rsjudge_utils::log_if_error;
 
-use crate::{Result, error::CapRequiredError};
+use crate::Result;
+use crate::error::CapRequiredError;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct NonCopy;

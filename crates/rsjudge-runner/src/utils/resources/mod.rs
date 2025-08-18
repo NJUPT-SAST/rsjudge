@@ -2,14 +2,14 @@
 
 pub mod rusage;
 
-use std::{future::Future, process::ExitStatus, time::Duration};
+use std::future::Future;
+use std::process::ExitStatus;
+use std::time::Duration;
 
 use nix::sys::resource::{Resource, setrlimit};
 use rsjudge_traits::resource::ResourceLimit;
-use tokio::{
-    process::{Child, Command},
-    time::Instant,
-};
+use tokio::process::{Child, Command};
+use tokio::time::Instant;
 
 use self::rusage::{ResourceUsage, WaitForResourceUsage};
 use crate::Result;
@@ -171,10 +171,9 @@ mod tests {
 
     use rsjudge_traits::resource::ResourceLimit;
 
-    use crate::{
-        Error,
-        utils::resources::{WithResourceLimit as _, rusage::WaitForResourceUsage as _},
-    };
+    use crate::Error;
+    use crate::utils::resources::WithResourceLimit as _;
+    use crate::utils::resources::rusage::WaitForResourceUsage as _;
 
     #[tokio::test]
     async fn test_wait_for_resource_usage() {

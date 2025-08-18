@@ -4,10 +4,8 @@ use log::debug;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status, async_trait};
 
-use crate::proto::{
-    SelfTestRequest, SelfTestResponse, SubmitRequest, SubmitResponse,
-    judge_service_server::JudgeService,
-};
+use crate::proto::judge_service_server::JudgeService;
+use crate::proto::{SelfTestRequest, SelfTestResponse, SubmitRequest, SubmitResponse};
 
 #[derive(Debug, Default)]
 pub struct JudgeServerImpl;

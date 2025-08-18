@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use amqprs::{
-    callbacks::{DefaultChannelCallback, DefaultConnectionCallback},
-    connection::{Connection, OpenConnectionArguments},
-};
+use amqprs::callbacks::{DefaultChannelCallback, DefaultConnectionCallback};
+use amqprs::connection::{Connection, OpenConnectionArguments};
 
 use crate::config::AmqpConfig;
 pub use crate::error::{Error, Result};
