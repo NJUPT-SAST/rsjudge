@@ -149,3 +149,8 @@ cargo xtask dist deb
 ----
 
 The `.deb` package will be generated in `target/debian`.
+
+
+== Licensing
+
+rsjudge is a Free/Libre and Open Source Software (FLOSS). All source code is licensed under https://www.apache.org/licenses/LICENSE-2.0[Apache License Version 2.0] (SPDX License Identifier: https://spdx.org/licenses/Apache-2.0.html[Apache-2.0]). You can read the full license text from link:./LICENSE[LICENSE].
