@@ -3,10 +3,8 @@
 #![cfg_attr(not(test), warn(clippy::print_stdout, clippy::print_stderr))]
 #![cfg_attr(feature = "setgroups", feature(setgroups))]
 
-pub use crate::{
-    error::{Error, Result},
-    utils::cap_handle::{Cap, CapHandle},
-};
+pub use crate::error::{Error, Result};
+pub use crate::utils::cap_handle::{Cap, CapHandle};
 
 mod error;
 

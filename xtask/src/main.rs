@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{env::set_current_dir, io, path::Path, process::Command};
+use std::env::set_current_dir;
+use std::io;
+use std::path::Path;
+use std::process::Command;
 
 use clap::{Parser, ValueEnum};
 

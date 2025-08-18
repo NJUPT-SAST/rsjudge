@@ -2,9 +2,11 @@
 
 pub mod config;
 
-use std::{io, net::SocketAddr};
+use std::io;
+use std::net::SocketAddr;
 
-use axum::{Router, routing::get};
+use axum::Router;
+use axum::routing::get;
 use tokio::net::TcpListener;
 
 /// Serve the REST API at the given address.

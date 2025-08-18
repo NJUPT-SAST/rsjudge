@@ -3,15 +3,14 @@
 #[path = "src/cli.rs"]
 mod cli;
 
-use std::{
-    env::var_os,
-    fs::{File, create_dir_all},
-    io::{self, Write},
-    path::Path,
-};
+use std::env::var_os;
+use std::fs::{File, create_dir_all};
+use std::io::{self, Write};
+use std::path::Path;
 
 use clap::CommandFactory;
-use clap_complete::{generate_to, shells::Shell};
+use clap_complete::generate_to;
+use clap_complete::shells::Shell;
 use clap_mangen::Man;
 
 use crate::cli::Args;

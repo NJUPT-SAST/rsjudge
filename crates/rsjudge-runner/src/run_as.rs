@@ -7,10 +7,8 @@ use rsjudge_utils::log_if_error;
 use tokio::process::Command;
 use uzers::User;
 
-use crate::{
-    error::{Error, Result},
-    utils::cap_handle::CapHandle,
-};
+use crate::error::{Error, Result};
+use crate::utils::cap_handle::CapHandle;
 
 /// A trait to allow running a [`tokio::process::Command`] as another user.
 pub trait RunAs {

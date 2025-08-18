@@ -2,7 +2,8 @@
 
 mod default_comparer;
 
-use std::{future::Future, io};
+use std::future::Future;
+use std::io;
 
 use tokio::io::AsyncRead;
 

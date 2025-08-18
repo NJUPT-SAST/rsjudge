@@ -117,10 +117,8 @@ mod tests {
     use std::io;
 
     use tempfile::TempDir;
-    use tokio::{
-        fs::File,
-        io::{AsyncWriteExt as _, empty},
-    };
+    use tokio::fs::File;
+    use tokio::io::{AsyncWriteExt as _, empty};
 
     use crate::comparer::{CompareResult, Comparer as _, DefaultComparer};
 

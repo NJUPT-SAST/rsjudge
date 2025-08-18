@@ -2,11 +2,9 @@
 
 //! Functions for working with [`tokio::process::Command`].
 
-use std::{
-    io::{self, ErrorKind},
-    iter,
-    process::{ExitStatus, Output, Stdio},
-};
+use std::io::{self, ErrorKind};
+use std::iter;
+use std::process::{ExitStatus, Output, Stdio};
 
 use thiserror::Error;
 use tokio::process::Command;

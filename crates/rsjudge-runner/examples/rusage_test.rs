@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{num::NonZeroU64, os::unix::process::ExitStatusExt, path::PathBuf, time::Duration};
+use std::num::NonZeroU64;
+use std::os::unix::process::ExitStatusExt;
+use std::path::PathBuf;
+use std::time::Duration;
 
 use anyhow::bail;
-use nix::{sys::wait::WaitStatus, unistd::Pid};
-use rsjudge_runner::utils::resources::{WithResourceLimit as _, rusage::WaitForResourceUsage};
+use nix::sys::wait::WaitStatus;
+use nix::unistd::Pid;
+use rsjudge_runner::utils::resources::WithResourceLimit as _;
+use rsjudge_runner::utils::resources::rusage::WaitForResourceUsage;
 use rsjudge_traits::resource::ResourceLimit;
-use tokio::{process::Command, time::Instant};
+use tokio::process::Command;
+use tokio::time::Instant;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
