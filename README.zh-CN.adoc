@@ -139,3 +139,7 @@ cargo xtask dist deb
 ----
 
 生成的软件包位于 `target/debian` 目录下。
+
+== 许可协议
+
+rsjudge 是自由及开源软件（FLOSS）。所有源码基于 https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0 许可证]（SPDX 协议标识符：https://spdx.org/licenses/Apache-2.0.html[Apache-2.0]）授权。您可以在 link:./LICENSE[LICENSE] 文件中阅读完整的协议文本。
