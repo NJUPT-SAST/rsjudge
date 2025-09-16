@@ -34,7 +34,7 @@ rust-version = "1.87"
 log = "0.4.28"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
-serde = { version = "1.0.223", features = ["derive"] }
+serde = { version = "1.0.225", features = ["derive"] }
 tokio = "1.47.1"
 
 [workspace.lints.rust]
