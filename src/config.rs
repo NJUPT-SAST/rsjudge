@@ -12,12 +12,14 @@ use rsjudge_traits::language::config::LanguageDef;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
+#[allow(dead_code)]
 pub struct Config {
     pub executors: HashMap<String, LanguageDef>,
     pub services: Services,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[allow(dead_code)]
 pub struct Services {
     #[cfg(feature = "grpc")]
     pub grpc: GrpcConfig,
