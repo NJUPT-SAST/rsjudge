@@ -10,7 +10,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-axum = "0.8.5"
+axum = "0.8.6"
 rsjudge-traits.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["net"] }
