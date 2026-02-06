@@ -35,7 +35,7 @@ log = "0.4.28"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.228", features = ["derive"] }
-tokio = "1.48.0"
+tokio = "1.49.0"
 
 [workspace.lints.rust]
 rust-2024-compatibility = "warn"
