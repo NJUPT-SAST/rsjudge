@@ -1,0 +1,68 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  merge_group:
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: "ubuntu-latest"
+    permissions:
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: rust
+            build-mode: autobuild
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Optimize APT
+        run: |
+          sudo apt-mark hold firefox
+          echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
+          sudo dpkg-reconfigure man-db
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y wget clang
+      - name: Setup Rust toolchain
+        uses: moonrepo/setup-rust@v1
+        with:
+          channel: stable
+          bins: cargo-hack, cargo-deny, clippy-sarif, sarif-fmt, cargo-nextest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup mold
+        uses: rui314/setup-mold@v1
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup protoc
+        uses: Noelware/setup-protoc@1.2.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Enable sccache
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
