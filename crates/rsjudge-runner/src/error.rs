@@ -7,7 +7,6 @@ use std::process::ExitStatus;
 use std::result::Result as StdResult;
 
 use capctl::Cap;
-use log::error;
 
 #[cfg(debug_assertions)]
 use crate::utils::resources::rusage::ResourceUsage;
