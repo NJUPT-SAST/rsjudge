@@ -10,10 +10,10 @@
       "resolved": "ghcr.io/devcontainers-extra/features/protoc@sha256:57ec0b9c074c3c764d5b43386f5fd219586b2548d5a99da8c3307f29fc1deafc",
       "integrity": "sha256:57ec0b9c074c3c764d5b43386f5fd219586b2548d5a99da8c3307f29fc1deafc"
     },
-    "ghcr.io/mrsimonemms/devcontainers/buf:1": {
-      "version": "1.0.0",
-      "resolved": "ghcr.io/mrsimonemms/devcontainers/buf@sha256:2b33b7c5077b73e382400ba69eed5d7feca02f8b8d9ac4b1caa03af2c4c5d70d",
-      "integrity": "sha256:2b33b7c5077b73e382400ba69eed5d7feca02f8b8d9ac4b1caa03af2c4c5d70d"
+    "ghcr.io/mrsimonemms/devcontainers/buf:": {
+      "version": "1.0.1",
+      "resolved": "ghcr.io/mrsimonemms/devcontainers/buf@sha256:34ac5681af43a19bb9f23b140080147d35ba1b2507e9d21d2dcee06b711bdbd8",
+      "integrity": "sha256:34ac5681af43a19bb9f23b140080147d35ba1b2507e9d21d2dcee06b711bdbd8"
     }
   }
 }

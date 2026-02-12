@@ -4,7 +4,7 @@
   "features": {
     "ghcr.io/devcontainers-extra/features/dprint-asdf:2": {},
     "ghcr.io/devcontainers-extra/features/protoc:1": {},
-    "ghcr.io/mrsimonemms/devcontainers/buf:1": {}
+    "ghcr.io/mrsimonemms/devcontainers/buf:": {}
   },
   "mounts": [
     {
