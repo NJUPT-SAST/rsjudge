@@ -15,7 +15,7 @@ ignored = ["prost", "prost-types"]
 
 [dependencies]
 anyhow = "1.0.101"
-futures = "0.3.31"
+futures = "0.3.32"
 log.workspace = true
 prost = "0.14.3"
 prost-types = "0.14.3"
