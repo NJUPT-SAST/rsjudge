@@ -27,7 +27,7 @@ uzers = "0.12.2"
 # libcgroups = "0.4.1"
 
 [dev-dependencies]
-anyhow = "1.0.101"
+anyhow = "1.0.102"
 
 [build-dependencies]
 rustversion = "1.0.22"
