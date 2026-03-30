@@ -199,7 +199,7 @@ jobs:
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
-          channel: "1.91"
+          channel: "1.92"
           bins: cargo-hack, cargo-nextest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
