@@ -35,7 +35,7 @@ log = "0.4.29"
 rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
 rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
 serde = { version = "1.0.228", features = ["derive"] }
-tokio = "1.51.1"
+tokio = "1.52.0"
 
 [workspace.lints.rust]
 rust-2024-compatibility = "warn"
@@ -60,8 +60,8 @@ log.workspace = true
 mimalloc = { version = "0.1.48", optional = true }
 serde.workspace = true
 sysinfo = { version = "0.38.4", features = ["serde"] }
-tokio = { workspace = true, features = ["fs", "rt-multi-thread", "macros", "process"] }
-toml = "1.1.0"
+tokio = { workspace = true, features = ["fs", "macros", "process", "rt-multi-thread"] }
+toml = "1.1.2"
 
 # Unused for now:
 # nix = { version = "0.29.0", features = ["fs"] }
@@ -76,13 +76,12 @@ rest = ["dep:rsjudge-rest"]
 
 [build-dependencies]
 clap = { version = "4.6.0", features = ["derive"] }
-clap_complete = "4.6.0"
+clap_complete = "4.6.2"
 clap_mangen = "0.3.0"
 
 [profile.release]
-codegen-units = 1
-lto = true
 strip = true
+lto = true
 panic = "abort"
 
 [package.metadata.deb]
