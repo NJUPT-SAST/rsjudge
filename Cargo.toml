@@ -1,13 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-[package]
-name = "rsjudge"
-version.workspace = true
-categories.workspace = true
-edition.workspace = true
-license.workspace = true
-repository.workspace = true
-rust-version.workspace = true
-description = "online judge sandbox server in Rust"
 
 [workspace]
 members = [
@@ -32,25 +23,35 @@ rust-version = "1.92"
 
 [workspace.dependencies]
 log = "0.4.29"
-rsjudge-traits = { version = "0.1.0", path = "crates/rsjudge-traits" }
-rsjudge-utils = { version = "0.1.0", path = "crates/rsjudge-utils" }
+rsjudge-traits = { path = "crates/rsjudge-traits", version = "0.1.0" }
+rsjudge-utils = { path = "crates/rsjudge-utils", version = "0.1.0" }
 serde = { version = "1.0.228", features = ["derive"] }
 tokio = "1.52.0"
 
 [workspace.lints.rust]
 rust-2024-compatibility = "warn"
 
+[package]
+name = "rsjudge"
+version.workspace = true
+categories.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "online judge sandbox server in Rust"
+
 [dependencies]
 # Workspace dependencies
-rsjudge-judger = { version = "0.1.0", path = "crates/rsjudge-judger" }
-rsjudge-runner = { version = "0.1.0", path = "crates/rsjudge-runner" }
+rsjudge-judger = { path = "crates/rsjudge-judger", version = "0.1.0" }
+rsjudge-runner = { path = "crates/rsjudge-runner", version = "0.1.0" }
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
 
 # Optional dependencies
-rsjudge-amqp = { version = "0.1.0", path = "crates/rsjudge-amqp", optional = true }
-rsjudge-grpc = { version = "0.1.0", path = "crates/rsjudge-grpc", optional = true }
-rsjudge-rest = { version = "0.1.0", path = "crates/rsjudge-rest", optional = true }
+rsjudge-amqp = { path = "crates/rsjudge-amqp", version = "0.1.0", optional = true }
+rsjudge-grpc = { path = "crates/rsjudge-grpc", version = "0.1.0", optional = true }
+rsjudge-rest = { path = "crates/rsjudge-rest", version = "0.1.0", optional = true }
 
 anyhow = "1.0.102"
 chrono = "0.4.44"
@@ -68,7 +69,7 @@ toml = "1.1.2"
 # strfmt = "0.2.4"
 
 [features]
-default = ["grpc", "rest", "mimalloc"]
+default = ["grpc", "mimalloc", "rest"]
 amqp = ["dep:rsjudge-amqp", "rsjudge-amqp/serde"]
 grpc = ["dep:rsjudge-grpc", "rsjudge-grpc/serde"]
 mimalloc = ["dep:mimalloc"]
