@@ -68,6 +68,10 @@ jobs:
           echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
       - name: Setup buf & lint protobuf files
         uses: bufbuild/buf-action@v1
+        with:
+          # Don't push proto files to BSR automatically.
+          # We will do it in a separate workflow in the future.
+          push: false
       - name: Run clippy lint
         run: |
           cargo hack clippy --all-targets --each-feature --workspace --message-format json --locked |
