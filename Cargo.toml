@@ -26,7 +26,7 @@ log = "0.4.29"
 rsjudge-traits = { path = "crates/rsjudge-traits", version = "0.1.0" }
 rsjudge-utils = { path = "crates/rsjudge-utils", version = "0.1.0" }
 serde = { version = "1.0.228", features = ["derive"] }
-tokio = "1.52.1"
+tokio = "1.52.2"
 
 [package]
 name = "rsjudge"
