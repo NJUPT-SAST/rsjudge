@@ -17,6 +17,9 @@ allow = [
     "Zlib",
 ]
 
+[advisories]
+unmaintained = "workspace"
+
 [[bans.skip-tree]]
 crate = "bitflags@1.3.2"
 reason = """
@@ -24,6 +27,19 @@ confirmed, not fixed: https://github.com/cptpcrd/capctl/issues/3
 
 bitflags v1.3.2
 └── capctl v0.2.4
-    └── rsjudge-runner v0.1.0 (rsjudge/crates/rsjudge-runner)
-        └── rsjudge v0.1.0 (rsjudge)
+    └── rsjudge-runner v0.1.0
+        └── rsjudge v0.1.0
+"""
+
+[[bans.skip-tree]]
+crate = "hashbrown@0.15.5"
+reason = """
+PR submitted: https://github.com/petgraph/petgraph/pull/991
+
+hashbrown v0.15.5
+└── petgraph v0.8.3
+    └── prost-build v0.14.3
+        └── tonic-prost-build v0.14.6
+            └── (build) rsjudge-grpc v0.1.0
+                └── rsjudge v0.1.0
 """
