@@ -17,7 +17,7 @@ jobs:
   check-code-style:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -35,7 +35,7 @@ jobs:
       pull-requests: write
       security-events: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -89,7 +89,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -134,7 +134,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -184,7 +184,7 @@ jobs:
   msrv:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -225,7 +225,7 @@ jobs:
   pkg-deb:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -273,7 +273,7 @@ jobs:
     runs-on: ubuntu-latest
     container: fedora:41
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install dependencies
         run: |
           sudo dnf install -y clang mold protobuf-compiler
