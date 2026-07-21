@@ -39,7 +39,7 @@ jobs:
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
-          echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
+          echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
@@ -93,7 +93,7 @@ jobs:
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
-          echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
+          echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
@@ -138,7 +138,7 @@ jobs:
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
-          echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
+          echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
