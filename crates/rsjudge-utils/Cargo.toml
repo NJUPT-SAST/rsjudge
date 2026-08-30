@@ -12,8 +12,8 @@ rust-version.workspace = true
 [dependencies]
 log.workspace = true
 shell-words = "1.1.1"
-thiserror = "2.0.18"
+thiserror = "2.0.20"
 tokio = { workspace = true, features = ["process", "macros", "rt-multi-thread"] }
 
 [dev-dependencies]
-anyhow = "1.0.102"
+anyhow = "1.0.104"

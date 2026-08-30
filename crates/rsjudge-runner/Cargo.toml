@@ -18,16 +18,16 @@ nix = { version = "0.31.3", features = ["user", "resource", "process"] }
 oci-spec = "0.10.0"
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true
-thiserror = "2.0.18"
+thiserror = "2.0.20"
 tokio = { workspace = true, features = ["process", "sync", "time", "signal"] }
-tokio-util = "0.7.18"
+tokio-util = "0.7.19"
 uzers = "0.12.2"
 
 # Unused dependencies
 # libcgroups = "0.4.1"
 
 [dev-dependencies]
-anyhow = "1.0.102"
+anyhow = "1.0.104"
 
 [build-dependencies]
-rustversion = "1.0.22"
+rustversion = "1.0.23"

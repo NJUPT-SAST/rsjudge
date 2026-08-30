@@ -90,9 +90,10 @@ impl Comparer for DefaultComparer {
             // This is important since a trailing newline needs to be detected
             // for an exact match.
             //
-            // Read beyond the EOF will always return `Ok(0)` with an empty buffer.
-            // So any trailing content is compared with an empty buffer,
-            // leading to `CompareResult::WrongAnswer`.
+            // Read beyond the EOF will always return `Ok(0)` with an empty
+            // buffer. So any trailing content is compared with an
+            // empty buffer, leading to
+            // `CompareResult::WrongAnswer`.
             let (out_len, ans_len) = try_join!(
                 out.read_until(b'\n', &mut out_buf),
                 ans.read_until(b'\n', &mut ans_buf),

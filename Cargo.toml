@@ -19,14 +19,14 @@ edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/NJUPT-SAST/rsjudge"
 # MSRV is set to N - 2, where N is the current stable version.
-rust-version = "1.94"
+rust-version = "1.96"
 
 [workspace.dependencies]
-log = "0.4.32"
+log = "0.4.34"
 rsjudge-traits = { path = "crates/rsjudge-traits", version = "0.1.0" }
 rsjudge-utils = { path = "crates/rsjudge-utils", version = "0.1.0" }
-serde = { version = "1.0.228", features = ["derive"] }
-tokio = "1.52.3"
+serde = { version = "1.0.229", features = ["derive"] }
+tokio = "1.53.1"
 
 [package]
 name = "rsjudge"
@@ -50,16 +50,16 @@ rsjudge-amqp = { path = "crates/rsjudge-amqp", version = "0.1.0", optional = tru
 rsjudge-grpc = { path = "crates/rsjudge-grpc", version = "0.1.0", optional = true }
 rsjudge-rest = { path = "crates/rsjudge-rest", version = "0.1.0", optional = true }
 
-anyhow = "1.0.102"
+anyhow = "1.0.104"
 chrono = "0.4.45"
-clap = { version = "4.6.1", features = ["derive"] }
-env_logger = { version = "0.11.10", default-features = false, features = ["auto-color"] }
+clap = { version = "4.6.6", features = ["derive"] }
+env_logger = { version = "0.11.11", default-features = false, features = ["auto-color"] }
 log.workspace = true
 mimalloc = { version = "0.1.52", optional = true }
 serde.workspace = true
 sysinfo = { version = "0.38.4", features = ["serde"] }
 tokio = { workspace = true, features = ["fs", "macros", "process", "rt-multi-thread"] }
-toml = "1.1.2"
+toml = "1.1.4"
 
 # Unused for now:
 # nix = { version = "0.29.0", features = ["fs"] }
@@ -73,9 +73,9 @@ mimalloc = ["dep:mimalloc"]
 rest = ["dep:rsjudge-rest"]
 
 [build-dependencies]
-clap = { version = "4.6.1", features = ["derive"] }
-clap_complete = "4.6.5"
-clap_mangen = "0.3.0"
+clap = { version = "4.6.6", features = ["derive"] }
+clap_complete = "4.6.9"
+clap_mangen = "0.3.3"
 
 [profile.release]
 strip = true
