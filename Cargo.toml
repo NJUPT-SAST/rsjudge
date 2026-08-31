@@ -59,7 +59,7 @@ env_logger = { version = "0.11.11", default-features = false, features = [
 log.workspace = true
 mimalloc = { version = "0.1.52", optional = true }
 serde.workspace = true
-sysinfo = { version = "0.38.4", features = ["serde"] }
+sysinfo = { version = "0.39.6", features = ["serde"] }
 tokio = { workspace = true, features = [
     "fs",
     "macros",
