@@ -31,7 +31,11 @@ serde = { workspace = true, optional = true }
 [build-dependencies]
 anyhow = "1.0.104"
 rsjudge-utils.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "process"] }
+tokio = { workspace = true, features = [
+    "macros",
+    "rt-multi-thread",
+    "process",
+] }
 tonic-prost-build = "0.14.6"
 
 [features]
