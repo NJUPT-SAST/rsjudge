@@ -13,6 +13,6 @@ mod macros;
 mod run_as;
 pub mod utils;
 pub use config::{Action, SeccompConfig, SeccompFilter};
-pub use run_as::RunAs;
+pub use run_as::{DropBoundingCaps, RunAs, WithSeccomp};
 
 pub mod user;
