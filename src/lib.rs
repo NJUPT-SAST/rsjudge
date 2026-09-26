@@ -6,12 +6,11 @@
 //！ An online judge sandbox server in Rust,
 //！ inspired by [go-judge](https://github.com/criyle/go-judge), for SASTOJ.
 
-use anyhow::Context;
 use log::{debug, warn};
 use sysinfo::System;
-use tokio::fs::read;
 
 pub use crate::cli::Args;
+pub use crate::config::Config;
 
 mod cli;
 mod config;
@@ -25,22 +24,12 @@ mod config;
 pub async fn async_main(args: Args) -> anyhow::Result<()> {
     debug!("{args:?}");
 
-    let executor_config_path = &args.config_dir.join("executors.toml");
-    let config = read(executor_config_path).await.with_context(|| {
-        format!(
-            "Cannot load executor config at {}",
-            executor_config_path.display()
-        )
-    })?;
+    let config = Config::load_from_dir(&args.config_dir).await?;
 
+    debug!("Loaded {} executors", config.executors.len());
     debug!(
-        "Config:\n{:#?}",
-        String::from_utf8_lossy(&config)
-            .parse::<toml::Value>()
-            .with_context(|| format!(
-                "Failed to parse executor config at {}",
-                executor_config_path.display()
-            ))?
+        "Seccomp default action: {:?}",
+        config.seccomp.default_action
     );
 
     match (System::name(), System::os_version()) {
