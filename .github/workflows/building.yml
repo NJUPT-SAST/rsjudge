@@ -45,7 +45,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get upgrade -y
-          sudo apt-get install -y wget clang
+          sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -96,7 +96,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get upgrade -y
-          sudo apt-get install -y wget clang
+          sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -138,7 +138,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get upgrade -y
-          sudo apt-get install -y wget clang
+          sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -185,7 +185,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get upgrade -y
-          sudo apt-get install -y wget clang
+          sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -223,7 +223,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get upgrade -y
-          sudo apt-get install -y wget lintian clang
+          sudo apt-get install -y wget lintian clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -261,7 +261,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Install dependencies
         run: |
-          sudo dnf install -y clang mold protobuf-compiler
+          sudo dnf install -y clang mold protobuf-compiler libseccomp-devel
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:

@@ -12,5 +12,5 @@ listen = [
     "[::]:80",
 ]
 
-[rabbitmq]
+[amqp]
 uri = "amqp://user:bitnami@localhost"

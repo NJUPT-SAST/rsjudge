@@ -14,7 +14,13 @@ description = "Command runner for rsjudge"
 capctl = "0.2.4"
 libseccomp = { version = "0.4.0", features = ["const-syscall"] }
 log.workspace = true
-nix = { version = "0.31.3", features = ["user", "resource", "process", "fs", "mman"] }
+nix = { version = "0.31.3", features = [
+    "user",
+    "resource",
+    "process",
+    "fs",
+    "mman",
+] }
 oci-spec = "0.10.0"
 rsjudge-traits.workspace = true
 rsjudge-utils.workspace = true

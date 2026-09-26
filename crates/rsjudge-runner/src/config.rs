@@ -318,13 +318,12 @@ impl SeccompFilter {
 
         let ctx = config.build_filter_with_caps(effective_caps)?;
 
-        let memfd = memfd_create(c"rsjudge-seccomp", MFdFlags::MFD_CLOEXEC)
-            .map_err(io::Error::other)?;
+        let memfd =
+            memfd_create(c"rsjudge-seccomp", MFdFlags::MFD_CLOEXEC).map_err(io::Error::other)?;
         ctx.export_bpf(memfd.as_fd()).map_err(io::Error::other)?;
 
         // The export size is the memfd's file size.
-        let len = lseek(memfd.as_fd(), 0, Whence::SeekEnd)
-            .map_err(io::Error::other)? as usize;
+        let len = lseek(memfd.as_fd(), 0, Whence::SeekEnd).map_err(io::Error::other)? as usize;
         let len = NonZeroUsize::new(len)
             .ok_or_else(|| io::Error::other("libseccomp exported an empty BPF program"))?;
 
