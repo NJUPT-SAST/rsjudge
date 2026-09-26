@@ -79,23 +79,136 @@ names = [
 action = "SCMP_ACT_ERRNO"
 errnoRet = 1 # EPERM
 
+# --- Judge hardening ------------------------------------------------------
+# The rules below kill the process on syscalls that judged programs have no
+# legitimate use for, covering network access, permission/identity changes,
+# mount/namespace operations, cross-process memory access, and kernel attack
+# surface. Unknown syscalls still receive ENOSYS from the default action,
+# which lets language runtimes probe for features and fall back gracefully.
+
+# Network access. `socketpair` stays allowed: it only creates AF_UNIX pairs
+# and some runtimes use it internally.
+[[syscalls]]
+names = [
+    "accept",
+    "accept4",
+    "bind",
+    "connect",
+    "getpeername",
+    "getsockname",
+    "getsockopt",
+    "listen",
+    "recv",
+    "recvfrom",
+    "recvmmsg",
+    "recvmmsg_time64",
+    "recvmsg",
+    "send",
+    "sendmmsg",
+    "sendmsg",
+    "sendto",
+    "setsockopt",
+    "shutdown",
+    "socket",
+    "socketcall",
+]
+action = "SCMP_ACT_KILL_PROCESS"
+
+# File permission and ownership changes.
+[[syscalls]]
+names = [
+    "chmod",
+    "chown",
+    "chown32",
+    "fchmod",
+    "fchmodat",
+    "fchmodat2",
+    "fchown",
+    "fchown32",
+    "fchownat",
+    "lchown",
+    "lchown32",
+]
+action = "SCMP_ACT_KILL_PROCESS"
+
+# Process identity changes.
+[[syscalls]]
+names = [
+    "capset",
+    "setfsgid",
+    "setfsgid32",
+    "setfsuid",
+    "setfsuid32",
+    "setgid",
+    "setgid32",
+    "setgroups",
+    "setgroups32",
+    "setregid",
+    "setregid32",
+    "setresgid",
+    "setresgid32",
+    "setresuid",
+    "setresuid32",
+    "setreuid",
+    "setreuid32",
+    "setuid",
+    "setuid32",
+]
+action = "SCMP_ACT_KILL_PROCESS"
+
+# Mount and namespace operations.
+[[syscalls]]
+names = [
+    "fsconfig",
+    "fsmount",
+    "fsopen",
+    "fspick",
+    "mount",
+    "mount_setattr",
+    "move_mount",
+    "name_to_handle_at",
+    "open_tree",
+    "pivot_root",
+    "setns",
+    "umount",
+    "umount2",
+    "unshare",
+]
+action = "SCMP_ACT_KILL_PROCESS"
+
+# Cross-process memory access and debugging.
+[[syscalls]]
+names = [
+    "pidfd_getfd",
+    "process_vm_readv",
+    "process_vm_writev",
+    "ptrace",
+]
+action = "SCMP_ACT_KILL_PROCESS"
+
+# Kernel attack surface.
+[[syscalls]]
+names = [
+    "keyctl",
+    "reboot",
+    "syslog",
+]
+action = "SCMP_ACT_KILL_PROCESS"
+
+# Syscalls that judged programs legitimately use. Note that execve must
+# stay allowed because the filter is installed right before execve, and
+# clone/clone3/fork/vfork are required by managed runtimes (e.g. the JVM
+# creates threads via clone); fork bombs are bounded by RLIMIT_NPROC.
 [[syscalls]]
 names = [
     "_llseek",
     "_newselect",
-    "accept",
-    "accept4",
     "access",
     "adjtimex",
     "alarm",
-    "bind",
     "brk",
     "capget",
-    "capset",
     "chdir",
-    "chmod",
-    "chown",
-    "chown32",
     "clock_adjtime",
     "clock_adjtime64",
     "clock_getres",
@@ -108,7 +221,6 @@ names = [
     "clone3",
     "close",
     "close_range",
-    "connect",
     "copy_file_range",
     "creat",
     "dup",
@@ -135,12 +247,6 @@ names = [
     "fallocate",
     "fanotify_mark",
     "fchdir",
-    "fchmod",
-    "fchmodat",
-    "fchmodat2",
-    "fchown",
-    "fchown32",
-    "fchownat",
     "fcntl",
     "fcntl64",
     "fdatasync",
@@ -149,11 +255,7 @@ names = [
     "flock",
     "fork",
     "fremovexattr",
-    "fsconfig",
     "fsetxattr",
-    "fsmount",
-    "fsopen",
-    "fspick",
     "fstat",
     "fstat64",
     "fstatat64",
@@ -181,7 +283,6 @@ names = [
     "getgroups",
     "getgroups32",
     "getitimer",
-    "getpeername",
     "getpgid",
     "getpgrp",
     "getpid",
@@ -195,8 +296,6 @@ names = [
     "getrlimit",
     "getrusage",
     "getsid",
-    "getsockname",
-    "getsockopt",
     "gettid",
     "gettimeofday",
     "getuid",
@@ -215,17 +314,13 @@ names = [
     "ioprio_get",
     "ioprio_set",
     "ipc",
-    "keyctl",
     "kill",
     "landlock_add_rule",
     "landlock_create_ruleset",
     "landlock_restrict_self",
-    "lchown",
-    "lchown32",
     "lgetxattr",
     "link",
     "linkat",
-    "listen",
     "listxattr",
     "llistxattr",
     "lremovexattr",
@@ -248,9 +343,6 @@ names = [
     "mlockall",
     "mmap",
     "mmap2",
-    "mount",
-    "mount_setattr",
-    "move_mount",
     "mprotect",
     "mq_getsetattr",
     "mq_notify",
@@ -269,20 +361,16 @@ names = [
     "munlock",
     "munlockall",
     "munmap",
-    "name_to_handle_at",
     "nanosleep",
     "newfstatat",
     "open",
-    "open_tree",
     "openat",
     "openat2",
     "pause",
-    "pidfd_getfd",
     "pidfd_open",
     "pidfd_send_signal",
     "pipe",
     "pipe2",
-    "pivot_root",
     "pkey_alloc",
     "pkey_free",
     "pkey_mprotect",
@@ -295,11 +383,8 @@ names = [
     "preadv2",
     "prlimit64",
     "process_mrelease",
-    "process_vm_readv",
-    "process_vm_writev",
     "pselect6",
     "pselect6_time64",
-    "ptrace",
     "pwrite64",
     "pwritev",
     "pwritev2",
@@ -308,12 +393,6 @@ names = [
     "readlink",
     "readlinkat",
     "readv",
-    "reboot",
-    "recv",
-    "recvfrom",
-    "recvmmsg",
-    "recvmmsg_time64",
-    "recvmsg",
     "remap_file_pages",
     "removexattr",
     "rename",
@@ -351,54 +430,28 @@ names = [
     "semop",
     "semtimedop",
     "semtimedop_time64",
-    "send",
     "sendfile",
     "sendfile64",
-    "sendmmsg",
-    "sendmsg",
-    "sendto",
     "set_mempolicy",
     "set_robust_list",
     "set_thread_area",
     "set_tid_address",
-    "setfsgid",
-    "setfsgid32",
-    "setfsuid",
-    "setfsuid32",
-    "setgid",
-    "setgid32",
-    "setgroups",
-    "setgroups32",
     "setitimer",
-    "setns",
     "setpgid",
     "setpriority",
-    "setregid",
-    "setregid32",
-    "setresgid",
-    "setresgid32",
-    "setresuid",
-    "setresuid32",
-    "setreuid",
-    "setreuid32",
     "setrlimit",
     "setsid",
-    "setsockopt",
-    "setuid",
-    "setuid32",
     "setxattr",
     "shmat",
     "shmctl",
     "shmdt",
     "shmget",
-    "shutdown",
     "sigaltstack",
     "signal",
     "signalfd",
     "signalfd4",
     "sigprocmask",
     "sigreturn",
-    "socketcall",
     "socketpair",
     "splice",
     "stat",
@@ -412,7 +465,6 @@ names = [
     "sync_file_range",
     "syncfs",
     "sysinfo",
-    "syslog",
     "tee",
     "tgkill",
     "time",
@@ -434,12 +486,9 @@ names = [
     "truncate64",
     "ugetrlimit",
     "umask",
-    "umount",
-    "umount2",
     "uname",
     "unlink",
     "unlinkat",
-    "unshare",
     "utime",
     "utimensat",
     "utimensat_time64",
@@ -568,7 +617,6 @@ names = [
     "quotactl_fd",
     "setdomainname",
     "sethostname",
-    "setns",
 ]
 action = "SCMP_ACT_ALLOW"
 [syscalls.includes]
@@ -583,7 +631,6 @@ names = [
     "quotactl_fd",
     "setdomainname",
     "sethostname",
-    "setns",
 ]
 action = "SCMP_ACT_ERRNO"
 errnoRet = 1 # EPERM
@@ -680,67 +727,6 @@ action = "SCMP_ACT_ERRNO"
 errnoRet = 1 # EPERM
 [syscalls.excludes]
 caps = ["CAP_SYS_TTY_CONFIG"]
-
-[[syscalls]]
-names = ["socket"]
-action = "SCMP_ACT_ERRNO"
-errnoRet = 22 # EINVAL
-
-[[syscalls.args]]
-index = 0
-value = 16
-valueTwo = 0
-op = "SCMP_CMP_EQ"
-
-[[syscalls.args]]
-index = 2
-value = 9
-valueTwo = 0
-op = "SCMP_CMP_EQ"
-[syscalls.excludes]
-caps = ["CAP_AUDIT_WRITE"]
-
-[[syscalls]]
-names = ["socket"]
-action = "SCMP_ACT_ALLOW"
-
-[[syscalls.args]]
-index = 2
-value = 9
-valueTwo = 0
-op = "SCMP_CMP_NE"
-[syscalls.excludes]
-caps = ["CAP_AUDIT_WRITE"]
-
-[[syscalls]]
-names = ["socket"]
-action = "SCMP_ACT_ALLOW"
-
-[[syscalls.args]]
-index = 0
-value = 16
-valueTwo = 0
-op = "SCMP_CMP_NE"
-[syscalls.excludes]
-caps = ["CAP_AUDIT_WRITE"]
-
-[[syscalls]]
-names = ["socket"]
-action = "SCMP_ACT_ALLOW"
-
-[[syscalls.args]]
-index = 2
-value = 9
-valueTwo = 0
-op = "SCMP_CMP_NE"
-[syscalls.excludes]
-caps = ["CAP_AUDIT_WRITE"]
-
-[[syscalls]]
-names = ["socket"]
-action = "SCMP_ACT_ALLOW"
-[syscalls.includes]
-caps = ["CAP_AUDIT_WRITE"]
 
 [[syscalls]]
 names = ["bpf"]
