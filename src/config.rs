@@ -28,15 +28,23 @@ pub struct Config {
     pub seccomp: SeccompConfig,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+/// Optional service configurations.
+///
+/// Each service is only started when its section is present in
+/// `services.toml`; a missing section deserializes to [`None`] and the
+/// service is skipped.
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[allow(dead_code)]
 pub struct Services {
     #[cfg(feature = "grpc")]
-    pub grpc: GrpcConfig,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grpc: Option<GrpcConfig>,
     #[cfg(feature = "amqp")]
-    pub amqp: AmqpConfig,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amqp: Option<AmqpConfig>,
     #[cfg(feature = "rest")]
-    pub rest: RestConfig,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rest: Option<RestConfig>,
 }
 
 impl Config {
@@ -113,25 +121,38 @@ mod tests {
             "{}",
             toml::to_string_pretty(&Services {
                 #[cfg(feature = "grpc")]
-                grpc: GrpcConfig {
+                grpc: Some(GrpcConfig {
                     listen: vec![
                         SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 50051)),
                         SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, 50051, 0, 0))
                     ]
-                },
+                }),
                 #[cfg(feature = "rest")]
-                rest: RestConfig {
+                rest: Some(RestConfig {
                     listen: vec![
                         SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, 80)),
                         SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::UNSPECIFIED, 80, 0, 0))
                     ]
-                },
+                }),
                 #[cfg(feature = "amqp")]
-                amqp: AmqpConfig {
+                amqp: Some(AmqpConfig {
                     uri: "amqp://user:bitnami@localhost".to_owned()
-                },
+                }),
             })?
         );
+
+        println!(
+            "{}",
+            toml::to_string_pretty(&Services {
+                #[cfg(feature = "grpc")]
+                grpc: None,
+                #[cfg(feature = "rest")]
+                rest: None,
+                #[cfg(feature = "amqp")]
+                amqp: None,
+            })?
+        );
+
         Ok(())
     }
 
