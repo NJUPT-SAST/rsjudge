@@ -6,11 +6,13 @@
 pub use crate::error::{Error, Result};
 pub use crate::utils::cap_handle::{Cap, CapHandle};
 
+mod config;
 mod error;
 
 mod macros;
 mod run_as;
 pub mod utils;
+pub use config::{Action, SeccompConfig, SeccompFilter};
 pub use run_as::RunAs;
 
 pub mod user;

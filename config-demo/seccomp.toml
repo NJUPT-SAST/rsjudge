@@ -6,8 +6,9 @@
 # See https://github.com/opencontainers/runtime-spec/blob/e935f995dd67c853bd93d6937bab898d36eb1747/config-linux.md#seccomp
 # for available keys and their meanings.
 
-defaultAction = "SCMP_ACT_ERRNO"
-defaultErrnoRet = 38 # ENOSYS
+[defaultAction]
+action = "SCMP_ACT_ERRNO"
+errnoRet = 38
 
 [[archMap]]
 architecture = "SCMP_ARCH_X86_64"

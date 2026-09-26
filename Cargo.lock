@@ -1379,6 +1379,8 @@ dependencies = [
  "rsjudge-traits",
  "rsjudge-utils",
  "rustversion",
+ "serde",
+ "serde_json",
  "thiserror",
  "tokio",
  "tokio-util",
