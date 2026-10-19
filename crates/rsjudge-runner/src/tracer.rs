@@ -506,7 +506,14 @@ impl Tracer {
         let child = cmd.spawn()?;
         let pid = Pid::from_raw(child.id() as i32);
 
+        // The child stops on the `execve` that starts the submission. Waiting
+        // for that stop gives `setoptions` a stopped tracee, which the kernel
+        // asks for, and the stop itself carries no signal to deliver, so
+        // resuming without one starts the submission under the options.
+        waitpid(pid, None).map_err(io::Error::other)?;
+
         ptrace::setoptions(pid, attach_options()).map_err(io::Error::other)?;
+        ptrace::cont(pid, None).map_err(io::Error::other)?;
 
         Ok(TracedChild::new(pid, child, policy, syscalls))
     }
@@ -538,10 +545,6 @@ pub struct TracedChild {
 
     /// The traced syscalls, keyed by syscall number.
     syscalls: HashMap<i32, &'static FileAccessSyscall>,
-
-    /// Whether the child has yet to report the stop that follows its own
-    /// `execve`.
-    exec_trap_pending: bool,
 
     /// The number of file-access stops served so far.
     stops: usize,
@@ -619,7 +622,6 @@ impl TracedChild {
             child,
             policy,
             syscalls,
-            exec_trap_pending: true,
             stops: 0,
         }
     }
@@ -632,28 +634,20 @@ impl TracedChild {
                 Ok(Some(ExitStatus::from_raw(exit_signal(signal, dumped))))
             }
             WaitStatus::Stopped(pid, signal) => {
-                // The kernel reports the `execve` that starts the submission
-                // as a `SIGTRAP` stop, handing the supervisor control before
-                // the new program runs; that signal is the notification
-                // itself, so injecting it would end the submission.
-                let exec_trap =
-                    std::mem::take(&mut self.exec_trap_pending) && signal == Signal::SIGTRAP;
-
-                // A stop from a suspending signal is resumed without it, so a
-                // submission cannot halt itself under the supervisor, while
-                // every other signal reaches the program unchanged.
-                let deliver = (!exec_trap && !suspends(signal)).then_some(signal);
+                // The supervisor consumed the exec stop while spawning the
+                // child, so this stop reports a signal the program raised. A
+                // suspending signal is dropped so a submission stays under
+                // supervision, while every other one reaches the program.
+                let deliver = (!suspends(signal)).then_some(signal);
 
                 ptrace::cont(pid, deliver).map_err(io::Error::other)?;
                 Ok(None)
             }
             WaitStatus::PtraceEvent(pid, _, event) => {
-                self.exec_trap_pending = false;
                 self.event(pid, event)?;
                 Ok(None)
             }
             WaitStatus::PtraceSyscall(pid) => {
-                self.exec_trap_pending = false;
                 ptrace::cont(pid, None).map_err(io::Error::other)?;
                 Ok(None)
             }
@@ -805,6 +799,8 @@ fn exit_signal(signal: Signal, dumped: bool) -> i32 {
 #[cfg(test)]
 mod tests {
     use std::process::Command;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::{Duration, Instant};
 
     use serde_json::json;
 
@@ -924,28 +920,19 @@ mod tests {
 
     #[test]
     fn a_relative_path_resolves_against_the_working_directory_of_the_child() {
-        let dir = std::env::temp_dir().join(format!("rsjudge-tracer-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).expect("failed to create the scratch directory");
-        std::fs::write(dir.join("answer.txt"), b"hello\n").expect("failed to write the fixture");
-        std::fs::write(dir.join("blocked.txt"), b"secret\n").expect("failed to write the fixture");
+        let scratch = Scratch::new(&[("answer.txt", "hello\n"), ("blocked.txt", "secret\n")]);
 
         // A permissive profile whose one rule covers a path the child reaches
         // through a relative name.
         let config = traced_config(json!({
             "defaultAction": "allow",
             "rules": [
-                {
-                    "paths": [dir.join("blocked.txt")],
-                    "action": "deny",
-                },
+                { "paths": [scratch.path("blocked.txt")], "action": "deny" },
             ],
         }));
 
-        let dir_arg = dir.to_str().expect("the scratch directory is not utf-8");
-        let allowed = run_relative(&config, dir_arg, "answer.txt");
-        let denied = run_relative(&config, dir_arg, "blocked.txt");
-
-        std::fs::remove_dir_all(&dir).expect("failed to remove the scratch directory");
+        let allowed = run_in_dir(&config, &scratch, "cat", &["answer.txt"]).0;
+        let denied = run_in_dir(&config, &scratch, "cat", &["blocked.txt"]).0;
 
         // The rule names the file through the working directory of the child,
         // so a supervisor that resolved relative paths in its own terms would
@@ -954,22 +941,162 @@ mod tests {
         assert!(!denied, "the child read a path its policy denies");
     }
 
-    /// Run `cat` on a relative path from `dir`, and report whether it read it.
-    fn run_relative(config: &SeccompConfig, dir: &str, name: &str) -> bool {
-        let tracer = Tracer::new(config).unwrap().unwrap();
+    #[test]
+    fn file_policy_matches_prefix_and_exact_paths() {
+        let scratch = Scratch::new(&[
+            ("answer.txt", "hello\n"),
+            ("blocked.txt", "secret\n"),
+            ("blocked.txt.bak", "backup\n"),
+            ("private/secret.txt", "hidden\n"),
+        ]);
 
-        let mut cmd = Command::new("cat");
-        cmd.arg(name);
-        cmd.current_dir(dir);
+        let config = traced_config(json!({
+            "defaultAction": "allow",
+            "rules": [
+                // The first rule covers everything below the directory it
+                // names, the second only the single path it names.
+                { "paths": [scratch.path("private")], "match": "prefix", "action": "deny" },
+                { "paths": [scratch.path("blocked.txt")], "match": "exact", "action": "deny" },
+            ],
+        }));
+
+        let sibling = run_in_dir(&config, &scratch, "cat", &["blocked.txt.bak"]).0;
+        let nested = run_in_dir(&config, &scratch, "cat", &["private/secret.txt"]).0;
+        let dot_dot = run_in_dir(&config, &scratch, "cat", &["private/../blocked.txt"]).0;
+
+        // The exact rule leaves a neighbouring name alone, the prefix rule
+        // covers a nested path, and the supervisor resolves `.` and `..`
+        // before it matches.
+        assert!(sibling, "the exact rule covered a neighbouring name");
+        assert!(!nested, "the prefix rule missed a nested path");
+        assert!(!dot_dot, "a `..` segment escaped the exact rule");
+    }
+
+    #[test]
+    fn file_policy_distinguishes_read_and_write_access() {
+        let scratch = Scratch::new(&[("readonly.txt", "data\n")]);
+
+        // The path takes reads, and writes to it fail.
+        let config = traced_config(json!({
+            "defaultAction": "allow",
+            "rules": [
+                {
+                    "paths": [scratch.path("readonly.txt")],
+                    "access": "write",
+                    "action": "deny",
+                },
+            ],
+        }));
+
+        let read = run_in_dir(&config, &scratch, "cat", &["readonly.txt"]).0;
+        let write = run_in_dir(
+            &config,
+            &scratch,
+            "sh",
+            &["-c", "echo more >> readonly.txt"],
+        )
+        .0;
+
+        assert!(read, "a read request met a rule that covers writes");
+        assert!(!write, "a write request passed a rule that covers writes");
+    }
+
+    #[test]
+    fn try_wait_reports_the_exit_of_a_supervised_child() {
+        let scratch = Scratch::new(&[("answer.txt", "hello\n")]);
+        let config = traced_config(permissive_policy());
+
+        let (success, stops) = run_in_dir(&config, &scratch, "echo", &["hello"]);
+        assert!(success, "the child failed without a rule to stop it");
+
+        // A program that starts at all reads its cache, its loader and its
+        // libraries through more than one traced syscall.
+        assert!(stops > 1, "the child reached a single traced syscall");
+
+        // Polling reports the exit of a child that has already left.
+        let tracer = Tracer::new(&config).unwrap().unwrap();
+        let mut cmd = Command::new("echo");
+        cmd.arg("hello");
+        cmd.stdout(std::process::Stdio::null());
+        let mut child = tracer.spawn(&mut cmd).expect("failed to spawn");
+
+        let deadline = Instant::now() + Duration::from_secs(10);
+        let status = loop {
+            if let Some(status) = child.try_wait().expect("failed to poll") {
+                break status;
+            }
+            assert!(Instant::now() < deadline, "the child never left");
+            std::thread::sleep(Duration::from_millis(1));
+        };
+
+        assert!(status.success(), "the child exited with {status:?}");
+    }
+
+    /// A scratch directory holding the files a test case reads.
+    struct Scratch {
+        /// The directory the fixtures live in.
+        dir: PathBuf,
+    }
+
+    impl Scratch {
+        /// A directory holding `files`, each named by its relative path.
+        fn new(files: &[(&str, &str)]) -> Self {
+            static NEXT: AtomicUsize = AtomicUsize::new(0);
+
+            let serial = NEXT.fetch_add(1, Ordering::Relaxed);
+            let dir = std::env::temp_dir()
+                .join(format!("rsjudge-tracer-{}-{serial}", std::process::id()));
+            let scratch = Self { dir };
+
+            for (name, contents) in files {
+                let path = scratch.path(name);
+                if let Some(parent) = path.parent() {
+                    std::fs::create_dir_all(parent).expect("failed to create a fixture directory");
+                }
+                std::fs::write(path, contents).expect("failed to write a fixture");
+            }
+
+            scratch
+        }
+
+        /// The path of the fixture that `name` names.
+        fn path(&self, name: &str) -> PathBuf {
+            self.dir.join(name)
+        }
+    }
+
+    impl Drop for Scratch {
+        fn drop(&mut self) {
+            // Removing the fixtures keeps the temporary directory tidy, and a
+            // failure here only leaves files behind.
+            let _ = std::fs::remove_dir_all(&self.dir);
+        }
+    }
+
+    /// Run `program` from the scratch directory under `config`, and report
+    /// whether it succeeded along with the number of traced syscalls it made.
+    fn run_in_dir(
+        config: &SeccompConfig,
+        scratch: &Scratch,
+        program: &str,
+        args: &[&str],
+    ) -> (bool, usize) {
+        let tracer = Tracer::new(config)
+            .unwrap()
+            .expect("no tracer for a traced profile");
+
+        let mut cmd = Command::new(program);
+        cmd.args(args);
+        cmd.current_dir(&scratch.dir);
         cmd.stdout(std::process::Stdio::null());
         cmd.stderr(std::process::Stdio::null());
 
         let mut child = tracer.spawn(&mut cmd).expect("failed to spawn");
         let status = child.wait().expect("failed to supervise");
 
-        assert!(child.stops() > 0, "the child reached no traced syscall");
+        assert!(child.stops() > 0, "{program} reached no traced syscall");
 
-        status.success()
+        (status.success(), child.stops())
     }
 
     #[test]
@@ -995,6 +1122,89 @@ mod tests {
             number: 0,
             args: [dirfd, 0, 0, 0, 0, 0],
         }
+    }
+
+    #[test]
+    fn resolve_settles_dot_segments_without_touching_the_file_system() {
+        // A path that names a file through `.` and `..` matches the rules of
+        // the location it settles on.
+        assert_eq!(
+            resolve(Path::new("/usr/../etc/passwd")),
+            PathBuf::from("/etc/passwd")
+        );
+        assert_eq!(resolve(Path::new("/a/./b/")), PathBuf::from("/a/b"));
+        assert_eq!(resolve(Path::new("./relative")), PathBuf::from("relative"));
+
+        // A path that climbs above the root stays at the root.
+        assert_eq!(resolve(Path::new("/../../../etc")), PathBuf::from("/etc"));
+        assert_eq!(resolve(Path::new("a/../..")), PathBuf::from("/"));
+    }
+
+    #[test]
+    fn resolve_keeps_the_components_a_prefix_match_relies_on() {
+        // A rule on `/etc` covers `/etc/passwd` and leaves `/etcetera` alone,
+        // which `Path::starts_with` decides component by component.
+        assert!(resolve(Path::new("/etc/passwd")).starts_with("/etc"));
+        assert!(!resolve(Path::new("/etcetera")).starts_with("/etc"));
+    }
+
+    #[test]
+    fn read_cstring_walks_a_string_out_of_a_process() {
+        // A stopped child is read through `process_vm_readv`, which the
+        // supervisor can exercise against its own memory.
+        let text = b"/tmp/example\0trailing";
+        let path = read_cstring(Pid::this(), text.as_ptr() as usize, PATH_MAX)
+            .expect("failed to read the string");
+        assert_eq!(path, b"/tmp/example");
+
+        // A string longer than a single read is walked in chunks.
+        let long = format!("/{}", "a".repeat(READ_CHUNK * 2));
+        let mut buffer = long.clone().into_bytes();
+        buffer.push(0);
+        let walked = read_cstring(Pid::this(), buffer.as_ptr() as usize, PATH_MAX)
+            .expect("failed to read the long string");
+        assert_eq!(walked, long.as_bytes());
+    }
+
+    #[test]
+    fn read_cstring_refuses_an_argument_the_policy_cannot_judge() {
+        // A null pointer names no path at all.
+        assert!(read_cstring(Pid::this(), 0, PATH_MAX).is_err());
+
+        // A path with no terminator within the limit stays unread.
+        let unterminated = [b'x'; 16];
+        assert!(
+            read_cstring(Pid::this(), unterminated.as_ptr() as usize, 8).is_err(),
+            "an unterminated argument was read"
+        );
+    }
+
+    #[test]
+    fn read_word_reads_a_word_out_of_a_process() {
+        let word = 0x0123_4567_89ab_cdef_u64;
+        let read = read_word(Pid::this(), (&word as *const u64) as usize)
+            .expect("failed to read the word");
+        assert_eq!(read, word);
+    }
+
+    #[test]
+    fn a_profile_that_fails_to_compile_reports_an_error() {
+        // A syscall the running architecture lacks keeps the supervisor from
+        // building its filter, so the submission stays unimplemented rather
+        // than running under a policy that never loaded.
+        let config = traced_config(json!({ "defaultAction": "deny" }));
+        let mut broken = config.clone();
+        broken.syscalls = Some(
+            serde_json::from_value(json!([
+                { "names": ["no_such_syscall"], "action": "SCMP_ACT_ALLOW" },
+            ]))
+            .expect("failed to build the rule"),
+        );
+
+        assert!(
+            Tracer::new(&broken).is_err(),
+            "a profile that cannot compile produced a tracer"
+        );
     }
 
     #[test]
