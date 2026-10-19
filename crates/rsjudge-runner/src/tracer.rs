@@ -12,17 +12,23 @@
 //! This module describes the traced syscalls, derives the access each of them
 //! requests, and supervises the children the filter traces.
 
-use std::io;
+use std::collections::HashMap;
+use std::ffi::OsStr;
+use std::io::{self, IoSliceMut};
+use std::os::unix::ffi::OsStrExt as _;
 use std::os::unix::process::ExitStatusExt as _;
+use std::path::{Component, Path, PathBuf};
 use std::process::{Command as StdCommand, ExitStatus};
 
 use capctl::CapSet;
+use libseccomp::ScmpSyscall;
 use nix::sys::ptrace::{self, Event, Options};
-use nix::sys::signal::Signal;
+use nix::sys::signal::{Signal, kill};
+use nix::sys::uio::{RemoteIoVec, process_vm_readv};
 use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
 use nix::unistd::Pid;
 
-use crate::config::{AccessMode, SeccompConfig, SeccompFilter};
+use crate::config::{AccessMode, FileAction, FilePolicy, SeccompConfig, SeccompFilter};
 use crate::error::Result;
 use crate::handler::Handler;
 
@@ -156,10 +162,10 @@ pub(crate) fn file_access_syscall_names() -> impl Iterator<Item = &'static str> 
 /// The `O_ACCMODE` bits of an `open`-family flags word.
 const O_ACCMODE: u64 = 0o3;
 
-/// `open` a file for writing only.
+/// The syscall requests a write only.
 const O_WRONLY: u64 = 0o1;
 
-/// `open` a file for reading and writing.
+/// The syscall requests a read and a write.
 const O_RDWR: u64 = 0o2;
 
 /// `open` creates the file when it does not exist.
@@ -186,8 +192,8 @@ pub(crate) fn access_from_open_flags(flags: u64) -> AccessMode {
     let accmode = flags & O_ACCMODE;
     let creates = flags & (O_CREAT | O_TMPFILE) != 0;
 
-    let reads = accmode != O_WRONLY;
-    let writes = accmode != 0 || creates;
+    let reads = matches!(accmode, 0 | O_RDWR);
+    let writes = matches!(accmode, O_WRONLY | O_RDWR) || creates;
 
     match (reads, writes) {
         (true, true) => AccessMode::Any,
@@ -212,6 +218,166 @@ pub(crate) fn access_from_access_bits(bits: u64) -> AccessMode {
         (false, true) => AccessMode::Write,
         (false, false) => AccessMode::Read,
     }
+}
+
+/// The longest path the supervisor reads out of a stopped process.
+const PATH_MAX: usize = 4096;
+
+/// The length of a read that walks a string out of the stopped process.
+const READ_CHUNK: usize = 256;
+
+/// The `AT_FDCWD` directory file descriptor, which names the current working
+/// directory rather than an open descriptor.
+const AT_FDCWD: i32 = -100;
+
+/// The syscall a stopped process is about to enter.
+struct Syscall {
+    /// The syscall number.
+    number: i32,
+
+    /// The six syscall arguments.
+    args: [u64; 6],
+}
+
+impl Syscall {
+    /// The syscall the registers describe.
+    fn from_regs(regs: &nix::libc::user_regs_struct) -> Self {
+        Self {
+            number: syscall_number(regs),
+            args: syscall_args(regs),
+        }
+    }
+
+    /// The argument at `index`.
+    fn arg(&self, index: usize) -> u64 {
+        self.args[index]
+    }
+}
+
+/// Read the number of the syscall the registers hold.
+#[cfg(target_arch = "x86_64")]
+fn syscall_number(regs: &nix::libc::user_regs_struct) -> i32 {
+    regs.orig_rax as i32
+}
+
+/// Read the six syscall arguments out of the registers.
+#[cfg(target_arch = "x86_64")]
+fn syscall_args(regs: &nix::libc::user_regs_struct) -> [u64; 6] {
+    [regs.rdi, regs.rsi, regs.rdx, regs.r10, regs.r8, regs.r9]
+}
+
+/// Replace the syscall number with an invalid one, which fails the syscall
+/// with `ENOSYS` once the process resumes.
+#[cfg(target_arch = "x86_64")]
+fn cancel_syscall(regs: &mut nix::libc::user_regs_struct) {
+    regs.orig_rax = u64::MAX;
+}
+
+/// Read the number of the syscall the registers hold.
+#[cfg(target_arch = "aarch64")]
+fn syscall_number(regs: &nix::libc::user_regs_struct) -> i32 {
+    regs.regs[8] as i32
+}
+
+/// Read the six syscall arguments out of the registers.
+#[cfg(target_arch = "aarch64")]
+fn syscall_args(regs: &nix::libc::user_regs_struct) -> [u64; 6] {
+    [
+        regs.regs[0],
+        regs.regs[1],
+        regs.regs[2],
+        regs.regs[3],
+        regs.regs[4],
+        regs.regs[5],
+    ]
+}
+
+/// Replace the syscall number with an invalid one, which fails the syscall
+/// with `ENOSYS` once the process resumes.
+#[cfg(target_arch = "aarch64")]
+fn cancel_syscall(regs: &mut nix::libc::user_regs_struct) {
+    regs.regs[8] = u64::MAX;
+}
+
+#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+compile_error!("file-access supervision reads syscall registers on x86_64 and aarch64");
+
+/// Read a NUL-terminated string out of the memory of a stopped process.
+///
+/// The supervisor walks the string in chunks so a long path costs no more
+/// memory than the path itself, and stops at `limit` bytes.
+fn read_cstring(pid: Pid, address: usize, limit: usize) -> io::Result<Vec<u8>> {
+    if address == 0 {
+        // A null pointer names no path at all, which the policy treats like
+        // an unresolvable one.
+        return Err(io::Error::other("the path argument is null"));
+    }
+
+    let mut path = Vec::new();
+    while path.len() < limit {
+        let mut chunk = [0u8; READ_CHUNK];
+        let take = chunk.len().min(limit - path.len());
+
+        let mut local = [IoSliceMut::new(&mut chunk[..take])];
+        let remote = [RemoteIoVec {
+            base: address + path.len(),
+            len: take,
+        }];
+
+        let read = process_vm_readv(pid, &mut local, &remote).map_err(io::Error::other)?;
+        if read == 0 {
+            break;
+        }
+
+        match chunk[..read].iter().position(|byte| *byte == 0) {
+            Some(end) => {
+                path.extend_from_slice(&chunk[..end]);
+                return Ok(path);
+            }
+            None => path.extend_from_slice(&chunk[..read]),
+        }
+    }
+
+    Err(io::Error::other("the path is unterminated"))
+}
+
+/// Read a `u64` out of the memory of a stopped process.
+fn read_word(pid: Pid, address: usize) -> io::Result<u64> {
+    let mut word = [0u8; size_of::<u64>()];
+    let len = word.len();
+
+    {
+        let mut local = [IoSliceMut::new(&mut word)];
+        let remote = [RemoteIoVec { base: address, len }];
+
+        process_vm_readv(pid, &mut local, &remote).map_err(io::Error::other)?;
+    }
+
+    Ok(u64::from_ne_bytes(word))
+}
+
+/// Resolve a path against `.` and `..` without touching the file system.
+///
+/// A path a program builds from `.` and `..` names the same file as its
+/// resolved form, and resolving it keeps a rule from matching a path that only
+/// resembles the location it covers.
+fn resolve(path: &Path) -> PathBuf {
+    let mut resolved = PathBuf::new();
+
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                // A path above the root stays at the root.
+                if !resolved.pop() {
+                    resolved.push(Component::RootDir);
+                }
+            }
+            component => resolved.push(component),
+        }
+    }
+
+    resolved
 }
 
 /// The ptrace options the supervisor attaches a child with.
@@ -256,6 +422,12 @@ fn attach_options() -> Options {
 pub struct Tracer {
     /// The filter the child installs.
     filter: SeccompFilter,
+
+    /// The file-access policy the supervisor applies.
+    policy: FilePolicy,
+
+    /// The traced syscalls, keyed by syscall number.
+    syscalls: HashMap<i32, &'static FileAccessSyscall>,
 }
 
 impl Tracer {
@@ -273,15 +445,19 @@ impl Tracer {
     /// Returns an error when the profile cannot be compiled, which keeps a
     /// submission from running without the policy its profile asks for.
     pub fn new(config: &SeccompConfig) -> Result<Option<Self>> {
-        if config.file_policy.is_none() {
+        let Some(policy) = config.file_policy.clone() else {
             return Ok(None);
-        }
+        };
 
         // The filter is loaded by the unprivileged child, so the `includes`
         // and `excludes` matchers see an empty capability set.
         let filter = SeccompFilter::from_config(config, &CapSet::empty())?;
 
-        Ok(Some(Self { filter }))
+        Ok(Some(Self {
+            filter,
+            policy,
+            syscalls: syscall_table(),
+        }))
     }
 
     /// Spawn `cmd` and take over its supervision.
@@ -298,15 +474,34 @@ impl Tracer {
     /// before reporting its first stop — in which case the failing `pre_exec`
     /// hook has already kept the program from running.
     pub fn spawn(self, cmd: &mut StdCommand) -> Result<TracedChild> {
-        Handler::register(cmd, Handler::supervised(self.filter));
+        let Self {
+            filter,
+            policy,
+            syscalls,
+        } = self;
+
+        Handler::register(cmd, Handler::supervised(filter));
 
         let child = cmd.spawn()?;
         let pid = Pid::from_raw(child.id() as i32);
 
         ptrace::setoptions(pid, attach_options()).map_err(io::Error::other)?;
 
-        Ok(TracedChild::new(pid, child))
+        Ok(TracedChild::new(pid, child, policy, syscalls))
     }
+}
+
+/// The traced syscalls, keyed by the number the kernel uses for them.
+fn syscall_table() -> HashMap<i32, &'static FileAccessSyscall> {
+    FILE_ACCESS_SYSCALLS
+        .iter()
+        .filter_map(|syscall| {
+            // A syscall this architecture lacks carries no number here.
+            ScmpSyscall::from_name(syscall.name)
+                .ok()
+                .map(|number| (number.as_raw_syscall(), syscall))
+        })
+        .collect()
 }
 
 /// A child process running under supervision.
@@ -316,6 +511,12 @@ pub struct TracedChild {
 
     /// The child handle.
     child: std::process::Child,
+
+    /// The file-access policy the supervisor applies.
+    policy: FilePolicy,
+
+    /// The traced syscalls, keyed by syscall number.
+    syscalls: HashMap<i32, &'static FileAccessSyscall>,
 
     /// Whether the child has yet to report the stop that follows its own
     /// `execve`.
@@ -386,10 +587,17 @@ impl TracedChild {
     }
 
     /// A supervisor for `child`.
-    fn new(pid: Pid, child: std::process::Child) -> Self {
+    fn new(
+        pid: Pid,
+        child: std::process::Child,
+        policy: FilePolicy,
+        syscalls: HashMap<i32, &'static FileAccessSyscall>,
+    ) -> Self {
         Self {
             pid,
             child,
+            policy,
+            syscalls,
             exec_trap_pending: true,
             stops: 0,
         }
@@ -436,13 +644,127 @@ impl TracedChild {
     fn event(&mut self, pid: Pid, event: i32) -> Result<()> {
         if event == Event::PTRACE_EVENT_SECCOMP as i32 {
             self.stops += 1;
-            log::trace!("file-access stop on {pid}");
+            return self.enforce(pid);
         }
 
         ptrace::cont(pid, None).map_err(io::Error::other)?;
 
         Ok(())
     }
+
+    /// Apply the file-access policy to the syscall the child is entering.
+    ///
+    /// The policy is closed by default, so a path the supervisor cannot read
+    /// fails the syscall rather than slipping past the rules.
+    fn enforce(&self, pid: Pid) -> Result<()> {
+        let regs = ptrace::getregs(pid).map_err(io::Error::other)?;
+        let syscall = Syscall::from_regs(&regs);
+
+        let Some(entry) = self.syscalls.get(&syscall.number) else {
+            // A traced syscall carries no path rule of its own, so it runs.
+            return cont(pid);
+        };
+
+        let action = match self.verdict(pid, entry, &syscall) {
+            Ok(action) => action,
+            Err(err) => {
+                log::warn!("reading the path of {} failed: {err}", entry.name);
+                FileAction::Deny
+            }
+        };
+
+        match action {
+            FileAction::Allow => cont(pid),
+            FileAction::Deny => {
+                let mut regs = regs;
+                cancel_syscall(&mut regs);
+                ptrace::setregs(pid, regs).map_err(io::Error::other)?;
+                cont(pid)
+            }
+            FileAction::Kill => {
+                log::warn!("killing {pid} for entering a path its policy forbids");
+                kill(pid, Signal::SIGKILL).map_err(io::Error::other)?;
+                // The signal ends the process, so a refusal here is expected.
+                let _ = ptrace::cont(pid, None);
+                Ok(())
+            }
+        }
+    }
+
+    /// The action the policy takes on the path the syscall requests.
+    fn verdict(
+        &self,
+        pid: Pid,
+        entry: &FileAccessSyscall,
+        syscall: &Syscall,
+    ) -> io::Result<FileAction> {
+        let path = self.requested_path(pid, entry, syscall)?;
+        let access = self.requested_access(pid, entry, syscall)?;
+
+        Ok(self.policy.evaluate(&path, access))
+    }
+
+    /// The path the syscall requests, resolved against the child's working
+    /// directory or the descriptor it opens from.
+    fn requested_path(
+        &self,
+        pid: Pid,
+        entry: &FileAccessSyscall,
+        syscall: &Syscall,
+    ) -> io::Result<PathBuf> {
+        let raw = read_cstring(pid, syscall.arg(entry.path_arg) as usize, PATH_MAX)?;
+        let path = Path::new(OsStr::from_bytes(&raw));
+
+        // An absolute path names the file on its own; a relative path resolves
+        // against the descriptor the syscall takes or the working directory.
+        let Some(dirfd_arg) = entry.dirfd_arg else {
+            return Ok(resolve(path));
+        };
+        let dirfd = syscall.arg(dirfd_arg) as i32;
+
+        let base = match dirfd {
+            AT_FDCWD => self.child_cwd(pid)?,
+            dirfd => self.child_fd(pid, dirfd)?,
+        };
+
+        Ok(resolve(&base.join(path)))
+    }
+
+    /// The access the syscall requests.
+    fn requested_access(
+        &self,
+        pid: Pid,
+        entry: &FileAccessSyscall,
+        syscall: &Syscall,
+    ) -> io::Result<AccessMode> {
+        Ok(match entry.access {
+            AccessArg::Read => AccessMode::Read,
+            AccessArg::Write => AccessMode::Write,
+            AccessArg::OpenFlags(index) => access_from_open_flags(syscall.arg(index)),
+            AccessArg::OpenHow(index) => {
+                // The `open_how` structure leads with its flags word.
+                access_from_open_flags(read_word(pid, syscall.arg(index) as usize)?)
+            }
+            AccessArg::AccessBits(index) => access_from_access_bits(syscall.arg(index)),
+        })
+    }
+
+    /// The working directory of the child.
+    fn child_cwd(&self, pid: Pid) -> io::Result<PathBuf> {
+        std::fs::read_link(format!("/proc/{pid}/cwd")).map_err(io::Error::other)
+    }
+
+    /// The directory the child's `dirfd` names.
+    fn child_fd(&self, pid: Pid, dirfd: i32) -> io::Result<PathBuf> {
+        std::fs::read_link(format!("/proc/{pid}/fd/{dirfd}")).map_err(io::Error::other)
+    }
+}
+
+/// Resume the child without a signal.
+fn cont(pid: Pid) -> Result<()> {
+    ptrace::cont(pid, None).map_err(io::Error::other)?;
+
+    Ok(())
 }
 
 /// Whether `signal` suspends the process group rather than reporting an event.
@@ -468,12 +790,28 @@ mod tests {
 
     /// A profile that leaves ordinary syscalls alone and routes file access
     /// through the supervisor.
-    fn traced_config() -> SeccompConfig {
+    fn traced_config(policy: serde_json::Value) -> SeccompConfig {
         serde_json::from_value(json!({
             "defaultAction": { "action": "SCMP_ACT_ALLOW" },
-            "filePolicy": { "defaultAction": "deny" },
+            "filePolicy": policy,
         }))
         .expect("failed to parse")
+    }
+
+    /// A policy that admits the read access a dynamically linked program
+    /// needs to start.
+    fn permissive_policy() -> serde_json::Value {
+        json!({
+            "defaultAction": "deny",
+            "rules": [
+                {
+                    "paths": ["/"],
+                    "match": "prefix",
+                    "access": "any",
+                    "action": "allow",
+                },
+            ],
+        })
     }
 
     #[test]
@@ -484,12 +822,16 @@ mod tests {
         .expect("failed to parse");
 
         assert!(Tracer::new(&config).unwrap().is_none());
-        assert!(Tracer::new(&traced_config()).unwrap().is_some());
+        assert!(
+            Tracer::new(&traced_config(permissive_policy()))
+                .unwrap()
+                .is_some()
+        );
     }
 
     #[test]
     fn supervised_child_runs_through_its_stops() {
-        let config = traced_config();
+        let config = traced_config(permissive_policy());
 
         // The profile must reach the trace rules: a filter that fails to
         // compile would leave the child unsupervised.
@@ -507,8 +849,8 @@ mod tests {
         let status = child.wait().expect("failed to supervise the child");
         assert!(status.success(), "the child exited with {status:?}");
 
-        // The supervisor only resumes the child on each stop, so a child that
-        // exits cleanly proves the handshake and the attach worked.
+        // Every intercepted syscall is served and resumed, and a program that
+        // starts at all reaches the loader's file access.
         assert!(
             child.stops() > 0,
             "the child never reached a traced syscall"
@@ -516,8 +858,53 @@ mod tests {
     }
 
     #[test]
+    fn default_deny_fails_the_file_access_of_a_program() {
+        let config = traced_config(json!({ "defaultAction": "deny" }));
+
+        let tracer = Tracer::new(&config).unwrap().unwrap();
+        let mut cmd = Command::new("echo");
+        cmd.arg("hello");
+
+        let mut child = tracer.spawn(&mut cmd).expect("failed to spawn");
+        let status = child.wait().expect("failed to supervise");
+
+        // The loader cannot reach the libraries it needs, so the program stops
+        // with a failure rather than running under an open policy.
+        assert!(!status.success(), "the child ran without its file access");
+        assert!(child.stops() > 0, "the child reached no traced syscall");
+    }
+
+    #[test]
+    fn a_kill_rule_ends_the_process_that_reaches_the_path() {
+        let config = traced_config(json!({
+            "defaultAction": "allow",
+            "rules": [
+                {
+                    "paths": ["/usr"],
+                    "match": "prefix",
+                    "access": "read",
+                    "action": "kill",
+                },
+            ],
+        }));
+
+        let tracer = Tracer::new(&config).unwrap().unwrap();
+        let mut cmd = Command::new("echo");
+        cmd.arg("hello");
+
+        let mut child = tracer.spawn(&mut cmd).expect("failed to spawn");
+        let status = child.wait().expect("failed to supervise");
+
+        // Every dynamically linked program reads under `/usr` for its loader
+        // and libraries, so the rule kills the child before it runs.
+        assert_eq!(status.signal(), Some(Signal::SIGKILL as i32));
+    }
+
+    #[test]
     fn try_wait_polls_a_running_child_and_kill_stops_it() {
-        let tracer = Tracer::new(&traced_config()).unwrap().unwrap();
+        let tracer = Tracer::new(&traced_config(permissive_policy()))
+            .unwrap()
+            .unwrap();
 
         let mut cmd = Command::new("sleep");
         cmd.arg("30");
