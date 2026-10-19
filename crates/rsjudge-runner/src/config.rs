@@ -386,6 +386,13 @@ impl SeccompConfig {
             }
         }
 
+        // The traced syscalls and the profile rules that outrank the policy.
+        let traced: HashSet<&'static str> = match &self.file_policy {
+            Some(_) => crate::tracer::file_access_syscall_names().collect(),
+            None => HashSet::new(),
+        };
+        let mut restricted: HashSet<&'static str> = HashSet::new();
+
         if let Some(syscalls) = &self.syscalls {
             for rule in syscalls {
                 if !rule.matches(effective_caps, native) {
@@ -399,7 +406,7 @@ impl SeccompConfig {
                     .map(|args| args.iter().map(arg_to_scmp).collect())
                     .unwrap_or_default();
 
-                for name in &rule.names {
+                for name in Self::rule_names(rule, &traced, &mut restricted) {
                     let syscall = ScmpSyscall::from_name(name).map_err(io::Error::other)?;
                     if comparators.is_empty() {
                         ctx.add_rule(action, syscall).map_err(io::Error::other)?;
@@ -411,7 +418,54 @@ impl SeccompConfig {
             }
         }
 
+        if self.file_policy.is_some() {
+            for syscall in crate::tracer::FILE_ACCESS_SYSCALLS {
+                // A profile rule that restricts this syscall more tightly than
+                // the policy would keeps its own action.
+                if restricted.contains(syscall.name) {
+                    continue;
+                }
+
+                // A syscall missing from the running architecture drops out.
+                let Ok(scmp) = ScmpSyscall::from_name(syscall.name) else {
+                    continue;
+                };
+                ctx.add_rule(ScmpAction::Trace(0), scmp)
+                    .map_err(io::Error::other)?;
+            }
+        }
+
         Ok(ctx)
+    }
+
+    /// The names of `rule` that reach the filter.
+    ///
+    /// With a file-access policy in place the policy decides the fate of the
+    /// traced syscalls, so the profile's `Allow` rules for those names step
+    /// aside to let the `SCMP_ACT_TRACE` rule take effect. Any other action on
+    /// a traced name restricts it more tightly than the policy would, which
+    /// records the name in `restricted` so that the trace rule yields to it.
+    fn rule_names<'a>(
+        rule: &'a Syscall,
+        traced: &HashSet<&'static str>,
+        restricted: &mut HashSet<&'static str>,
+    ) -> Vec<&'a str> {
+        rule.names
+            .iter()
+            .filter(|name| {
+                let Some(name) = traced.get(name.as_str()) else {
+                    return true;
+                };
+
+                if matches!(rule.action, Action::Allow) {
+                    false
+                } else {
+                    restricted.insert(name);
+                    true
+                }
+            })
+            .map(String::as_str)
+            .collect()
     }
 }
 
@@ -951,6 +1005,45 @@ mod tests {
         assert!(!AccessMode::Write.covers(AccessMode::Read));
         assert!(!AccessMode::Write.covers(AccessMode::Any));
         assert!(!AccessMode::Read.covers(AccessMode::Any));
+    }
+
+    #[test]
+    fn build_filter_with_file_policy() {
+        // The profile allows `openat` and `read`; with a file-access policy in
+        // place the `allow` rule for `openat` steps aside so the traced
+        // syscall reaches the supervisor, while `read` keeps its rule.
+        let config: SeccompConfig = serde_json::from_value(json!({
+            "defaultAction": { "action": "SCMP_ACT_ERRNO", "errnoRet": 38 },
+            "syscalls": [
+                { "names": ["openat", "read"], "action": "SCMP_ACT_ALLOW" },
+            ],
+            "filePolicy": { "defaultAction": "deny" },
+        }))
+        .expect("failed to parse");
+
+        let ctx = config
+            .build_filter_with_caps(&CapSet::empty())
+            .expect("failed to build filter");
+        drop(ctx);
+    }
+
+    #[test]
+    fn build_filter_with_file_policy_and_restricting_rule() {
+        // The profile fails `openat` outright, which outranks the policy, so
+        // the filter keeps the profile's action.
+        let config: SeccompConfig = serde_json::from_value(json!({
+            "defaultAction": { "action": "SCMP_ACT_ALLOW" },
+            "syscalls": [
+                { "names": ["openat"], "action": "SCMP_ACT_ERRNO", "errnoRet": 1 },
+            ],
+            "filePolicy": { "defaultAction": "deny" },
+        }))
+        .expect("failed to parse");
+
+        let ctx = config
+            .build_filter_with_caps(&CapSet::empty())
+            .expect("failed to build filter");
+        drop(ctx);
     }
 
     #[test]

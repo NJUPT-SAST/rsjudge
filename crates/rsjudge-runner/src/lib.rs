@@ -11,8 +11,11 @@ mod error;
 
 mod macros;
 mod run_as;
+mod tracer;
 pub mod utils;
-pub use config::{Action, SeccompConfig, SeccompFilter};
+pub use config::{
+    AccessMode, Action, FileAction, FilePolicy, PathMatch, PathRule, SeccompConfig, SeccompFilter,
+};
 pub use run_as::{DropBoundingCaps, RunAs, WithSeccomp};
 
 pub mod user;
