@@ -20,6 +20,9 @@ nix = { version = "0.31.3", features = [
     "process",
     "fs",
     "mman",
+    "ptrace",
+    "uio",
+    "signal",
 ] }
 oci-spec = "0.10.0"
 rsjudge-traits.workspace = true
