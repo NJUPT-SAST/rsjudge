@@ -753,3 +753,36 @@ names = ["perf_event_open"]
 action = "SCMP_ACT_ALLOW"
 [syscalls.includes]
 caps = ["CAP_PERFMON"]
+
+# --- File-access policy ---------------------------------------------------
+# With a file-access policy in place the path-taking syscalls (open, openat,
+# openat2, creat, access, faccessat2, stat, newfstatat, statx, readlink and
+# readlinkat) are routed through a ptrace supervisor, which resolves the path
+# each call requests and applies the rules below to it. The first matching
+# rule wins, and a request no rule covers receives defaultAction, so the
+# policy stays closed unless a rule opens it.
+[filePolicy]
+defaultAction = "deny"
+
+# Credential material a judged program has no business reading. The rule
+# precedes the readable-system-path rule below so that a secret under `/etc`
+# reaches it rather than the broader allow.
+[[filePolicy.rules]]
+paths = ["/etc/shadow", "/etc/gshadow", "/root"]
+match = "prefix"
+action = "kill"
+
+# System libraries and data stay readable: a judged program reads them to
+# start and to run.
+[[filePolicy.rules]]
+paths = ["/usr", "/lib", "/lib64", "/etc", "/opt"]
+match = "prefix"
+access = "read"
+action = "allow"
+
+# Scratch space takes writes, which is where a submission produces output.
+[[filePolicy.rules]]
+paths = ["/tmp", "/sandbox"]
+match = "prefix"
+access = "any"
+action = "allow"
