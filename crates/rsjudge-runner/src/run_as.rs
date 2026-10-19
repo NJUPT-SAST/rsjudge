@@ -10,8 +10,8 @@ use rsjudge_utils::log_if_error;
 use tokio::process::Command;
 use uzers::User;
 
-use crate::config::SeccompFilter;
 use crate::error::{Error, Result};
+use crate::handler::Handler;
 use crate::utils::cap_handle::CapHandle;
 
 /// Register a `pre_exec` hook that clears the child's capability bounding set.
@@ -91,15 +91,6 @@ fn register_set_groups(cmd: &mut StdCommand, groups: &[u32]) {
 
         cmd.groups(groups);
     }
-}
-
-/// Register the `pre_exec` hook that loads the seccomp filter before `exec`.
-fn register_seccomp(cmd: &mut StdCommand, filter: SeccompFilter) {
-    let load = move || -> std::io::Result<()> { filter.load() };
-
-    // SAFETY: `SeccompFilter::load` performs only async-signal-safe
-    // `prctl` calls.
-    unsafe { cmd.pre_exec(load) };
 }
 
 /// Drop **all** capabilities from the child's bounding set.
@@ -191,24 +182,24 @@ impl RunAs for Command {
 ///   fully sandboxed. Loading seccomp also sets `PR_SET_NO_NEW_PRIVS`, which
 ///   takes effect only after privilege manipulation has completed.
 pub trait WithSeccomp {
-    /// Load the given [`SeccompFilter`] in the child process before `exec`.
+    /// Install the sandbox described by `handler` in the child before `exec`.
     ///
     /// Call this **after**
     /// [`WithResourceLimit`](crate::utils::resources::WithResourceLimit)
     /// and [`RunAs::run_as`].
-    fn with_seccomp(&mut self, filter: SeccompFilter) -> &mut Self;
+    fn with_seccomp(&mut self, handler: Handler) -> &mut Self;
 }
 
 impl WithSeccomp for StdCommand {
-    fn with_seccomp(&mut self, filter: SeccompFilter) -> &mut Self {
-        register_seccomp(self, filter);
+    fn with_seccomp(&mut self, handler: Handler) -> &mut Self {
+        Handler::register(self, handler);
         self
     }
 }
 
 impl WithSeccomp for Command {
-    fn with_seccomp(&mut self, filter: SeccompFilter) -> &mut Self {
-        register_seccomp(self.as_std_mut(), filter);
+    fn with_seccomp(&mut self, handler: Handler) -> &mut Self {
+        Handler::register(self.as_std_mut(), handler);
         self
     }
 }
@@ -220,7 +211,7 @@ mod tests {
     use tokio::process::Command;
 
     use super::*;
-    use crate::SeccompConfig;
+    use crate::{SeccompConfig, SeccompFilter};
 
     #[tokio::test]
     async fn with_seccomp_loads_allow_filter() {
@@ -236,7 +227,7 @@ mod tests {
 
         let mut cmd = Command::new("echo");
         cmd.arg("hello");
-        cmd.with_seccomp(filter);
+        cmd.with_seccomp(Handler::seccomp(filter));
 
         let output = cmd.output().await.expect("failed to spawn");
         assert!(output.status.success());
