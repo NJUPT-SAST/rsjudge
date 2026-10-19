@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
+use std::os::unix::process::CommandExt as _;
+use std::process::Command as StdCommand;
+
 use capctl::Cap;
 #[cfg(not(feature = "setgroups"))]
 use nix::unistd::{Gid, setgroups};
@@ -11,7 +14,7 @@ use crate::config::SeccompFilter;
 use crate::error::{Error, Result};
 use crate::utils::cap_handle::CapHandle;
 
-/// Drop **all** capabilities from the child's bounding set.
+/// Register a `pre_exec` hook that clears the child's capability bounding set.
 ///
 /// The bounding set is a per-thread ceiling on the capabilities a process
 /// can ever obtain. Clearing it guarantees that the user program stays
@@ -21,6 +24,85 @@ use crate::utils::cap_handle::CapHandle;
 /// Dropping from the bounding set requires `CAP_SETPCAP`, which is raised
 /// temporarily for the duration of this hook via [`CapHandle`] and reclaimed
 /// afterwards.
+fn register_drop_bounding_caps(cmd: &mut StdCommand) -> Result<()> {
+    let drop = move || -> std::io::Result<()> {
+        // Raise CAP_SETPCAP for the duration of the bounding-set cleanup.
+        let _handle = CapHandle::new(Cap::SETPCAP)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e))?;
+
+        // Drop every capability capctl knows about.
+        for cap in Cap::iter() {
+            if capctl::caps::bounding::read(cap) == Some(true) {
+                capctl::caps::bounding::drop(cap).map_err(std::io::Error::other)?;
+            }
+        }
+        // Drop any capabilities newer than this version of capctl.
+        capctl::caps::bounding::clear_unknown().map_err(std::io::Error::other)?;
+
+        Ok(())
+    };
+
+    // SAFETY: the hook only calls `prctl` (capability manipulation),
+    // which is async-signal-safe.
+    unsafe { cmd.pre_exec(drop) };
+
+    Ok(())
+}
+
+/// Register the `pre_exec` hooks that switch the child to `user`.
+fn register_run_as(cmd: &mut StdCommand, user: &User) -> Result<()> {
+    cmd.uid(user.uid()).gid(user.primary_group_id());
+
+    let groups: Vec<_> = user
+        .groups()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|g| g.gid())
+        .collect();
+
+    register_set_groups(cmd, &groups);
+
+    Ok(())
+}
+
+/// Register the supplementary group hook for the child.
+fn register_set_groups(cmd: &mut StdCommand, groups: &[u32]) {
+    #[cfg(not(feature = "setgroups"))]
+    {
+        let groups: Vec<_> = groups.iter().map(|&g| Gid::from_raw(g)).collect();
+
+        let set_groups = move || {
+            use std::io::{self, ErrorKind};
+
+            CapHandle::new(Cap::SETGID)
+                .map_err(|e| io::Error::new(ErrorKind::PermissionDenied, e))?;
+            log_if_error!(setgroups(&groups))?;
+            Ok(())
+        };
+
+        // SAFETY: the hook calls `setgroups` after raising `CAP_SETGID`
+        // through `prctl`, both of which are async-signal-safe.
+        unsafe { cmd.pre_exec(set_groups) };
+    }
+
+    #[cfg(feature = "setgroups")]
+    {
+        let _set_groups_handle = log_if_error!(CapHandle::new(Cap::SETGID));
+
+        cmd.groups(groups);
+    }
+}
+
+/// Register the `pre_exec` hook that loads the seccomp filter before `exec`.
+fn register_seccomp(cmd: &mut StdCommand, filter: SeccompFilter) {
+    let load = move || -> std::io::Result<()> { filter.load() };
+
+    // SAFETY: `SeccompFilter::load` performs only async-signal-safe
+    // `prctl` calls.
+    unsafe { cmd.pre_exec(load) };
+}
+
+/// Drop **all** capabilities from the child's bounding set.
 ///
 /// **Ordering**: register this *after* [`RunAs::run_as`] (which still needs
 /// `CAP_SETGID`) and *before* [`WithSeccomp::with_seccomp`].
@@ -29,34 +111,21 @@ pub trait DropBoundingCaps {
     fn drop_bounding_caps(&mut self) -> Result<&mut Self>;
 }
 
-impl DropBoundingCaps for Command {
+impl DropBoundingCaps for StdCommand {
     fn drop_bounding_caps(&mut self) -> Result<&mut Self> {
-        let drop = move || -> std::io::Result<()> {
-            // Raise CAP_SETPCAP for the duration of the bounding-set cleanup.
-            let _handle = CapHandle::new(Cap::SETPCAP)
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::PermissionDenied, e))?;
-
-            // Drop every capability capctl knows about.
-            for cap in Cap::iter() {
-                if capctl::caps::bounding::read(cap) == Some(true) {
-                    capctl::caps::bounding::drop(cap).map_err(std::io::Error::other)?;
-                }
-            }
-            // Drop any capabilities newer than this version of capctl.
-            capctl::caps::bounding::clear_unknown().map_err(std::io::Error::other)?;
-
-            Ok(())
-        };
-
-        // SAFETY: the hook only calls `prctl` (capability manipulation),
-        // which is async-signal-safe.
-        unsafe { self.pre_exec(drop) };
-
+        register_drop_bounding_caps(self)?;
         Ok(self)
     }
 }
 
-/// A trait to allow running a [`tokio::process::Command`] as another user.
+impl DropBoundingCaps for Command {
+    fn drop_bounding_caps(&mut self) -> Result<&mut Self> {
+        register_drop_bounding_caps(self.as_std_mut())?;
+        Ok(self)
+    }
+}
+
+/// A trait to allow running a command as another user.
 pub trait RunAs {
     type Error;
 
@@ -72,63 +141,25 @@ pub trait RunAs {
     fn run_as(&mut self, user: &User) -> Result<&mut Self>;
 }
 
-impl RunAs for Command {
+impl RunAs for StdCommand {
     type Error = Error;
 
     fn run_as(&mut self, user: &User) -> Result<&mut Self> {
-        let uid = user.uid();
-        let gid = user.primary_group_id();
-
-        self.uid(uid).gid(gid);
-
-        let groups: Vec<_> = user
-            .groups()
-            .unwrap_or_default()
-            .into_iter()
-            .map(|g| g.gid())
-            .collect();
-
-        self.set_groups(&groups);
-
+        register_run_as(self, user)?;
         Ok(self)
     }
 }
 
-trait SetGroups {
-    fn set_groups(&mut self, groups: &[u32]) -> &mut Self;
-}
+impl RunAs for Command {
+    type Error = Error;
 
-impl SetGroups for Command {
-    #[cfg(not(feature = "setgroups"))]
-    fn set_groups(&mut self, groups: &[u32]) -> &mut Self {
-        let groups: Vec<_> = groups.iter().map(|&g| Gid::from_raw(g)).collect();
-
-        let set_groups = move || {
-            use std::io::{self, ErrorKind};
-
-            CapHandle::new(Cap::SETGID)
-                .map_err(|e| io::Error::new(ErrorKind::PermissionDenied, e))?;
-            log_if_error!(setgroups(&groups))?;
-            Ok(())
-        };
-
-        unsafe { self.pre_exec(set_groups) };
-
-        self
-    }
-
-    #[cfg(feature = "setgroups")]
-    fn set_groups(&mut self, groups: &[u32]) -> &mut Self {
-        use std::os::unix::process::CommandExt as _;
-
-        let _set_groups_handle = log_if_error!(CapHandle::new(Cap::SETGID));
-
-        self.as_std_mut().groups(groups);
-        self
+    fn run_as(&mut self, user: &User) -> Result<&mut Self> {
+        register_run_as(self.as_std_mut(), user)?;
+        Ok(self)
     }
 }
 
-/// A trait to apply a compiled seccomp filter to a [`Command`].
+/// A trait to apply a compiled seccomp filter to a command.
 ///
 /// # Required call order
 ///
@@ -168,14 +199,16 @@ pub trait WithSeccomp {
     fn with_seccomp(&mut self, filter: SeccompFilter) -> &mut Self;
 }
 
+impl WithSeccomp for StdCommand {
+    fn with_seccomp(&mut self, filter: SeccompFilter) -> &mut Self {
+        register_seccomp(self, filter);
+        self
+    }
+}
+
 impl WithSeccomp for Command {
     fn with_seccomp(&mut self, filter: SeccompFilter) -> &mut Self {
-        let load = move || -> std::io::Result<()> { filter.load() };
-
-        // SAFETY: `SeccompFilter::load` performs only async-signal-safe
-        // `prctl` calls.
-        unsafe { self.pre_exec(load) };
-
+        register_seccomp(self.as_std_mut(), filter);
         self
     }
 }
