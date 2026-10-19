@@ -254,6 +254,27 @@ impl Syscall {
     }
 }
 
+/// The base a syscall resolves its relative path against.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PathBase {
+    /// The working directory of the child.
+    Cwd,
+
+    /// An open descriptor of the child.
+    Descriptor(i32),
+}
+
+impl PathBase {
+    /// The base the traced syscall takes: the descriptor it carries, or the
+    /// working directory when it carries none or takes `AT_FDCWD`.
+    fn of(dirfd_arg: Option<usize>, syscall: &Syscall) -> Self {
+        match dirfd_arg.map(|arg| syscall.arg(arg) as i32) {
+            Some(dirfd) if dirfd != AT_FDCWD => Self::Descriptor(dirfd),
+            _ => Self::Cwd,
+        }
+    }
+}
+
 /// Read the number of the syscall the registers hold.
 #[cfg(target_arch = "x86_64")]
 fn syscall_number(regs: &nix::libc::user_regs_struct) -> i32 {
@@ -715,16 +736,17 @@ impl TracedChild {
         let raw = read_cstring(pid, syscall.arg(entry.path_arg) as usize, PATH_MAX)?;
         let path = Path::new(OsStr::from_bytes(&raw));
 
-        // An absolute path names the file on its own; a relative path resolves
-        // against the descriptor the syscall takes or the working directory.
-        let Some(dirfd_arg) = entry.dirfd_arg else {
+        // An absolute path names the file on its own.
+        if path.is_absolute() {
             return Ok(resolve(path));
-        };
-        let dirfd = syscall.arg(dirfd_arg) as i32;
+        }
 
-        let base = match dirfd {
-            AT_FDCWD => self.child_cwd(pid)?,
-            dirfd => self.child_fd(pid, dirfd)?,
+        // A relative path resolves against the descriptor the syscall takes,
+        // or against the working directory of the child, so the supervisor
+        // reads the path in the terms the child used.
+        let base = match PathBase::of(entry.dirfd_arg, syscall) {
+            PathBase::Cwd => self.child_cwd(pid)?,
+            PathBase::Descriptor(dirfd) => self.child_fd(pid, dirfd)?,
         };
 
         Ok(resolve(&base.join(path)))
@@ -898,6 +920,81 @@ mod tests {
         // Every dynamically linked program reads under `/usr` for its loader
         // and libraries, so the rule kills the child before it runs.
         assert_eq!(status.signal(), Some(Signal::SIGKILL as i32));
+    }
+
+    #[test]
+    fn a_relative_path_resolves_against_the_working_directory_of_the_child() {
+        let dir = std::env::temp_dir().join(format!("rsjudge-tracer-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("failed to create the scratch directory");
+        std::fs::write(dir.join("answer.txt"), b"hello\n").expect("failed to write the fixture");
+        std::fs::write(dir.join("blocked.txt"), b"secret\n").expect("failed to write the fixture");
+
+        // A permissive profile whose one rule covers a path the child reaches
+        // through a relative name.
+        let config = traced_config(json!({
+            "defaultAction": "allow",
+            "rules": [
+                {
+                    "paths": [dir.join("blocked.txt")],
+                    "action": "deny",
+                },
+            ],
+        }));
+
+        let dir_arg = dir.to_str().expect("the scratch directory is not utf-8");
+        let allowed = run_relative(&config, dir_arg, "answer.txt");
+        let denied = run_relative(&config, dir_arg, "blocked.txt");
+
+        std::fs::remove_dir_all(&dir).expect("failed to remove the scratch directory");
+
+        // The rule names the file through the working directory of the child,
+        // so a supervisor that resolved relative paths in its own terms would
+        // miss the rule and read the file.
+        assert!(allowed, "the child read a path its policy admits");
+        assert!(!denied, "the child read a path its policy denies");
+    }
+
+    /// Run `cat` on a relative path from `dir`, and report whether it read it.
+    fn run_relative(config: &SeccompConfig, dir: &str, name: &str) -> bool {
+        let tracer = Tracer::new(config).unwrap().unwrap();
+
+        let mut cmd = Command::new("cat");
+        cmd.arg(name);
+        cmd.current_dir(dir);
+        cmd.stdout(std::process::Stdio::null());
+        cmd.stderr(std::process::Stdio::null());
+
+        let mut child = tracer.spawn(&mut cmd).expect("failed to spawn");
+        let status = child.wait().expect("failed to supervise");
+
+        assert!(child.stops() > 0, "the child reached no traced syscall");
+
+        status.success()
+    }
+
+    #[test]
+    fn a_syscall_resolves_a_relative_path_against_its_directory() {
+        // A syscall without a directory descriptor resolves against the
+        // working directory, as do the `at` syscalls that take `AT_FDCWD`.
+        assert_eq!(PathBase::of(None, &syscall_with_dirfd(7)), PathBase::Cwd);
+        assert_eq!(
+            PathBase::of(Some(0), &syscall_with_dirfd(AT_FDCWD as u64)),
+            PathBase::Cwd
+        );
+
+        // Any other descriptor names the directory to resolve against.
+        assert_eq!(
+            PathBase::of(Some(0), &syscall_with_dirfd(7)),
+            PathBase::Descriptor(7)
+        );
+    }
+
+    /// A syscall that names `dirfd` in its first argument.
+    fn syscall_with_dirfd(dirfd: u64) -> Syscall {
+        Syscall {
+            number: 0,
+            args: [dirfd, 0, 0, 0, 0, 0],
+        }
     }
 
     #[test]
