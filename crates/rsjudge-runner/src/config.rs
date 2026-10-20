@@ -87,6 +87,18 @@ pub enum Action {
 }
 
 impl Action {
+    /// Whether this action restricts a syscall more tightly than the
+    /// file-access policy does, so the policy's trace rule yields to it.
+    ///
+    /// `Log` and `Notify` still permit the call, so a traced syscall keeps its
+    /// trace rule and stays under the policy.
+    fn outranks_policy(self) -> bool {
+        matches!(
+            self,
+            Self::Kill | Self::KillThread | Self::KillProcess | Self::Trap | Self::Errno { .. }
+        )
+    }
+
     /// Convert to the equivalent libseccomp action.
     fn to_scmp(self) -> ScmpAction {
         match self {
@@ -376,6 +388,21 @@ impl SeccompConfig {
             }
         }
 
+        // A filter rule applies to every architecture it declares, while the
+        // supervisor reads registers in the terms of the native architecture
+        // only: an `openat` of a compatible 32-bit ABI carries another number
+        // and another argument layout, which the supervisor would misread.
+        if self.file_policy.is_some()
+            && arches
+                .iter()
+                .any(|arch| *arch != native && *arch != ScmpArch::Native)
+        {
+            return Err(io::Error::other(
+                "a file-access policy requires a filter built for the native architecture only",
+            )
+            .into());
+        }
+
         for arch in arches {
             ctx.add_arch(arch).map_err(io::Error::other)?;
         }
@@ -441,15 +468,19 @@ impl SeccompConfig {
     /// The names of `rule` that reach the filter.
     ///
     /// With a file-access policy in place the policy decides the fate of the
-    /// traced syscalls, so the profile's `Allow` rules for those names step
-    /// aside to let the `SCMP_ACT_TRACE` rule take effect. Any other action on
-    /// a traced name restricts it more tightly than the policy would, which
-    /// records the name in `restricted` so that the trace rule yields to it.
+    /// traced syscalls, so a plain `Allow` rule for such a name steps aside to
+    /// let the `SCMP_ACT_TRACE` rule take effect. A rule that restricts the
+    /// call, or that narrows it to particular arguments, keeps its own action
+    /// and records the name in `restricted` so that the trace rule yields to
+    /// it — the policy cannot restate an argument constraint, and dropping one
+    /// would widen the profile.
     fn rule_names<'a>(
         rule: &'a Syscall,
         traced: &HashSet<&'static str>,
         restricted: &mut HashSet<&'static str>,
     ) -> Vec<&'a str> {
+        let conditional = rule.args.as_ref().is_some_and(|args| !args.is_empty());
+
         rule.names
             .iter()
             .filter(|name| {
@@ -457,11 +488,11 @@ impl SeccompConfig {
                     return true;
                 };
 
-                if matches!(rule.action, Action::Allow) {
-                    false
-                } else {
+                if rule.action.outranks_policy() || conditional {
                     restricted.insert(name);
                     true
+                } else {
+                    false
                 }
             })
             .map(String::as_str)
@@ -1044,6 +1075,86 @@ mod tests {
             .build_filter_with_caps(&CapSet::empty())
             .expect("failed to build filter");
         drop(ctx);
+    }
+
+    #[test]
+    fn build_filter_rejects_sub_architectures_with_a_file_policy() {
+        // A filter rule reaches every architecture it declares, while the
+        // supervisor reads registers in the terms of the native architecture,
+        // so a compatible 32-bit ABI would escape the policy.
+        let config: SeccompConfig = serde_json::from_value(json!({
+            "defaultAction": { "action": "SCMP_ACT_ALLOW" },
+            "architectures": ["SCMP_ARCH_NATIVE", "SCMP_ARCH_X86"],
+            "filePolicy": { "defaultAction": "deny" },
+        }))
+        .expect("failed to parse");
+
+        assert!(
+            config.build_filter_with_caps(&CapSet::empty()).is_err(),
+            "a policy was built for an ABI the supervisor cannot read"
+        );
+
+        // Without a policy the same architectures still build.
+        let mut config = config;
+        config.file_policy = None;
+        config
+            .build_filter_with_caps(&CapSet::empty())
+            .expect("a profile without a policy lost its architectures");
+    }
+
+    #[test]
+    fn build_filter_accepts_the_native_architecture_with_a_file_policy() {
+        let config: SeccompConfig = serde_json::from_value(json!({
+            "defaultAction": { "action": "SCMP_ACT_ALLOW" },
+            "architectures": ["SCMP_ARCH_NATIVE"],
+            "filePolicy": { "defaultAction": "deny" },
+        }))
+        .expect("failed to parse");
+
+        config
+            .build_filter_with_caps(&CapSet::empty())
+            .expect("the native architecture was refused a policy");
+    }
+
+    #[test]
+    fn a_profile_action_outranks_the_policy_only_when_it_restricts() {
+        // These actions refuse the call, so the policy's trace rule yields.
+        assert!(Action::Kill.outranks_policy());
+        assert!(Action::KillThread.outranks_policy());
+        assert!(Action::KillProcess.outranks_policy());
+        assert!(Action::Trap.outranks_policy());
+        assert!(Action::Errno { errno_ret: Some(1) }.outranks_policy());
+
+        // These actions still let the call through, so the traced syscall
+        // stays under the policy.
+        assert!(!Action::Allow.outranks_policy());
+        assert!(!Action::Log.outranks_policy());
+        assert!(!Action::Notify.outranks_policy());
+    }
+
+    #[test]
+    fn build_filter_keeps_an_argument_constrained_allow_rule() {
+        // The profile allows `openat` only with a particular flag word. The
+        // policy cannot restate that constraint, so the conditional rule keeps
+        // its place and the trace rule yields to it.
+        let config: SeccompConfig = serde_json::from_value(json!({
+            "defaultAction": { "action": "SCMP_ACT_ERRNO", "errnoRet": 1 },
+            "syscalls": [
+                {
+                    "names": ["openat"],
+                    "action": "SCMP_ACT_ALLOW",
+                    "args": [
+                        { "index": 2, "value": 0, "op": "SCMP_CMP_EQ" },
+                    ],
+                },
+            ],
+            "filePolicy": { "defaultAction": "deny" },
+        }))
+        .expect("failed to parse");
+
+        config
+            .build_filter_with_caps(&CapSet::empty())
+            .expect("a conditional allow rule was dropped");
     }
 
     #[test]
