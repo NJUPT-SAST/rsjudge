@@ -55,6 +55,8 @@ image::https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[Repository 
 * Rust toolchain according to <<msrv, MSRV>>.
 * Linux kernel >= 4.5,
 ** Required for Seccomp BPF support.
+* https://github.com/seccomp/libseccomp[`libseccomp`] >= 2.5.0,
+** Required for the Seccomp filter and the syscall tables that cover `openat2` and `faccessat2`.
 * For gRPC support (under `grpc` feature):
 ** https://github.com/protocolbuffers/protobuf?tab=readme-ov-file#protobuf-compiler-installation[`protoc`] >= 3.15,
 ** https://github.com/bufbuild/buf/[`buf`] for gRPC dependencies management.

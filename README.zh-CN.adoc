@@ -57,6 +57,8 @@ image::https://github.com/NJUPT-SAST/rsjudge/raw/diagram/diagram.svg[目录结�
 * 符合 <<msrv, MSRV>> 的 Rust 工具链。
 * Linux 内核 >= 4.5
 ** 这是为了支持 Seccomp BPF。
+* https://github.com/seccomp/libseccomp[`libseccomp`] >= 2.5.0，
+** 这是为了支持 Seccomp 过滤器，以及包含 `openat2` 与 `faccessat2` 的系统调用表。
 * 对于 gRPC 支持（采用 `grpc` feature 控制）
 ** https://github.com/protocolbuffers/protobuf?tab=readme-ov-file#protobuf-compiler-installation[`protoc`] >= 3.15,
 ** https://github.com/bufbuild/buf/[`buf`] 用于 gRPC 依赖管理。
