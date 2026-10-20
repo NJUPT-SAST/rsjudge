@@ -470,10 +470,12 @@ impl SeccompConfig {
     /// With a file-access policy in place the policy decides the fate of the
     /// traced syscalls, so a plain `Allow` rule for such a name steps aside to
     /// let the `SCMP_ACT_TRACE` rule take effect. A rule that restricts the
-    /// call, or that narrows it to particular arguments, keeps its own action
-    /// and records the name in `restricted` so that the trace rule yields to
-    /// it — the policy cannot restate an argument constraint, and dropping one
-    /// would widen the profile.
+    /// call keeps its own action and records the name in `restricted` so that
+    /// the trace rule yields to it, since the policy cannot restate the
+    /// profile's restriction. A rule that narrows the call to particular
+    /// arguments keeps its place as well, and the trace rule follows it: the
+    /// arguments the rule covers keep the profile's action, and the calls it
+    /// leaves to the default action still reach the supervisor.
     fn rule_names<'a>(
         rule: &'a Syscall,
         traced: &HashSet<&'static str>,
@@ -488,12 +490,15 @@ impl SeccompConfig {
                     return true;
                 };
 
-                if rule.action.outranks_policy() || conditional {
+                if rule.action.outranks_policy() {
                     restricted.insert(name);
-                    true
-                } else {
-                    false
+                    return true;
                 }
+
+                // A conditional rule keeps its own action, and the trace rule
+                // follows it so the calls the rule leaves to the default
+                // action still reach the policy.
+                conditional
             })
             .map(String::as_str)
             .collect()
@@ -1135,8 +1140,9 @@ mod tests {
     #[test]
     fn build_filter_keeps_an_argument_constrained_allow_rule() {
         // The profile allows `openat` only with a particular flag word. The
-        // policy cannot restate that constraint, so the conditional rule keeps
-        // its place and the trace rule yields to it.
+        // conditional rule keeps its place, and the trace rule follows it so
+        // the calls the constraint leaves to the default action still reach
+        // the supervisor.
         let config: SeccompConfig = serde_json::from_value(json!({
             "defaultAction": { "action": "SCMP_ACT_ERRNO", "errnoRet": 1 },
             "syscalls": [
@@ -1155,6 +1161,54 @@ mod tests {
         config
             .build_filter_with_caps(&CapSet::empty())
             .expect("a conditional allow rule was dropped");
+    }
+
+    #[test]
+    fn an_argument_constrained_allow_rule_still_gets_the_trace_rule() {
+        let rule: Syscall = serde_json::from_value(json!({
+            "names": ["openat"],
+            "action": "SCMP_ACT_ALLOW",
+            "args": [
+                { "index": 2, "value": 0, "op": "SCMP_CMP_EQ" },
+            ],
+        }))
+        .expect("failed to build the rule");
+
+        let traced: HashSet<&'static str> = crate::tracer::file_access_syscall_names().collect();
+        let mut restricted = HashSet::new();
+        let names = SeccompConfig::rule_names(&rule, &traced, &mut restricted);
+
+        // The rule reaches the filter, and the trace rule follows it, so the
+        // calls the constraint leaves uncovered still reach the policy.
+        assert_eq!(names, vec!["openat"]);
+        assert!(
+            restricted.is_empty(),
+            "an argument-constrained allow rule disabled the policy trace rule"
+        );
+    }
+
+    #[test]
+    fn an_argument_constrained_refusal_keeps_its_own_action() {
+        let rule: Syscall = serde_json::from_value(json!({
+            "names": ["openat"],
+            "action": "SCMP_ACT_ERRNO",
+            "errnoRet": 1,
+            "args": [
+                { "index": 2, "value": 0, "op": "SCMP_CMP_EQ" },
+            ],
+        }))
+        .expect("failed to build the rule");
+
+        let traced: HashSet<&'static str> = crate::tracer::file_access_syscall_names().collect();
+        let mut restricted = HashSet::new();
+        let names = SeccompConfig::rule_names(&rule, &traced, &mut restricted);
+
+        // The refusal outranks the policy, so the trace rule yields to it.
+        assert_eq!(names, vec!["openat"]);
+        assert!(
+            restricted.contains("openat"),
+            "a conditional refusal let the policy trace rule through"
+        );
     }
 
     #[test]

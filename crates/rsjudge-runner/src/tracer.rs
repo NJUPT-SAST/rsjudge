@@ -11,6 +11,17 @@
 //!
 //! This module describes the traced syscalls, derives the access each of them
 //! requests, and supervises the children the filter traces.
+//!
+//! # Path resolution window
+//!
+//! The supervisor reads the requested path, the working directory and the
+//! directory descriptor of the tracee while the tracee is stopped at the
+//! seccomp event, and resumes the syscall afterwards. Threads of the same
+//! submission share its descriptor table and working directory, so a thread
+//! can change that state between the read and the execution of the syscall.
+//! Keeping a verdict atomic with the syscall needs an enforcement point
+//! inside the kernel's path walk, such as Landlock; the ptrace policy here is
+//! the portable enforcement the runner can apply without one.
 
 // The policy itself is refused on an architecture whose registers the module
 // cannot read, which leaves the helpers that decode a request unused there.
@@ -603,9 +614,17 @@ fn attach_options() -> Options {
         | Options::PTRACE_O_TRACEVFORK
 }
 
-/// The wait target that serves every tracee of the supervisor, including the
-/// threads and children a runtime creates.
-const ANY_TRACEE: Pid = Pid::from_raw(-1);
+/// Wait for a tracee, retrying a wait that a signal handler of the host
+/// process interrupts.
+fn wait_for(target: Pid, flags: Option<WaitPidFlag>) -> io::Result<WaitStatus> {
+    loop {
+        match waitpid(target, flags) {
+            Ok(status) => return Ok(status),
+            Err(Errno::EINTR) => continue,
+            Err(err) => return Err(io::Error::other(err)),
+        }
+    }
+}
 
 /// A supervisor holding the sandbox of a child that has yet to be spawned.
 ///
@@ -713,7 +732,17 @@ impl Tracer {
         // for that stop gives `setoptions` a stopped tracee, which the kernel
         // asks for, and the stop itself carries no signal to deliver, so
         // resuming without one starts the submission under the options.
-        waitpid(pid, None).map_err(io::Error::other)?;
+        match wait_for(pid, Some(WaitPidFlag::__WALL))? {
+            WaitStatus::Stopped(stopped, Signal::SIGTRAP) if stopped == pid => {}
+            status => {
+                // Nothing the submission started outlives the failed spawn.
+                let _ = killpg(pid, Signal::SIGKILL);
+                return Err(io::Error::other(format!(
+                    "the sandboxed child left before its exec stop: {status:?}"
+                ))
+                .into());
+            }
+        }
 
         ptrace::setoptions(pid, attach_options()).map_err(io::Error::other)?;
         ptrace::cont(pid, None).map_err(io::Error::other)?;
@@ -781,7 +810,7 @@ impl TracedChild {
     pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
         loop {
             let flags = Some(WaitPidFlag::__WALL | WaitPidFlag::WNOHANG);
-            let status = waitpid(ANY_TRACEE, flags).map_err(io::Error::other)?;
+            let status = wait_for(self.wait_target(), flags)?;
 
             if status == WaitStatus::StillAlive {
                 return Ok(None);
@@ -800,11 +829,8 @@ impl TracedChild {
     /// Returns an error when waiting for the child fails.
     pub fn wait(&mut self) -> Result<ExitStatus> {
         loop {
-            let status =
-                waitpid(ANY_TRACEE, Some(WaitPidFlag::__WALL)).map_err(io::Error::other)?;
+            let status = wait_for(self.wait_target(), Some(WaitPidFlag::__WALL))?;
             if let Some(exit) = self.serve(status)? {
-                // Nothing the submission started outlives it.
-                let _ = killpg(self.pid, Signal::SIGKILL);
                 return Ok(exit);
             }
         }
@@ -819,6 +845,25 @@ impl TracedChild {
         killpg(self.pid, Signal::SIGKILL).map_err(io::Error::other)?;
 
         Ok(())
+    }
+
+    /// The wait target that serves every tracee of the child's process group.
+    ///
+    /// `Tracer::spawn` starts the child as the leader of a process group of
+    /// its own, which the threads and processes it creates inherit. Waiting on
+    /// that group serves every tracee of this supervisor, while the other
+    /// children of the host process, including the tracees of another
+    /// supervisor, stay with their own owners. A tracee that moves itself to
+    /// another group leaves the wait target, and its next traced syscall stays
+    /// stopped, which keeps the policy closed.
+    fn wait_target(&self) -> Pid {
+        Pid::from_raw(-self.pid.as_raw())
+    }
+
+    /// Signal the whole process group of the child to terminate, accepting a
+    /// group that has already emptied.
+    fn stop_group(&self) {
+        let _ = killpg(self.pid, Signal::SIGKILL);
     }
 
     /// A supervisor for `child`.
@@ -844,10 +889,21 @@ impl TracedChild {
     fn serve(&mut self, status: WaitStatus) -> Result<Option<ExitStatus>> {
         match status {
             WaitStatus::Exited(pid, code) => {
-                Ok((pid == self.pid).then(|| ExitStatus::from_raw(code << 8)))
+                if pid != self.pid {
+                    return Ok(None);
+                }
+
+                // Nothing the submission started outlives it.
+                self.stop_group();
+                Ok(Some(ExitStatus::from_raw(code << 8)))
             }
             WaitStatus::Signaled(pid, signal, dumped) => {
-                Ok((pid == self.pid).then(|| ExitStatus::from_raw(exit_signal(signal, dumped))))
+                if pid != self.pid {
+                    return Ok(None);
+                }
+
+                self.stop_group();
+                Ok(Some(ExitStatus::from_raw(exit_signal(signal, dumped))))
             }
             WaitStatus::Stopped(pid, signal) => {
                 // The supervisor consumed the exec stop while spawning the
