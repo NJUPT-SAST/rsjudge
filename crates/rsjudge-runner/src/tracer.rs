@@ -12,6 +12,17 @@
 //! This module describes the traced syscalls, derives the access each of them
 //! requests, and supervises the children the filter traces.
 
+// The policy itself is refused on an architecture whose registers the module
+// cannot read, which leaves the helpers that decode a request unused there.
+#![cfg_attr(
+    not(any(
+        target_arch = "x86_64",
+        target_arch = "aarch64",
+        target_arch = "riscv64"
+    )),
+    allow(dead_code)
+)]
+
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::io::{self, IoSliceMut};
@@ -30,7 +41,7 @@ use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
 use nix::unistd::Pid;
 
 use crate::config::{AccessMode, FileAction, FilePolicy, SeccompConfig, SeccompFilter};
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::handler::Handler;
 
 /// A syscall whose path arguments the supervisor inspects.
@@ -350,6 +361,11 @@ struct Syscall {
 
 impl Syscall {
     /// The syscall the registers describe.
+    #[cfg(any(
+        target_arch = "x86_64",
+        target_arch = "aarch64",
+        target_arch = "riscv64"
+    ))]
     fn from_regs(regs: &nix::libc::user_regs_struct) -> Self {
         Self {
             number: syscall_number(regs),
@@ -429,8 +445,48 @@ fn cancel_syscall(regs: &mut nix::libc::user_regs_struct) {
     regs.regs[8] = u64::MAX;
 }
 
-#[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
-compile_error!("file-access supervision reads syscall registers on x86_64 and aarch64");
+/// Read the number of the syscall the registers hold.
+#[cfg(target_arch = "riscv64")]
+fn syscall_number(regs: &nix::libc::user_regs_struct) -> i32 {
+    regs.a7 as i32
+}
+
+/// Read the six syscall arguments out of the registers.
+#[cfg(target_arch = "riscv64")]
+fn syscall_args(regs: &nix::libc::user_regs_struct) -> [u64; 6] {
+    [regs.a0, regs.a1, regs.a2, regs.a3, regs.a4, regs.a5]
+}
+
+/// Replace the syscall number with an invalid one, which fails the syscall
+/// with `ENOSYS` once the process resumes.
+#[cfg(target_arch = "riscv64")]
+fn cancel_syscall(regs: &mut nix::libc::user_regs_struct) {
+    regs.a7 = u64::MAX;
+}
+
+/// Whether the registers of a stopped process can be read on the architecture
+/// this crate is built for.
+///
+/// `ptrace` hands the registers over as a `user_regs_struct` whose layout
+/// differs per architecture, and [`nix::sys::ptrace::getregs`] exists only on
+/// x86_64, aarch64 and riscv64. Every other architecture builds and runs
+/// without file-access supervision, which [`Tracer::new`] refuses instead of
+/// leaving the policy silently unenforced.
+fn registers_readable() -> bool {
+    cfg!(any(
+        target_arch = "x86_64",
+        target_arch = "aarch64",
+        target_arch = "riscv64"
+    ))
+}
+
+/// The error a runtime that cannot read syscall registers reports.
+fn unreadable_registers() -> Error {
+    io::Error::other(
+        "file-access supervision reads syscall registers on x86_64, aarch64 and riscv64",
+    )
+    .into()
+}
 
 /// Read a NUL-terminated string out of the memory of a stopped process.
 ///
@@ -605,6 +661,13 @@ impl Tracer {
         let Some(policy) = config.file_policy.clone() else {
             return Ok(None);
         };
+
+        // A runtime that cannot read the syscall registers keeps the rest of
+        // its sandbox, and refuses the policy rather than enforcing it half
+        // way.
+        if !registers_readable() {
+            return Err(unreadable_registers());
+        }
 
         // The filter is loaded by the unprivileged child, so the `includes`
         // and `excludes` matchers see an empty capability set.
@@ -827,6 +890,11 @@ impl TracedChild {
     /// fails the syscall rather than slipping past the rules. A syscall the
     /// table does not know arrives only from an ABI the supervisor cannot
     /// read, which it also refuses rather than letting it through.
+    #[cfg(any(
+        target_arch = "x86_64",
+        target_arch = "aarch64",
+        target_arch = "riscv64"
+    ))]
     fn enforce(&self, pid: Pid) -> Result<()> {
         let regs = ptrace::getregs(pid).map_err(io::Error::other)?;
         let syscall = Syscall::from_regs(&regs);
@@ -864,6 +932,20 @@ impl TracedChild {
                 Ok(())
             }
         }
+    }
+
+    /// Refuse a seccomp stop on an architecture whose registers this module
+    /// cannot read.
+    ///
+    /// [`Tracer::new`] rejects such a profile up front, so this only reports
+    /// the same refusal if a supervisor ever reaches a stop.
+    #[cfg(not(any(
+        target_arch = "x86_64",
+        target_arch = "aarch64",
+        target_arch = "riscv64"
+    )))]
+    fn enforce(&self, _pid: Pid) -> Result<()> {
+        Err(unreadable_registers())
     }
 
     /// The action the policy takes on the paths the syscall requests.
@@ -978,6 +1060,11 @@ fn cont(pid: Pid) -> Result<()> {
 }
 
 /// Fail the syscall a tracee is entering with `ENOSYS`.
+#[cfg(any(
+    target_arch = "x86_64",
+    target_arch = "aarch64",
+    target_arch = "riscv64"
+))]
 fn deny(pid: Pid, mut regs: nix::libc::user_regs_struct) -> Result<()> {
     cancel_syscall(&mut regs);
     ptrace::setregs(pid, regs).map_err(io::Error::other)?;
