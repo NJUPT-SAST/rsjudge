@@ -474,8 +474,8 @@ impl SeccompConfig {
     /// the trace rule yields to it, since the policy cannot restate the
     /// profile's restriction. A rule that narrows the call to particular
     /// arguments keeps its place as well, and the trace rule follows it: the
-    /// arguments the rule covers keep the profile's action, and the calls it
-    /// leaves to the default action still reach the supervisor.
+    /// unconditional trace rule covers the whole syscall, so the filter traces
+    /// every call of it and the policy judges them.
     fn rule_names<'a>(
         rule: &'a Syscall,
         traced: &HashSet<&'static str>,
@@ -495,9 +495,8 @@ impl SeccompConfig {
                     return true;
                 }
 
-                // A conditional rule keeps its own action, and the trace rule
-                // follows it so the calls the rule leaves to the default
-                // action still reach the policy.
+                // A conditional rule keeps its place, and the trace rule
+                // follows it, so every call of the syscall reaches the policy.
                 conditional
             })
             .map(String::as_str)
@@ -1140,9 +1139,8 @@ mod tests {
     #[test]
     fn build_filter_keeps_an_argument_constrained_allow_rule() {
         // The profile allows `openat` only with a particular flag word. The
-        // conditional rule keeps its place, and the trace rule follows it so
-        // the calls the constraint leaves to the default action still reach
-        // the supervisor.
+        // conditional rule keeps its place, and the trace rule follows it, so
+        // every call of the syscall reaches the supervisor.
         let config: SeccompConfig = serde_json::from_value(json!({
             "defaultAction": { "action": "SCMP_ACT_ERRNO", "errnoRet": 1 },
             "syscalls": [
@@ -1178,8 +1176,8 @@ mod tests {
         let mut restricted = HashSet::new();
         let names = SeccompConfig::rule_names(&rule, &traced, &mut restricted);
 
-        // The rule reaches the filter, and the trace rule follows it, so the
-        // calls the constraint leaves uncovered still reach the policy.
+        // The rule reaches the filter, and the trace rule follows it, so every
+        // call of the syscall reaches the policy.
         assert_eq!(names, vec!["openat"]);
         assert!(
             restricted.is_empty(),
