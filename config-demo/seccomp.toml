@@ -10,13 +10,13 @@
 action = "SCMP_ACT_ERRNO"
 errnoRet = 38
 
+# Sub-architectures are left out: `filePolicy` is enforced by a ptrace
+# supervisor that reads registers in the terms of the native ABI only.
 [[archMap]]
 architecture = "SCMP_ARCH_X86_64"
-subArchitectures = ["SCMP_ARCH_X86", "SCMP_ARCH_X32"]
 
 [[archMap]]
 architecture = "SCMP_ARCH_AARCH64"
-subArchitectures = ["SCMP_ARCH_ARM"]
 
 [[archMap]]
 architecture = "SCMP_ARCH_MIPS64"
@@ -114,7 +114,9 @@ names = [
 ]
 action = "SCMP_ACT_KILL_PROCESS"
 
-# File permission and ownership changes.
+# File permission and ownership changes, and links. A judged program has no
+# reason to change the mode or owner of a file, and a link it creates would
+# let the lexical path rules reach a target they deny.
 [[syscalls]]
 names = [
     "chmod",
@@ -128,6 +130,10 @@ names = [
     "fchownat",
     "lchown",
     "lchown32",
+    "link",
+    "linkat",
+    "symlink",
+    "symlinkat",
 ]
 action = "SCMP_ACT_KILL_PROCESS"
 
@@ -319,8 +325,6 @@ names = [
     "landlock_create_ruleset",
     "landlock_restrict_self",
     "lgetxattr",
-    "link",
-    "linkat",
     "listxattr",
     "llistxattr",
     "lremovexattr",
@@ -459,8 +463,6 @@ names = [
     "statfs",
     "statfs64",
     "statx",
-    "symlink",
-    "symlinkat",
     "sync",
     "sync_file_range",
     "syncfs",
@@ -756,11 +758,14 @@ caps = ["CAP_PERFMON"]
 
 # --- File-access policy ---------------------------------------------------
 # With a file-access policy in place the path-taking syscalls (open, openat,
-# openat2, creat, access, faccessat2, stat, newfstatat, statx, readlink and
-# readlinkat) are routed through a ptrace supervisor, which resolves the path
-# each call requests and applies the rules below to it. The first matching
-# rule wins, and a request no rule covers receives defaultAction, so the
-# policy stays closed unless a rule opens it.
+# openat2, creat, access, faccessat2, stat, newfstatat, statx, readlink,
+# readlinkat, and the calls that change a directory entry: unlink, rename,
+# mkdir, rmdir, truncate and the utime family) are routed through a ptrace
+# supervisor, which resolves the paths each call requests and applies the
+# rules below to them. A rule the profile restricts more strictly — the
+# killed chmod/chown and link families above — keeps the profile's action.
+# The first matching rule wins, and a request no rule covers receives
+# defaultAction, so the policy stays closed unless a rule opens it.
 [filePolicy]
 defaultAction = "deny"
 
