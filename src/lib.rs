@@ -35,10 +35,10 @@ pub async fn async_main(args: Args) -> anyhow::Result<()> {
     );
 
     match (System::name(), System::os_version()) {
-        (Some(distro_name), Some(distro_version)) => {
+        (Ok(distro_name), Ok(distro_version)) => {
             debug!("OS: {distro_name} {distro_version}");
         }
-        (Some(distro_name), None) => {
+        (Ok(distro_name), Err(_)) => {
             debug!("OS: {distro_name}");
         }
         _ => {

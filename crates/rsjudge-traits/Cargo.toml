@@ -10,10 +10,10 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-indexmap = { version = "2.14.1", features = ["serde"] }
+indexmap = { version = "2.14.2", features = ["serde"] }
 serde.workspace = true
 tokio = { workspace = true, features = ["process"] }
 
 [dev-dependencies]
-serde_json = "1.0.151"
-toml = { version = "1.1.4", features = ["preserve_order"] }
+serde_json = "1.0.154"
+toml = { version = "1.1.8", features = ["preserve_order"] }
