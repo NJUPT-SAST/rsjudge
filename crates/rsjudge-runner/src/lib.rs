@@ -19,6 +19,7 @@ pub use config::{
 };
 pub use handler::Handler;
 pub use run_as::{DropBoundingCaps, RunAs, WithSeccomp};
-pub use tracer::{TracedChild, Tracer};
+pub use tracer::{SupervisedExit, SyscallStat, TracedChild, Tracer};
+pub use utils::resources::rusage::ResourceUsage;
 
 pub mod user;

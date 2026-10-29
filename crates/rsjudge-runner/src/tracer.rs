@@ -34,9 +34,10 @@
     allow(dead_code)
 )]
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::ffi::OsStr;
 use std::io::{self, IoSliceMut};
+use std::mem::MaybeUninit;
 use std::os::unix::ffi::OsStrExt as _;
 use std::os::unix::process::{CommandExt as _, ExitStatusExt as _};
 use std::path::{Component, Path, PathBuf};
@@ -48,12 +49,13 @@ use nix::errno::Errno;
 use nix::sys::ptrace::{self, Event, Options};
 use nix::sys::signal::{Signal, killpg};
 use nix::sys::uio::{RemoteIoVec, process_vm_readv};
-use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
+use nix::sys::wait::{WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
 
 use crate::config::{AccessMode, FileAction, FilePolicy, SeccompConfig, SeccompFilter};
 use crate::error::{Error, Result};
 use crate::handler::Handler;
+use crate::utils::resources::rusage::ResourceUsage;
 
 /// A syscall whose path arguments the supervisor inspects.
 #[derive(Debug, Clone, Copy)]
@@ -615,15 +617,54 @@ fn attach_options() -> Options {
 }
 
 /// Wait for a tracee, retrying a wait that a signal handler of the host
-/// process interrupts.
-fn wait_for(target: Pid, flags: Option<WaitPidFlag>) -> io::Result<WaitStatus> {
+/// process interrupts, and report the resources of the reported process.
+///
+/// `waitpid` discards the `rusage` a `wait4` call returns, so a supervisor
+/// built on it can report an exit status but not what the submission spent.
+/// `wait4` reaps the same events and carries the usage of the child whose
+/// status it reports; the usage of a stop is not meaningful and stays unused.
+fn wait4_for(
+    target: Pid,
+    flags: Option<WaitPidFlag>,
+) -> io::Result<(WaitStatus, Option<ResourceUsage>)> {
+    let option_bits = flags.map_or(0, |bits| bits.bits());
+
     loop {
-        match waitpid(target, flags) {
-            Ok(status) => return Ok(status),
+        let mut status = 0;
+        let mut usage = MaybeUninit::<nix::libc::rusage>::uninit();
+
+        // SAFETY: `wait4` writes the status and the usage of the child it
+        // reaps, and both outlives the call.
+        let res = unsafe {
+            nix::libc::wait4(
+                target.as_raw(),
+                &raw mut status,
+                option_bits,
+                usage.as_mut_ptr(),
+            )
+        };
+
+        match Errno::result(res) {
+            Ok(0) => return Ok((WaitStatus::StillAlive, None)),
+            Ok(pid) => {
+                let status =
+                    WaitStatus::from_raw(Pid::from_raw(pid), status).map_err(io::Error::other)?;
+                // SAFETY: a positive return value means `wait4` filled the
+                // usage structure.
+                let usage = ResourceUsage::from(unsafe { usage.assume_init() });
+
+                return Ok((status, Some(usage)));
+            }
             Err(Errno::EINTR) => continue,
             Err(err) => return Err(io::Error::other(err)),
         }
     }
+}
+
+/// Wait for a tracee, retrying a wait that a signal handler of the host
+/// process interrupts.
+fn wait_for(target: Pid, flags: Option<WaitPidFlag>) -> io::Result<WaitStatus> {
+    wait4_for(target, flags).map(|(status, _)| status)
 }
 
 /// A supervisor holding the sandbox of a child that has yet to be spawned.
@@ -764,6 +805,32 @@ fn syscall_table() -> HashMap<i32, &'static FileAccessSyscall> {
         .collect()
 }
 
+/// What the supervisor did with the calls of one syscall.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct SyscallStat {
+    /// The number of calls the supervisor served.
+    pub count: u64,
+
+    /// The number of calls the policy refused with `ENOSYS`.
+    pub denied: u64,
+
+    /// The number of calls that ended the submission's process group.
+    pub killed: u64,
+}
+
+/// The exit of a supervised child, along with the resources it used.
+#[derive(Debug, Clone, Copy)]
+pub struct SupervisedExit {
+    /// The exit status of the child.
+    pub status: ExitStatus,
+
+    /// The resources the child used, as `wait4` reported them.
+    pub usage: Option<ResourceUsage>,
+}
+
+/// The syscall name the statistics use for a call the table does not know.
+const UNKNOWN_SYSCALL: &str = "<unknown>";
+
 /// A child process running under supervision.
 pub struct TracedChild {
     /// The process id of the child.
@@ -780,6 +847,9 @@ pub struct TracedChild {
 
     /// The number of file-access stops served so far.
     stops: usize,
+
+    /// What the supervisor did with each traced syscall.
+    stats: BTreeMap<&'static str, SyscallStat>,
 }
 
 impl TracedChild {
@@ -802,20 +872,38 @@ impl TracedChild {
         self.stops
     }
 
+    /// What the supervisor did with each traced syscall.
+    ///
+    /// The calls are keyed by syscall name, and a name the supervisor cannot
+    /// map appears as `<unknown>`.
+    pub fn syscall_stats(&self) -> &BTreeMap<&'static str, SyscallStat> {
+        &self.stats
+    }
+
     /// Serve the stops that have arrived so far.
     ///
     /// # Errors
     ///
     /// Returns an error when waiting for the child fails.
     pub fn try_wait(&mut self) -> Result<Option<ExitStatus>> {
+        Ok(self.try_wait_with_usage()?.map(|exit| exit.status))
+    }
+
+    /// Serve the stops that have arrived so far, reporting the resources of
+    /// the child along with its exit status.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when waiting for the child fails.
+    pub fn try_wait_with_usage(&mut self) -> Result<Option<SupervisedExit>> {
         loop {
             let flags = Some(WaitPidFlag::__WALL | WaitPidFlag::WNOHANG);
-            let status = wait_for(self.wait_target(), flags)?;
+            let (status, usage) = wait4_for(self.wait_target(), flags)?;
 
             if status == WaitStatus::StillAlive {
                 return Ok(None);
             }
-            if let Some(exit) = self.serve(status)? {
+            if let Some(exit) = self.serve(status, usage)? {
                 return Ok(Some(exit));
             }
         }
@@ -828,9 +916,19 @@ impl TracedChild {
     ///
     /// Returns an error when waiting for the child fails.
     pub fn wait(&mut self) -> Result<ExitStatus> {
+        Ok(self.wait_with_usage()?.status)
+    }
+
+    /// Serve the stops of every tracee until the child exits, reporting the
+    /// resources of the child along with its exit status.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when waiting for the child fails.
+    pub fn wait_with_usage(&mut self) -> Result<SupervisedExit> {
         loop {
-            let status = wait_for(self.wait_target(), Some(WaitPidFlag::__WALL))?;
-            if let Some(exit) = self.serve(status)? {
+            let (status, usage) = wait4_for(self.wait_target(), Some(WaitPidFlag::__WALL))?;
+            if let Some(exit) = self.serve(status, usage)? {
                 return Ok(exit);
             }
         }
@@ -879,6 +977,7 @@ impl TracedChild {
             policy,
             syscalls,
             stops: 0,
+            stats: BTreeMap::new(),
         }
     }
 
@@ -886,7 +985,11 @@ impl TracedChild {
     ///
     /// The status may report any tracee — a thread, a forked child, or the
     /// main process. Only the exit of the main process ends supervision.
-    fn serve(&mut self, status: WaitStatus) -> Result<Option<ExitStatus>> {
+    fn serve(
+        &mut self,
+        status: WaitStatus,
+        usage: Option<ResourceUsage>,
+    ) -> Result<Option<SupervisedExit>> {
         match status {
             WaitStatus::Exited(pid, code) => {
                 if pid != self.pid {
@@ -895,7 +998,10 @@ impl TracedChild {
 
                 // Nothing the submission started outlives it.
                 self.stop_group();
-                Ok(Some(ExitStatus::from_raw(code << 8)))
+                Ok(Some(SupervisedExit {
+                    status: ExitStatus::from_raw(code << 8),
+                    usage,
+                }))
             }
             WaitStatus::Signaled(pid, signal, dumped) => {
                 if pid != self.pid {
@@ -903,7 +1009,10 @@ impl TracedChild {
                 }
 
                 self.stop_group();
-                Ok(Some(ExitStatus::from_raw(exit_signal(signal, dumped))))
+                Ok(Some(SupervisedExit {
+                    status: ExitStatus::from_raw(exit_signal(signal, dumped)),
+                    usage,
+                }))
             }
             WaitStatus::Stopped(pid, signal) => {
                 // The supervisor consumed the exec stop while spawning the
@@ -951,16 +1060,14 @@ impl TracedChild {
         target_arch = "aarch64",
         target_arch = "riscv64"
     ))]
-    fn enforce(&self, pid: Pid) -> Result<()> {
+    fn enforce(&mut self, pid: Pid) -> Result<()> {
         let regs = ptrace::getregs(pid).map_err(io::Error::other)?;
         let syscall = Syscall::from_regs(&regs);
 
-        let entry = match self.syscalls.get(&syscall.number) {
-            Some(entry) => entry,
-            None => {
-                log::warn!("denying an unreadable syscall {0} of {pid}", syscall.number);
-                return deny(pid, regs);
-            }
+        let Some(entry) = self.syscalls.get(&syscall.number).copied() else {
+            log::warn!("denying an unreadable syscall {0} of {pid}", syscall.number);
+            self.record(UNKNOWN_SYSCALL, FileAction::Deny);
+            return deny(pid, regs);
         };
 
         let action = match self.verdict(pid, entry, &syscall) {
@@ -970,6 +1077,7 @@ impl TracedChild {
                 FileAction::Deny
             }
         };
+        self.record(entry.name, action);
 
         match action {
             FileAction::Allow => cont(pid),
@@ -990,6 +1098,17 @@ impl TracedChild {
         }
     }
 
+    /// Count one served syscall under its name.
+    fn record(&mut self, name: &'static str, action: FileAction) {
+        let stat = self.stats.entry(name).or_default();
+        stat.count += 1;
+        match action {
+            FileAction::Allow => {}
+            FileAction::Deny => stat.denied += 1,
+            FileAction::Kill => stat.killed += 1,
+        }
+    }
+
     /// Refuse a seccomp stop on an architecture whose registers this module
     /// cannot read.
     ///
@@ -1000,7 +1119,7 @@ impl TracedChild {
         target_arch = "aarch64",
         target_arch = "riscv64"
     )))]
-    fn enforce(&self, _pid: Pid) -> Result<()> {
+    fn enforce(&mut self, _pid: Pid) -> Result<()> {
         Err(unreadable_registers())
     }
 
