@@ -152,6 +152,49 @@ cargo xtask dist deb
 
 The `.deb` package will be generated in `target/debian`.
 
+== Run one submission (preview)
+
+The `judge` command compiles one submission, runs it once under the seccomp
+profile and the ptrace supervisor of `config-demo/seccomp.toml`, and prints
+what the run used:
+
+[,bash]
+----
+cargo run --no-default-features -- \
+  --config-dir config-demo \
+  judge --language C --source solution.c --stdin input.txt
+----
+
+The report lists the compile result, the exit status, the total elapsed
+time and the CPU time, the peak resident set size, and the file-access
+syscalls the supervisor served, including the calls the policy denied or
+killed:
+
+----
+verdict: accepted
+compile: ok in 75 ms
+run: exit 0, elapsed 16 ms, cpu 1 ms, peak rss 2580 KiB
+syscalls:
+  access 1
+  newfstatat 3
+  openat 3
+denied calls: 0, killed calls: 0
+stdout:
+hello, world
+----
+
+This is the first vertical slice of the judge, and it is deliberately
+limited:
+
+* it runs a single case: there is no scoring and no comparison with an
+  answer yet;
+* only languages with a `binary` execution type are run;
+* the submission runs as the invoking user, because the three-user model and
+  `run_as` are not wired in yet;
+* the syscall table covers the path-taking syscalls the supervisor stops on;
+  `read` and `write` take a descriptor and stay untraced;
+* the run directory lives under the system temporary directory, which the
+  demo `filePolicy` allows; the per-run layout of #548 replaces it.
 
 == Licensing
 

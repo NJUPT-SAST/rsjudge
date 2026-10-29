@@ -1307,6 +1307,7 @@ dependencies = [
  "rsjudge-traits",
  "rsjudge-utils",
  "serde",
+ "serde_json",
  "sysinfo",
  "tokio",
  "toml",
@@ -1348,12 +1349,16 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "futures",
+ "rsjudge-runner",
  "rsjudge-traits",
  "rsjudge-utils",
  "serde",
  "serde_json",
+ "shell-words",
  "tempfile",
+ "thiserror",
  "tokio",
+ "toml",
 ]
 
 [[package]]

@@ -10,10 +10,12 @@ use log::{debug, warn};
 use sysinfo::System;
 
 pub use crate::cli::Args;
+use crate::cli::Command;
 pub use crate::config::Config;
 
 mod cli;
 mod config;
+mod judge;
 
 /// Main Entry point. This function assumes the global logger is correctly
 /// setup.
@@ -41,6 +43,12 @@ pub async fn async_main(args: Args) -> anyhow::Result<()> {
         }
         _ => {
             warn!("Failed to detect OS information.")
+        }
+    }
+
+    if let Some(command) = &args.command {
+        match command {
+            Command::Judge(judge) => judge::run(&config, judge).await?,
         }
     }
 
