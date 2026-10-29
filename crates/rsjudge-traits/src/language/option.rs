@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 
 /// Language option for judging code.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LanguageOption {
     /// Name of the language.
     pub name: String,
@@ -13,6 +14,7 @@ pub struct LanguageOption {
 }
 
 /// Configuration value for a specific config item.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConfigValue {
     /// A boolean configuration.
     Bool(bool),

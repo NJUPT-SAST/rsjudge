@@ -5,6 +5,8 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
+use crate::language::option::ConfigValue;
+
 /// Language definition from configuration file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LanguageDef {
@@ -65,6 +67,111 @@ pub enum ConfigDef {
         /// Variants of the configuration with their corresponding values.
         variants: IndexMap<String, String>,
     },
+}
+
+impl LanguageDef {
+    /// The execution type of the language.
+    #[must_use]
+    pub fn exec_type(&self) -> &ExecType {
+        &self.exec_type
+    }
+
+    /// The options the language exposes to its users.
+    #[must_use]
+    pub fn options(&self) -> &IndexMap<String, ConfigDef> {
+        &self.options
+    }
+
+    /// The shell expression that reports the toolchain version, if the
+    /// language definition carries one.
+    #[must_use]
+    pub fn version(&self) -> Option<&str> {
+        self.version.as_deref()
+    }
+}
+
+impl ExecType {
+    /// The command that compiles the source.
+    ///
+    /// Returns `None` for [`SourceCode`](Self::SourceCode), which is executed
+    /// directly.
+    #[must_use]
+    pub fn compile(&self) -> Option<&str> {
+        match self {
+            Self::Binary { compile } | Self::ByteCode { compile, .. } => Some(compile),
+            Self::SourceCode { .. } => None,
+        }
+    }
+
+    /// The command that checks the source for syntax errors.
+    ///
+    /// Only [`SourceCode`](Self::SourceCode) languages define one.
+    #[must_use]
+    pub fn check(&self) -> Option<&str> {
+        match self {
+            Self::SourceCode { check, .. } => check.as_deref(),
+            _ => None,
+        }
+    }
+
+    /// The command that executes the program.
+    ///
+    /// Returns `None` for [`Binary`](Self::Binary), which is executed
+    /// directly.
+    #[must_use]
+    pub fn execute(&self) -> Option<&str> {
+        match self {
+            Self::ByteCode { execute, .. } | Self::SourceCode { execute, .. } => Some(execute),
+            Self::Binary { .. } => None,
+        }
+    }
+}
+
+impl ConfigDef {
+    /// The placeholder this option feeds, without the surrounding braces.
+    #[must_use]
+    pub fn target(&self) -> &str {
+        match self {
+            Self::Bool { target, .. } | Self::Enum { target, .. } => target,
+        }
+    }
+
+    /// The fragment this option contributes to its target.
+    ///
+    /// `value` overrides the default variant or flag. A boolean option that is
+    /// disabled contributes nothing, an enabled one contributes its `enable`
+    /// text, and an enumeration contributes the value of the selected variant.
+    ///
+    /// # Errors
+    ///
+    /// Returns a message when `value` does not fit the option, for example a
+    /// boolean override for an enumeration option or an unknown variant.
+    pub fn resolve(&self, value: Option<&ConfigValue>) -> Result<Option<String>, String> {
+        match self {
+            Self::Bool {
+                default, enable, ..
+            } => match value {
+                None => Ok(default.then(|| enable.clone())),
+                Some(ConfigValue::Bool(enabled)) => Ok(enabled.then(|| enable.clone())),
+                Some(ConfigValue::Enum(_)) => {
+                    Err("expected a boolean value, found an enumeration value".to_owned())
+                }
+            },
+            Self::Enum {
+                default, variants, ..
+            } => match value {
+                None => Ok(variants.get(default).cloned()),
+                Some(ConfigValue::Enum(variant)) => variants
+                    .get(variant)
+                    .cloned()
+                    .map(Some)
+                    .ok_or_else(|| format!("unknown variant `{variant}`")),
+                Some(ConfigValue::Bool(_)) => {
+                    Err("expected an enumeration value, found a boolean value".to_owned())
+                }
+            },
+        }
+    }
 }
 
 #[cfg(test)]
