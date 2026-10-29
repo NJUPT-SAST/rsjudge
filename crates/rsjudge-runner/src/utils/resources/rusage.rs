@@ -46,6 +46,16 @@ impl From<rusage> for ResourceUsage {
 }
 
 impl ResourceUsage {
+    /// Assemble usage from the CPU time and the peak resident set size in
+    /// kibibytes.
+    #[must_use]
+    pub fn new(cpu_time: Duration, ram_usage: u64) -> Self {
+        Self {
+            cpu_time,
+            ram_usage,
+        }
+    }
+
     #[must_use]
     pub fn cpu_time(&self) -> Duration {
         self.cpu_time

@@ -3,7 +3,8 @@
 pub mod rusage;
 
 use std::future::Future;
-use std::process::ExitStatus;
+use std::os::unix::process::CommandExt as _;
+use std::process::{Command as StdCommand, ExitStatus};
 use std::time::Duration;
 
 use nix::sys::resource::{Resource, setrlimit};
@@ -85,46 +86,7 @@ pub trait WithResourceLimit {
 
 impl WithResourceLimit for Command {
     fn with_resource_limit(mut self, resource_info: ResourceLimit) -> CommandWithResourceLimit {
-        if let Some(cpu_time_limit) = resource_info.cpu_time_limit() {
-            let set_cpu_limit = move || {
-                setrlimit(
-                    Resource::RLIMIT_CPU,
-                    cpu_time_limit.as_secs(),
-                    cpu_time_limit.as_secs(),
-                )?;
-
-                Ok(())
-            };
-            unsafe {
-                self.pre_exec(set_cpu_limit);
-            }
-        }
-
-        if let Some(memory_limit) = resource_info.memory_limit() {
-            let set_memory_limit = move || {
-                setrlimit(Resource::RLIMIT_AS, memory_limit, memory_limit)?;
-
-                Ok(())
-            };
-            unsafe {
-                self.pre_exec(set_memory_limit);
-            }
-        }
-
-        if let Some(max_file_size_limit) = resource_info.max_file_size_limit() {
-            let set_max_file_size_limit = move || {
-                setrlimit(
-                    Resource::RLIMIT_FSIZE,
-                    max_file_size_limit,
-                    max_file_size_limit,
-                )?;
-
-                Ok(())
-            };
-            unsafe {
-                self.pre_exec(set_max_file_size_limit);
-            }
-        }
+        register_resource_limit(self.as_std_mut(), &resource_info);
 
         CommandWithResourceLimit {
             command: self,
@@ -143,6 +105,59 @@ impl WithResourceLimit for Command {
         self.spawn_with_resource_limit(resource_limit)?
             .wait_for_resource_usage()
             .await
+    }
+}
+
+/// Register the rlimits of `limit` as `pre_exec` hooks on a `std` command.
+///
+/// A judge only lowers rlimits, which every process may do for its children.
+/// Register these hooks before the seccomp filter, so the `setrlimit` calls
+/// run while the child is still unconstrained; [`Tracer::spawn`] installs the
+/// filter last, as [`WithSeccomp`](crate::WithSeccomp) requires.
+///
+/// [`Tracer::spawn`]: crate::Tracer::spawn
+pub fn register_resource_limit(cmd: &mut StdCommand, limit: &ResourceLimit) {
+    if let Some(cpu_time_limit) = limit.cpu_time_limit() {
+        // `RLIMIT_CPU` counts whole seconds, so a sub-second limit rounds up
+        // to one second and the wall-clock limit stays the finer of the two.
+        let seconds = cpu_time_limit.as_secs().max(1);
+        let set_cpu_limit = move || {
+            setrlimit(Resource::RLIMIT_CPU, seconds, seconds)?;
+
+            Ok(())
+        };
+        // SAFETY: `setrlimit` is async-signal-safe.
+        unsafe {
+            cmd.pre_exec(set_cpu_limit);
+        }
+    }
+
+    if let Some(memory_limit) = limit.memory_limit() {
+        let set_memory_limit = move || {
+            setrlimit(Resource::RLIMIT_AS, memory_limit, memory_limit)?;
+
+            Ok(())
+        };
+        // SAFETY: `setrlimit` is async-signal-safe.
+        unsafe {
+            cmd.pre_exec(set_memory_limit);
+        }
+    }
+
+    if let Some(max_file_size_limit) = limit.max_file_size_limit() {
+        let set_max_file_size_limit = move || {
+            setrlimit(
+                Resource::RLIMIT_FSIZE,
+                max_file_size_limit,
+                max_file_size_limit,
+            )?;
+
+            Ok(())
+        };
+        // SAFETY: `setrlimit` is async-signal-safe.
+        unsafe {
+            cmd.pre_exec(set_max_file_size_limit);
+        }
     }
 }
 
