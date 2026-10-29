@@ -142,6 +142,44 @@ cargo xtask dist deb
 
 生成的软件包位于 `target/debian` 目录下。
 
+== 运行一次提交（预览）
+
+`judge` 子命令会编译一份提交，并在 `config-demo/seccomp.toml` 的 seccomp
+配置与 ptrace 监督下运行一次，然后打印这次运行的各种用量：
+
+[,bash]
+----
+cargo run --no-default-features -- \
+  --config-dir config-demo \
+  judge --language C --source solution.c --stdin input.txt
+----
+
+报告包含编译结果、退出状态、总用时与 CPU 时间、峰值常驻内存，以及监督器处理过的
+文件访问系统调用，其中包括被策略拒绝或终止的调用：
+
+----
+verdict: accepted
+compile: ok in 75 ms
+run: exit 0, elapsed 16 ms, cpu 1 ms, peak rss 2580 KiB
+syscalls:
+  access 1
+  newfstatat 3
+  openat 3
+denied calls: 0, killed calls: 0
+stdout:
+hello, world
+----
+
+这是判题流程的第一个纵向切片，目前刻意保留了这些限制：
+
+* 只运行单个测试点：还没有计分，也不与答案比较；
+* 只运行 `binary` 执行类型的语言；
+* 提交以调用者的身份运行，三用户模型与 `run_as` 尚未接入；
+* 系统调用表只覆盖监督器会停下的、带路径参数的系统调用；`read` 与 `write`
+  使用文件描述符，因此不会被跟踪；
+* 运行目录位于系统临时目录下（demo 的 `filePolicy` 已允许该路径），#548 的
+  每运行目录布局会替换它。
+
 == 许可协议
 
 rsjudge 是自由及开源软件（FLOSS）。所有源码基于 https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0 许可证]（SPDX 协议标识符：https://spdx.org/licenses/Apache-2.0.html[Apache-2.0]）授权。您可以在 link:./LICENSE[LICENSE] 文件中阅读完整的协议文本。

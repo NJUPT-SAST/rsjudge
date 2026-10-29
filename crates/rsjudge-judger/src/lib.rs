@@ -5,3 +5,4 @@
 pub mod comparer;
 
 pub mod judger;
+pub mod pipeline;
