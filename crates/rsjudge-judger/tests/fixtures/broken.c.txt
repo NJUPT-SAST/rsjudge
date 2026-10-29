@@ -1,8 +1,0 @@
-// SPDX-License-Identifier: Apache-2.0
-
-// This fixture must fail to compile: tests/pipeline.rs asserts that the
-// compiler reports the error. The .txt suffix keeps editors from parsing it
-// as C, so the deliberate syntax error stays out of their diagnostics.
-int main(void) {
-    return 0
-}

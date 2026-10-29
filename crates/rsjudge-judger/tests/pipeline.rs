@@ -170,7 +170,7 @@ async fn a_compile_error_reports_the_compiler_output() {
         return;
     }
 
-    let outcome = run(&pipeline(permissive_seccomp()), fixture("broken.c.txt")).await;
+    let outcome = run(&pipeline(permissive_seccomp()), fixture("broken.c.invalid")).await;
 
     assert_eq!(outcome.verdict, Verdict::CompileError);
 
