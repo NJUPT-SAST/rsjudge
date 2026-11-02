@@ -22,6 +22,25 @@
 //! Keeping a verdict atomic with the syscall needs an enforcement point
 //! inside the kernel's path walk, such as Landlock; the ptrace policy here is
 //! the portable enforcement the runner can apply without one.
+//!
+//! # Tracee lifecycle
+//!
+//! The kernel auto-attaches every process and thread the submission creates
+//! through the `TRACEFORK`, `TRACEVFORK` and `TRACECLONE` options. The
+//! supervisor records each one so that the polling wait can serve the stops
+//! of a tracee that left the process group of the run, and so that it kills
+//! and reaps every one of them when supervision ends. A judge therefore does
+//! not accumulate zombies, and a helper the submission leaves in the background
+//! does not outlive its run.
+//!
+//! # Profile rules and the file policy
+//!
+//! The policy traces the syscalls it judges as a whole. libseccomp replaces
+//! the argument-specific rules of such a syscall with the trace rule, so a
+//! condition on a traced syscall would be lost without a word: the filter
+//! refuses that combination rather than enforcing a policy the profile does
+//! not state. A plain `Allow` gives way to the policy, and an unconditional
+//! refusal keeps its action for the whole syscall.
 
 // The policy itself is refused on an architecture whose registers the module
 // cannot read, which leaves the helpers that decode a request unused there.
@@ -34,7 +53,7 @@
     allow(dead_code)
 )]
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::ffi::OsStr;
 use std::io::{self, IoSliceMut};
 use std::mem::MaybeUninit;
@@ -42,12 +61,14 @@ use std::os::unix::ffi::OsStrExt as _;
 use std::os::unix::process::{CommandExt as _, ExitStatusExt as _};
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command as StdCommand, ExitStatus};
+use std::thread;
+use std::time::{Duration, Instant};
 
 use capctl::CapSet;
 use libseccomp::ScmpSyscall;
 use nix::errno::Errno;
 use nix::sys::ptrace::{self, Event, Options};
-use nix::sys::signal::{Signal, killpg};
+use nix::sys::signal::{Signal, kill, killpg};
 use nix::sys::uio::{RemoteIoVec, process_vm_readv};
 use nix::sys::wait::{WaitPidFlag, WaitStatus};
 use nix::unistd::Pid;
@@ -56,6 +77,12 @@ use crate::config::{AccessMode, FileAction, FilePolicy, SeccompConfig, SeccompFi
 use crate::error::{Error, Result};
 use crate::handler::Handler;
 use crate::utils::resources::rusage::ResourceUsage;
+
+/// How long the polling wait sleeps before it asks the tracees again.
+const TRACEE_POLL: Duration = Duration::from_millis(1);
+
+/// How long the supervisor waits for the tracees it killed to be reaped.
+const REAP_TIMEOUT: Duration = Duration::from_secs(1);
 
 /// A syscall whose path arguments the supervisor inspects.
 #[derive(Debug, Clone, Copy)]
@@ -217,12 +244,16 @@ pub(crate) const FILE_ACCESS_SYSCALLS: &[FileAccessSyscall] = &[
     },
     FileAccessSyscall {
         name: "symlink",
-        paths: &[path(0, None), path(1, None)],
+        // The target argument is the string the new link stores. The kernel
+        // does not resolve it when the link is created, and a relative target
+        // would resolve against the directory of the link rather than against
+        // the working directory, so only the link path is judged here.
+        paths: &[path(1, None)],
         access: AccessArg::Write,
     },
     FileAccessSyscall {
         name: "symlinkat",
-        paths: &[path(0, None), path(2, Some(1))],
+        paths: &[path(2, Some(1))],
         access: AccessArg::Write,
     },
     FileAccessSyscall {
@@ -667,6 +698,41 @@ fn wait_for(target: Pid, flags: Option<WaitPidFlag>) -> io::Result<WaitStatus> {
     wait4_for(target, flags).map(|(status, _)| status)
 }
 
+/// The message a `PTRACE_EVENT_*` stop carries.
+///
+/// The message is the process id of a fork or the former thread id of an
+/// exec, depending on the event that raised the stop.
+fn event_message(pid: Pid) -> io::Result<u64> {
+    let mut message = 0u64;
+
+    // SAFETY: `PTRACE_GETEVENTMSG` writes the message of the stop the tracee
+    // is in into `message`, which outlives the call.
+    let result = unsafe {
+        nix::libc::ptrace(
+            nix::libc::PTRACE_GETEVENTMSG,
+            pid.as_raw(),
+            core::ptr::null_mut::<core::ffi::c_void>(),
+            (&raw mut message).cast::<core::ffi::c_void>(),
+        )
+    };
+    if result == -1 {
+        return Err(io::Error::last_os_error());
+    }
+
+    Ok(message)
+}
+
+/// Collect the exit of `pid`, continuing a tracee that stopped instead.
+fn reap(pid: Pid) -> io::Result<()> {
+    loop {
+        let (status, _) = wait4_for(pid, Some(WaitPidFlag::__WALL))?;
+        match status {
+            WaitStatus::Exited(..) | WaitStatus::Signaled(..) => return Ok(()),
+            _ => ptrace::cont(pid, Some(Signal::SIGKILL)).map_err(io::Error::other)?,
+        }
+    }
+}
+
 /// A supervisor holding the sandbox of a child that has yet to be spawned.
 ///
 /// The supervisor is the thread that spawns and serves the child: the child
@@ -778,6 +844,12 @@ impl Tracer {
             status => {
                 // Nothing the submission started outlives the failed spawn.
                 let _ = killpg(pid, Signal::SIGKILL);
+                // A child that stopped before its exec is still attached: the
+                // wait that saw the stop did not reap it, so collect the exit
+                // rather than leaving a zombie behind.
+                if !matches!(status, WaitStatus::Exited(..) | WaitStatus::Signaled(..)) {
+                    let _ = reap(pid);
+                }
                 return Err(io::Error::other(format!(
                     "the sandboxed child left before its exec stop: {status:?}"
                 ))
@@ -845,6 +917,15 @@ pub struct TracedChild {
     /// The traced syscalls, keyed by syscall number.
     syscalls: HashMap<i32, &'static FileAccessSyscall>,
 
+    /// The tracees the supervisor has seen and not yet reaped, other than the
+    /// main process.
+    ///
+    /// The kernel reports every fork, vfork and clone of a tracee through
+    /// auto-attach, and this set keeps the ones that have not exited. It lets
+    /// the supervisor serve a stop a tracee raises after it leaves the process
+    /// group of the run, and kill and reap what a submission leaves behind.
+    tracees: BTreeSet<Pid>,
+
     /// The number of file-access stops served so far.
     stops: usize,
 
@@ -892,17 +973,18 @@ impl TracedChild {
     /// Serve the stops that have arrived so far, reporting the resources of
     /// the child along with its exit status.
     ///
+    /// The poll asks the process group first and then every tracee the
+    /// supervisor knows, so a tracee that left the group still receives its
+    /// verdicts.
+    ///
     /// # Errors
     ///
     /// Returns an error when waiting for the child fails.
     pub fn try_wait_with_usage(&mut self) -> Result<Option<SupervisedExit>> {
         loop {
-            let flags = Some(WaitPidFlag::__WALL | WaitPidFlag::WNOHANG);
-            let (status, usage) = wait4_for(self.wait_target(), flags)?;
-
-            if status == WaitStatus::StillAlive {
+            let Some((status, usage)) = self.wait_once(false)? else {
                 return Ok(None);
-            }
+            };
             if let Some(exit) = self.serve(status, usage)? {
                 return Ok(Some(exit));
             }
@@ -922,6 +1004,13 @@ impl TracedChild {
     /// Serve the stops of every tracee until the child exits, reporting the
     /// resources of the child along with its exit status.
     ///
+    /// The blocking wait follows the process group of the child. A tracee
+    /// that moved itself to another group would no longer be reported there,
+    /// so its stops stay unserved until the run ends; the polling wait
+    /// ([`try_wait_with_usage`](Self::try_wait_with_usage)) serves them at
+    /// the caller's pace, and supervision kills and reaps every tracee when
+    /// it ends either way.
+    ///
     /// # Errors
     ///
     /// Returns an error when waiting for the child fails.
@@ -934,15 +1023,25 @@ impl TracedChild {
         }
     }
 
-    /// Signal the whole process group of the child to terminate.
+    /// Signal the whole process group of the child, and every tracee that
+    /// left it, to terminate.
+    ///
+    /// The tracees the submission left behind are reaped before this returns;
+    /// the main process is left for [`wait`](Self::wait) or
+    /// [`try_wait`](Self::try_wait) to report.
     ///
     /// # Errors
     ///
-    /// Returns an error when the signal cannot be delivered.
+    /// Returns an error when the process group cannot be signalled for a
+    /// reason other than having already emptied.
     pub fn kill(&mut self) -> Result<()> {
-        killpg(self.pid, Signal::SIGKILL).map_err(io::Error::other)?;
-
-        Ok(())
+        if let Err(err) = killpg(self.pid, Signal::SIGKILL)
+            && err != Errno::ESRCH
+        {
+            return Err(io::Error::other(err).into());
+        }
+        self.kill_tracees();
+        self.drain_tracees()
     }
 
     /// The wait target that serves every tracee of the child's process group.
@@ -951,9 +1050,7 @@ impl TracedChild {
     /// its own, which the threads and processes it creates inherit. Waiting on
     /// that group serves every tracee of this supervisor, while the other
     /// children of the host process, including the tracees of another
-    /// supervisor, stay with their own owners. A tracee that moves itself to
-    /// another group leaves the wait target, and its next traced syscall stays
-    /// stopped, which keeps the policy closed.
+    /// supervisor, stay with their own owners.
     fn wait_target(&self) -> Pid {
         Pid::from_raw(-self.pid.as_raw())
     }
@@ -962,6 +1059,86 @@ impl TracedChild {
     /// group that has already emptied.
     fn stop_group(&self) {
         let _ = killpg(self.pid, Signal::SIGKILL);
+    }
+
+    /// One wait status of the supervisor, when one is ready.
+    ///
+    /// A blocking wait follows the process group alone, which reports every
+    /// tracee that stays in it. The polling wait also asks each known tracee
+    /// in turn, so a tracee that left the group is served too.
+    fn wait_once(&mut self, blocking: bool) -> Result<Option<(WaitStatus, Option<ResourceUsage>)>> {
+        if blocking {
+            let (status, usage) = wait4_for(self.wait_target(), Some(WaitPidFlag::__WALL))?;
+            return Ok((status != WaitStatus::StillAlive).then_some((status, usage)));
+        }
+
+        let flags = Some(WaitPidFlag::__WALL | WaitPidFlag::WNOHANG);
+        let (status, usage) = wait4_for(self.wait_target(), flags)?;
+        if status != WaitStatus::StillAlive {
+            return Ok(Some((status, usage)));
+        }
+
+        for pid in self.tracees.clone() {
+            match wait4_for(pid, flags) {
+                Ok((WaitStatus::StillAlive, _)) => {}
+                Ok((status, usage)) => return Ok(Some((status, usage))),
+                // The tracee is gone and left nothing to report.
+                Err(err) if err.raw_os_error() == Some(nix::libc::ECHILD) => {
+                    self.tracees.remove(&pid);
+                }
+                Err(err) => return Err(err.into()),
+            }
+        }
+
+        Ok(None)
+    }
+
+    /// Signal every tracee the submission left behind.
+    fn kill_tracees(&self) {
+        for pid in &self.tracees {
+            let _ = kill(*pid, Signal::SIGKILL);
+        }
+    }
+
+    /// Reap every tracee the submission left behind.
+    ///
+    /// The supervisor sends `SIGKILL` to the process group and to every tracee
+    /// that left it before this runs. A stopped tracee is continued with the
+    /// signal so that it can die, and its status is collected rather than left
+    /// for a later wait, so a long-lived judge does not accumulate zombies. The
+    /// wait is bounded: a tracee the kernel cannot end must not hang the judge.
+    fn drain_tracees(&mut self) -> Result<()> {
+        let deadline = Instant::now() + REAP_TIMEOUT;
+
+        while !self.tracees.is_empty() {
+            for pid in self.tracees.clone() {
+                match wait4_for(pid, Some(WaitPidFlag::__WALL | WaitPidFlag::WNOHANG)) {
+                    Ok((WaitStatus::Exited(..) | WaitStatus::Signaled(..), _)) => {
+                        self.tracees.remove(&pid);
+                    }
+                    // A stopped tracee must be resumed to receive the signal.
+                    Ok((WaitStatus::StillAlive, _)) => {}
+                    Ok(_) => {
+                        let _ = ptrace::cont(pid, Some(Signal::SIGKILL));
+                    }
+                    Err(err) if err.raw_os_error() == Some(nix::libc::ECHILD) => {
+                        self.tracees.remove(&pid);
+                    }
+                    Err(err) => return Err(err.into()),
+                }
+            }
+
+            if Instant::now() >= deadline {
+                log::warn!(
+                    "{0} tracee(s) of the submission did not exit after being killed",
+                    self.tracees.len()
+                );
+                break;
+            }
+            thread::sleep(TRACEE_POLL);
+        }
+
+        Ok(())
     }
 
     /// A supervisor for `child`.
@@ -976,6 +1153,7 @@ impl TracedChild {
             child,
             policy,
             syscalls,
+            tracees: BTreeSet::new(),
             stops: 0,
             stats: BTreeMap::new(),
         }
@@ -993,11 +1171,14 @@ impl TracedChild {
         match status {
             WaitStatus::Exited(pid, code) => {
                 if pid != self.pid {
+                    self.tracees.remove(&pid);
                     return Ok(None);
                 }
 
                 // Nothing the submission started outlives it.
                 self.stop_group();
+                self.kill_tracees();
+                self.drain_tracees()?;
                 Ok(Some(SupervisedExit {
                     status: ExitStatus::from_raw(code << 8),
                     usage,
@@ -1005,10 +1186,13 @@ impl TracedChild {
             }
             WaitStatus::Signaled(pid, signal, dumped) => {
                 if pid != self.pid {
+                    self.tracees.remove(&pid);
                     return Ok(None);
                 }
 
                 self.stop_group();
+                self.kill_tracees();
+                self.drain_tracees()?;
                 Ok(Some(SupervisedExit {
                     status: ExitStatus::from_raw(exit_signal(signal, dumped)),
                     usage,
@@ -1042,6 +1226,28 @@ impl TracedChild {
         if event == Event::PTRACE_EVENT_SECCOMP as i32 {
             self.stops += 1;
             return self.enforce(pid);
+        }
+
+        if event == Event::PTRACE_EVENT_CLONE as i32
+            || event == Event::PTRACE_EVENT_FORK as i32
+            || event == Event::PTRACE_EVENT_VFORK as i32
+        {
+            // The kernel attached the new tracee to this supervisor, and the
+            // event names it. Recording it lets the supervisor serve a stop
+            // the tracee raises after it leaves the process group, and reach it
+            // when supervision ends.
+            let new = event_message(pid)?;
+            self.tracees.insert(Pid::from_raw(new as i32));
+        } else if event == Event::PTRACE_EVENT_EXEC as i32 {
+            // An exec in a thread makes that thread the leader of the process,
+            // under the pid of the old leader, so follow the move.
+            let former = Pid::from_raw(event_message(pid)? as i32);
+            if former != pid {
+                self.tracees.remove(&former);
+            }
+            if pid != self.pid {
+                self.tracees.insert(pid);
+            }
         }
 
         ptrace::cont(pid, None).map_err(io::Error::other)?;
@@ -1296,6 +1502,14 @@ mod tests {
         })
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn tracer_requires_a_file_policy() {
         let config: SeccompConfig = serde_json::from_value(json!({
@@ -1345,6 +1559,14 @@ mod tests {
         );
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn default_deny_fails_the_file_access_of_a_program() {
         let config = traced_config(json!({ "defaultAction": "deny" }));
@@ -1362,6 +1584,14 @@ mod tests {
         assert!(child.stops() > 0, "the child reached no traced syscall");
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn a_kill_rule_ends_the_process_that_reaches_the_path() {
         let config = traced_config(json!({
@@ -1388,6 +1618,14 @@ mod tests {
         assert_eq!(status.signal(), Some(Signal::SIGKILL as i32));
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn a_relative_path_resolves_against_the_working_directory_of_the_child() {
         let scratch = Scratch::new(&[("answer.txt", "hello\n"), ("blocked.txt", "secret\n")]);
@@ -1411,6 +1649,14 @@ mod tests {
         assert!(!denied, "the child read a path its policy denies");
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn file_policy_matches_prefix_and_exact_paths() {
         let scratch = Scratch::new(&[
@@ -1442,6 +1688,14 @@ mod tests {
         assert!(!dot_dot, "a `..` segment escaped the exact rule");
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn file_policy_distinguishes_read_and_write_access() {
         let scratch = Scratch::new(&[("readonly.txt", "data\n")]);
@@ -1471,6 +1725,14 @@ mod tests {
         assert!(!write, "a write request passed a rule that covers writes");
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn try_wait_reports_the_exit_of_a_supervised_child() {
         let scratch = Scratch::new(&[("answer.txt", "hello\n")]);
@@ -1517,6 +1779,7 @@ mod tests {
             let dir = std::env::temp_dir()
                 .join(format!("rsjudge-tracer-{}-{serial}", std::process::id()));
             let scratch = Self { dir };
+            std::fs::create_dir_all(&scratch.dir).expect("failed to create the scratch directory");
 
             for (name, contents) in files {
                 let path = scratch.path(name);
@@ -1657,6 +1920,14 @@ mod tests {
         assert_eq!(read, word);
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn a_forked_child_of_the_submission_is_also_supervised() {
         let scratch = Scratch::new(&[("answer.txt", "hello\n")]);
@@ -1674,6 +1945,14 @@ mod tests {
         assert!(success, "a forked child of the submission went unserved");
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn a_mutation_of_a_path_the_policy_denies_is_refused() {
         let scratch = Scratch::new(&[("victim.txt", "keep me\n")]);
@@ -1700,6 +1979,14 @@ mod tests {
         );
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn a_rename_takes_the_verdict_of_the_path_it_writes() {
         let scratch = Scratch::new(&[("movable.txt", "hello\n")]);
@@ -1780,11 +2067,39 @@ mod tests {
     }
 
     #[test]
+    fn a_symlink_is_judged_on_the_link_it_creates() {
+        let symlink = FILE_ACCESS_SYSCALLS
+            .iter()
+            .find(|entry| entry.name == "symlink")
+            .expect("symlink is not traced");
+
+        // The target string at argument 0 is what the new link stores. The
+        // kernel does not resolve it when the link is created, so it is not a
+        // path this call accesses.
+        let syscall = Syscall {
+            number: 0,
+            args: [0x1000, 0x2000, 0, 0, 0, 0],
+        };
+        let named: Vec<PathArg> = TracedChild::path_arguments(symlink, &syscall).collect();
+        assert_eq!(named.len(), 1, "a symlink is judged on its target");
+        assert_eq!(named[0].index, 1, "the link path is the one judged");
+        assert!(named[0].dirfd.is_none());
+    }
+
+    #[test]
     fn restrictiveness_orders_the_actions() {
         assert!(restrictiveness(FileAction::Allow) < restrictiveness(FileAction::Deny));
         assert!(restrictiveness(FileAction::Deny) < restrictiveness(FileAction::Kill));
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn a_profile_that_fails_to_compile_reports_an_error() {
         // A syscall the running architecture lacks keeps the supervisor from
@@ -1805,6 +2120,14 @@ mod tests {
         );
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn try_wait_polls_a_running_child_and_kill_stops_it() {
         let tracer = Tracer::new(&traced_config(permissive_policy()))
@@ -1821,6 +2144,111 @@ mod tests {
 
         let status = child.wait().expect("failed to supervise");
         assert!(!status.success(), "the child outlived its signal");
+    }
+
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
+    #[test]
+    fn a_background_child_of_the_submission_is_reaped() {
+        let scratch = Scratch::new(&[]);
+        let tracer = Tracer::new(&traced_config(permissive_policy()))
+            .unwrap()
+            .unwrap();
+
+        // The shell leaves `sleep` in the background and exits; nothing in
+        // the submission waits for it.
+        let mut cmd = Command::new("sh");
+        cmd.arg("-c").arg("sleep 30 & echo $! > background.pid");
+        cmd.current_dir(&scratch.dir);
+        cmd.stdout(std::process::Stdio::null());
+        cmd.stderr(std::process::Stdio::null());
+
+        let mut child = tracer.spawn(&mut cmd).expect("failed to spawn");
+        let status = child.wait().expect("failed to supervise");
+        assert!(status.success(), "the shell exited with {status:?}");
+
+        let pid: i32 = std::fs::read_to_string(scratch.path("background.pid"))
+            .expect("the shell did not report its background child")
+            .trim()
+            .parse()
+            .expect("the shell reported an invalid process id");
+
+        // The supervisor killed the background child and collected its exit:
+        // it no longer tracks a tracee. The task itself is reparented to the
+        // subreaper once the tracer has its status, so it may still appear as
+        // a zombie until that process reaps it; it can no longer be running.
+        assert!(
+            child.tracees.is_empty(),
+            "the supervisor still tracks a leftover tracee"
+        );
+        match std::fs::read_to_string(format!("/proc/{pid}/stat")) {
+            Ok(stat) => assert_eq!(
+                stat.split_whitespace().nth(2),
+                Some("Z"),
+                "the background child was still running after its run"
+            ),
+            Err(err) => assert_eq!(
+                err.kind(),
+                std::io::ErrorKind::NotFound,
+                "the background child could not be inspected: {err}"
+            ),
+        }
+    }
+
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
+    #[test]
+    fn the_polling_wait_serves_a_tracee_that_left_the_process_group() {
+        // `setsid` is part of util-linux; the test needs a host that has it.
+        if Command::new("setsid").arg("--version").output().is_err() {
+            eprintln!("skipping: setsid is not installed");
+            return;
+        }
+
+        let scratch = Scratch::new(&[("answer.txt", "hello\n")]);
+        let tracer = Tracer::new(&traced_config(permissive_policy()))
+            .unwrap()
+            .unwrap();
+
+        // The background job calls `setsid`, so a wait on the process group
+        // no longer reports it. Its loader and `cat` still have to reach the
+        // policy for the file access they make.
+        let mut cmd = Command::new("sh");
+        cmd.arg("-c")
+            .arg("setsid cat answer.txt > escaped.out & sleep 1; cat escaped.out");
+        cmd.current_dir(&scratch.dir);
+        cmd.stdout(std::process::Stdio::null());
+        cmd.stderr(std::process::Stdio::null());
+
+        let mut child = tracer.spawn(&mut cmd).expect("failed to spawn");
+
+        let deadline = Instant::now() + Duration::from_secs(10);
+        let status = loop {
+            if let Some(status) = child.try_wait().expect("failed to poll") {
+                break status;
+            }
+            assert!(Instant::now() < deadline, "the submission never left");
+            std::thread::sleep(Duration::from_millis(1));
+        };
+
+        assert!(status.success(), "the escaped tracee never ran: {status:?}");
+        assert_eq!(
+            std::fs::read_to_string(scratch.path("escaped.out")).expect("missing output"),
+            "hello\n",
+            "the escaped tracee did not reach its file access"
+        );
     }
 
     #[test]
