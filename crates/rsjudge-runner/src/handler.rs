@@ -35,6 +35,13 @@ pub struct Handler {
 
 impl Handler {
     /// A sandbox that installs `filter` on its own.
+    ///
+    /// `filter` must come from [`SeccompFilter::from_config`], which refuses a
+    /// profile that carries a file-access policy: those filters route syscalls
+    /// through `SCMP_ACT_TRACE`, and the kernel fails every traced syscall of a
+    /// process that has no tracer. Build such a profile with
+    /// [`Tracer::new`](crate::Tracer::new) instead, which attaches the child to
+    /// its supervisor before installing the filter.
     pub fn seccomp(filter: SeccompFilter) -> Self {
         Self {
             filter,

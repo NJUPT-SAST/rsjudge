@@ -731,7 +731,7 @@ impl Tracer {
 
         // The filter is loaded by the unprivileged child, so the `includes`
         // and `excludes` matchers see an empty capability set.
-        let filter = SeccompFilter::from_config(config, &CapSet::empty())?;
+        let filter = SeccompFilter::for_tracer(config, &CapSet::empty())?;
 
         Ok(Some(Self {
             filter,
@@ -1311,13 +1311,19 @@ mod tests {
         );
     }
 
+    #[cfg_attr(
+        not(any(
+            target_arch = "x86_64",
+            target_arch = "aarch64",
+            target_arch = "riscv64"
+        )),
+        ignore = "the supervisor cannot read the syscall registers of this architecture"
+    )]
     #[test]
     fn supervised_child_runs_through_its_stops() {
+        // `Tracer::new` compiles the profile for its supervisor; a profile
+        // that fails to compile leaves the child unsupervised.
         let config = traced_config(permissive_policy());
-
-        // The profile must reach the trace rules: a filter that fails to
-        // compile would leave the child unsupervised.
-        SeccompFilter::from_config(&config, &CapSet::empty()).expect("filter did not compile");
 
         let tracer = Tracer::new(&config)
             .expect("failed to prepare the tracer")

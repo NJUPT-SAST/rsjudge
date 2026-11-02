@@ -187,6 +187,13 @@ pub trait WithSeccomp {
     /// Call this **after**
     /// [`WithResourceLimit`](crate::utils::resources::WithResourceLimit)
     /// and [`RunAs::run_as`].
+    ///
+    /// The handler installs the filter without a supervisor, so it cannot
+    /// carry a file-access policy:
+    /// [`crate::SeccompFilter::from_config`] refuses one,
+    /// and a profile that needs the policy runs through
+    /// [`Tracer::spawn`](crate::Tracer::spawn), which attaches the child to its
+    /// supervisor and registers its own sandbox hook.
     fn with_seccomp(&mut self, handler: Handler) -> &mut Self;
 }
 

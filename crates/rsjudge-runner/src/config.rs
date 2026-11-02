@@ -433,6 +433,24 @@ impl SeccompConfig {
                     .map(|args| args.iter().map(arg_to_scmp).collect())
                     .unwrap_or_default();
 
+                // libseccomp replaces the argument-specific rules of a
+                // syscall with an unconditional one, so a condition on a
+                // syscall the policy traces would be lost without a word:
+                // the supervisor would judge every call, including the ones
+                // the profile meant to narrow. Refuse the combination
+                // instead of enforcing a policy the profile does not state.
+                if !comparators.is_empty()
+                    && let Some(name) = rule
+                        .names
+                        .iter()
+                        .find(|name| traced.contains(name.as_str()))
+                {
+                    return Err(io::Error::other(format!(
+                        "the profile constrains the arguments of `{name}`, which the file-access policy traces as a whole; remove the condition or the policy"
+                    ))
+                    .into());
+                }
+
                 for name in Self::rule_names(rule, &traced, &mut restricted) {
                     let syscall = ScmpSyscall::from_name(name).map_err(io::Error::other)?;
                     if comparators.is_empty() {
@@ -472,17 +490,17 @@ impl SeccompConfig {
     /// let the `SCMP_ACT_TRACE` rule take effect. A rule that restricts the
     /// call keeps its own action and records the name in `restricted` so that
     /// the trace rule yields to it, since the policy cannot restate the
-    /// profile's restriction. A rule that narrows the call to particular
-    /// arguments keeps its place as well, and the trace rule follows it: the
-    /// unconditional trace rule covers the whole syscall, so the filter traces
-    /// every call of it and the policy judges them.
+    /// profile's restriction.
+    ///
+    /// An argument-constrained rule on a traced syscall never reaches this
+    /// point: [`build_filter_with_caps`](Self::build_filter_with_caps)
+    /// refuses the combination, because libseccomp would drop the condition
+    /// once the unconditional trace rule is added.
     fn rule_names<'a>(
         rule: &'a Syscall,
         traced: &HashSet<&'static str>,
         restricted: &mut HashSet<&'static str>,
     ) -> Vec<&'a str> {
-        let conditional = rule.args.as_ref().is_some_and(|args| !args.is_empty());
-
         rule.names
             .iter()
             .filter(|name| {
@@ -490,14 +508,12 @@ impl SeccompConfig {
                     return true;
                 };
 
-                if rule.action.outranks_policy() {
-                    restricted.insert(name);
-                    return true;
+                if !rule.action.outranks_policy() {
+                    return false;
                 }
 
-                // A conditional rule keeps its place, and the trace rule
-                // follows it, so every call of the syscall reaches the policy.
-                conditional
+                restricted.insert(name);
+                true
             })
             .map(String::as_str)
             .collect()
@@ -537,7 +553,36 @@ impl SeccompFilter {
     /// The capability set should reflect the capabilities the child process
     /// will have when the filter is loaded (typically empty for an
     /// unprivileged submission process).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the profile carries a file-access policy: that
+    /// policy routes its syscalls through `SCMP_ACT_TRACE`, and the kernel
+    /// fails every traced syscall of a process without a tracer with
+    /// `ENOSYS`. Build such a profile with [`Tracer::new`](crate::Tracer::new)
+    /// instead, which compiles the filter for its supervisor.
     pub fn from_config(config: &SeccompConfig, effective_caps: &CapSet) -> Result<Self> {
+        if config.file_policy.is_some() {
+            return Err(io::Error::other(
+                "a profile with a file-access policy needs the tracer its supervisor provides",
+            )
+            .into());
+        }
+
+        Self::compile(config, effective_caps)
+    }
+
+    /// Build the filter a [`Tracer`](crate::Tracer) supervises.
+    ///
+    /// This is the only way to compile a profile that carries a file-access
+    /// policy: the filter routes the traced syscalls to the supervisor, so it
+    /// must not be installed without one.
+    pub(crate) fn for_tracer(config: &SeccompConfig, effective_caps: &CapSet) -> Result<Self> {
+        Self::compile(config, effective_caps)
+    }
+
+    /// Compile `config` into a loadable BPF program.
+    fn compile(config: &SeccompConfig, effective_caps: &CapSet) -> Result<Self> {
         use std::num::NonZeroUsize;
         use std::os::fd::AsFd;
 
@@ -1121,6 +1166,26 @@ mod tests {
     }
 
     #[test]
+    fn a_traced_filter_is_only_compiled_for_the_tracer() {
+        // A filter that routes syscalls through `SCMP_ACT_TRACE` needs a
+        // tracer: without one the kernel fails every traced call with
+        // `ENOSYS`. `from_config` builds filters for plain processes and
+        // refuses the profile, while the tracer compiles it for itself.
+        let config: SeccompConfig = serde_json::from_value(json!({
+            "defaultAction": { "action": "SCMP_ACT_ALLOW" },
+            "filePolicy": { "defaultAction": "deny" },
+        }))
+        .expect("failed to parse");
+
+        assert!(
+            SeccompFilter::from_config(&config, &CapSet::empty()).is_err(),
+            "a traced filter was compiled for a process without a tracer"
+        );
+        SeccompFilter::for_tracer(&config, &CapSet::empty())
+            .expect("the supervisor could not compile its own filter");
+    }
+
+    #[test]
     fn a_profile_action_outranks_the_policy_only_when_it_restricts() {
         // These actions refuse the call, so the policy's trace rule yields.
         assert!(Action::Kill.outranks_policy());
@@ -1137,10 +1202,10 @@ mod tests {
     }
 
     #[test]
-    fn build_filter_keeps_an_argument_constrained_allow_rule() {
-        // The profile allows `openat` only with a particular flag word. The
-        // conditional rule keeps its place, and the trace rule follows it, so
-        // every call of the syscall reaches the supervisor.
+    fn build_filter_refuses_a_condition_on_a_traced_syscall() {
+        // libseccomp replaces the argument-specific rules of a syscall with an
+        // unconditional one, so a condition on a syscall the policy traces
+        // would be dropped without a word. The profile is refused instead.
         let config: SeccompConfig = serde_json::from_value(json!({
             "defaultAction": { "action": "SCMP_ACT_ERRNO", "errnoRet": 1 },
             "syscalls": [
@@ -1156,57 +1221,71 @@ mod tests {
         }))
         .expect("failed to parse");
 
-        config
+        let error = config
             .build_filter_with_caps(&CapSet::empty())
-            .expect("a conditional allow rule was dropped");
-    }
-
-    #[test]
-    fn an_argument_constrained_allow_rule_still_gets_the_trace_rule() {
-        let rule: Syscall = serde_json::from_value(json!({
-            "names": ["openat"],
-            "action": "SCMP_ACT_ALLOW",
-            "args": [
-                { "index": 2, "value": 0, "op": "SCMP_CMP_EQ" },
-            ],
-        }))
-        .expect("failed to build the rule");
-
-        let traced: HashSet<&'static str> = crate::tracer::file_access_syscall_names().collect();
-        let mut restricted = HashSet::new();
-        let names = SeccompConfig::rule_names(&rule, &traced, &mut restricted);
-
-        // The rule reaches the filter, and the trace rule follows it, so every
-        // call of the syscall reaches the policy.
-        assert_eq!(names, vec!["openat"]);
+            .expect_err("a conditional rule on a traced syscall was accepted");
         assert!(
-            restricted.is_empty(),
-            "an argument-constrained allow rule disabled the policy trace rule"
+            error.to_string().contains("openat"),
+            "the error does not name the syscall: {error}"
         );
     }
 
     #[test]
-    fn an_argument_constrained_refusal_keeps_its_own_action() {
-        let rule: Syscall = serde_json::from_value(json!({
+    fn build_filter_keeps_a_condition_on_an_untraced_syscall() {
+        // The policy does not trace `personality`, so its condition reaches
+        // the filter untouched.
+        let config: SeccompConfig = serde_json::from_value(json!({
+            "defaultAction": { "action": "SCMP_ACT_ERRNO", "errnoRet": 1 },
+            "syscalls": [
+                {
+                    "names": ["personality"],
+                    "action": "SCMP_ACT_ALLOW",
+                    "args": [
+                        { "index": 0, "value": 8, "op": "SCMP_CMP_EQ" },
+                    ],
+                },
+            ],
+            "filePolicy": { "defaultAction": "deny" },
+        }))
+        .expect("failed to parse");
+
+        config
+            .build_filter_with_caps(&CapSet::empty())
+            .expect("a condition on an untraced syscall was refused");
+    }
+
+    #[test]
+    fn rule_names_steps_aside_for_a_traced_syscall() {
+        let traced: HashSet<&'static str> = crate::tracer::file_access_syscall_names().collect();
+
+        // A rule that lets the call through steps aside: the policy judges
+        // every call of a traced syscall.
+        let allow: Syscall = serde_json::from_value(json!({
+            "names": ["openat"],
+            "action": "SCMP_ACT_ALLOW",
+        }))
+        .expect("failed to build the rule");
+        let mut restricted = HashSet::new();
+        assert!(
+            SeccompConfig::rule_names(&allow, &traced, &mut restricted).is_empty(),
+            "an allow rule kept its place in front of the policy"
+        );
+        assert!(restricted.is_empty());
+
+        // A rule that refuses the call keeps its action, and the trace rule
+        // yields to it.
+        let refuse: Syscall = serde_json::from_value(json!({
             "names": ["openat"],
             "action": "SCMP_ACT_ERRNO",
             "errnoRet": 1,
-            "args": [
-                { "index": 2, "value": 0, "op": "SCMP_CMP_EQ" },
-            ],
         }))
         .expect("failed to build the rule");
-
-        let traced: HashSet<&'static str> = crate::tracer::file_access_syscall_names().collect();
         let mut restricted = HashSet::new();
-        let names = SeccompConfig::rule_names(&rule, &traced, &mut restricted);
-
-        // The refusal outranks the policy, so the trace rule yields to it.
-        assert_eq!(names, vec!["openat"]);
-        assert!(
-            restricted.contains("openat"),
-            "a conditional refusal let the policy trace rule through"
+        assert_eq!(
+            SeccompConfig::rule_names(&refuse, &traced, &mut restricted),
+            vec!["openat"]
         );
+        assert!(restricted.contains("openat"));
     }
 
     #[test]
