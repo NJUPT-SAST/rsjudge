@@ -193,6 +193,9 @@ limited:
   `run_as` are not wired in yet;
 * the syscall table covers the path-taking syscalls the supervisor stops on;
   `read` and `write` take a descriptor and stay untraced;
+* a profile cannot constrain the arguments of a syscall the file policy
+  traces: libseccomp would drop the condition, so the filter refuses the
+  combination instead;
 * the run directory lives under the system temporary directory, which the
   demo `filePolicy` allows; the per-run layout of #548 replaces it.
 
