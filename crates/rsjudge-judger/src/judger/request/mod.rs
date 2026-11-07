@@ -7,7 +7,7 @@ use crate::judger::request::source::Source;
 
 mod source;
 
-mod cases;
+pub mod cases;
 
 pub struct JudgeRequest {
     source: Source,

@@ -49,8 +49,8 @@ pub struct RunSpec {
     /// The seccomp profile to run under.
     pub seccomp: SeccompConfig,
 
-    /// The total elapsed-time limit of the run.
-    pub elapsed_limit: Duration,
+    /// The total elapsed-time limit of the run. `None` means unlimited.
+    pub elapsed_limit: Option<Duration>,
 }
 
 /// What one execution produced.
@@ -111,7 +111,10 @@ pub fn run(spec: RunSpec) -> Result<RunOutput, PipelineError> {
         match child.try_wait_with_usage()? {
             Some(exit) => break exit,
             None => {
-                if !timed_out && start.elapsed() >= spec.elapsed_limit {
+                if let Some(limit) = spec.elapsed_limit
+                    && !timed_out
+                    && start.elapsed() >= limit
+                {
                     // A refused kill means the group is already gone, so the
                     // next wait reports the exit.
                     let _ = child.kill();

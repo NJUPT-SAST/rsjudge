@@ -142,17 +142,21 @@ cargo xtask dist deb
 
 生成的软件包位于 `target/debian` 目录下。
 
-== 运行一次提交（预览）
+== 运行一次提交或一道题（预览）
 
-`judge` 子命令会编译一份提交，并在 `config-demo/seccomp.toml` 的 seccomp
-配置与 ptrace 监督下运行一次，然后打印这次运行的各种用量：
+`run` 子命令会在 `config-demo/seccomp.toml` 的 seccomp 配置与 ptrace 监督下
+运行一次提交：
 
 [,bash]
 ----
 cargo run --no-default-features -- \
   --config-dir config-demo \
-  judge --language C --source solution.c --stdin input.txt
+  run --language C --source solution.c --stdin input.txt \
+  --time-limit-ms 1000 --memory-limit-kb 262144
 ----
+
+`--language` 与 `--source` 是必填项。`--time-limit-ms`、`--elapsed-limit-ms`
+与 `--memory-limit-kb` 可选；不设置或设置为 `0` 表示该项不限。
 
 报告包含编译结果、退出状态、总用时与 CPU 时间、峰值常驻内存，以及监督器处理过的
 文件访问系统调用，其中包括被策略拒绝或终止的调用：
@@ -170,17 +174,82 @@ stdout:
 hello, world
 ----
 
-这是判题流程的第一个纵向切片，目前刻意保留了这些限制：
+`judge` 子命令只编译一次，运行 `.tar.zst` 题目压缩包中的每个测试点，逐个与答案
+比较，并打印每个测试点的结果与总分：
 
-* 只运行单个测试点：还没有计分，也不与答案比较；
-* 只运行 `binary` 执行类型的语言；
+[,bash]
+----
+cargo run --no-default-features -- \
+  --config-dir config-demo \
+  judge --problem problems/sum.tar.zst --source solution.c --language C++
+----
+
+压缩包根目录包含 `problem.toml` 和它引用的测试点文件：
+
+----
+sum.tar.zst
+├── problem.toml
+├── 1.in
+├── 1.ans
+├── 2.in
+└── 2.ans
+----
+
+`problem.toml` 描述测试点与计分方式：
+
+[,toml]
+----
+score = 100
+
+[judge]
+judgeType = "classic"
+
+[resourceLimits]
+time = 1000
+memory = 256
+
+[task]
+taskType = "simple"
+
+[[task.cases]]
+input = "1.in"
+answer = "1.ans"
+
+[[task.cases]]
+input = "2.in"
+answer = "2.ans"
+----
+
+`time` 是毫秒为单位的 CPU 限制，`memory` 是兆字节为单位的内存限制；取 `0`
+表示该项不限。测试点可以自带 `score`；当所有测试点都不写时，题目总分平均分配。
+`taskType = "subtask"` 使用 `[[task.subtasks]]`，每个子任务有自己的 `score`
+和 `[[task.subtasks.cases]]`；子任务只有在全部测试点通过时才得分。字段定义与
+serde 实现位于 `schemas/test-cases-schema` 子模块。
+
+输出会列出每个测试点与总分：
+
+----
+verdict: wrong answer
+compile: ok in 48 ms
+case 1: accepted (score 50/50)
+run: exit 0, elapsed 85 ms, cpu 2 ms, peak rss 2620 KiB
+case 2: wrong answer (score 0/50)
+run: exit 0, elapsed 85 ms, cpu 2 ms, peak rss 2656 KiB
+score: 50/100
+----
+
+这个预览版本仍有这些限制：
+
+* special judge 与交互式判题尚未接入；
+* `binary`、`byte_code` 与 `source_code` 三种执行类型都已接入流水线；运行时
+  缺失会作为配置错误报告；
 * 提交以调用者的身份运行，三用户模型与 `run_as` 尚未接入；
 * 系统调用表只覆盖监督器会停下的、带路径参数的系统调用；`read` 与 `write`
   使用文件描述符，因此不会被跟踪；
 * 配置不能对文件策略跟踪的系统调用附加参数条件：libseccomp 会丢掉该条件，
   因此过滤器会直接拒绝这种组合；
-* 运行目录位于系统临时目录下（demo 的 `filePolicy` 已允许该路径），#548 的
-  每运行目录布局会替换它。
+* 运行目录与解压后的题目压缩包位于系统临时目录下（demo 的 `filePolicy` 已允许
+  该路径），#548 的每运行目录布局会替换它们，并使答案不再位于提交可访问的范围内。
 
 == 许可协议
 

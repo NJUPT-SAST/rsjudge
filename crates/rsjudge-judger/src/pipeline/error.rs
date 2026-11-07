@@ -2,6 +2,7 @@
 
 //! Errors a pipeline run can fail with.
 
+use std::path::PathBuf;
 use std::time::Duration;
 
 /// An error that prevented the pipeline from producing a [`CaseOutcome`].
@@ -58,6 +59,45 @@ pub enum PipelineError {
     /// The compiler did not finish before the compile timeout.
     #[error("the compile step did not finish within {0:?}")]
     CompileTimeout(Duration),
+
+    /// The runtime named by an execute template is not available.
+    #[error("the runtime `{program}` is not available")]
+    MissingRuntime {
+        /// The program name from the execute template.
+        program: String,
+    },
+
+    /// The compile step reported success but produced no artifact.
+    #[error("the compile step produced no program at {path}")]
+    MissingArtifact {
+        /// The expected artifact path.
+        path: PathBuf,
+    },
+
+    /// A file of the problem cannot be read.
+    #[error("cannot read `{path}`: {source}")]
+    ProblemIo {
+        /// The path of the file.
+        path: PathBuf,
+
+        /// The underlying I/O error.
+        #[source]
+        source: std::io::Error,
+    },
+
+    /// Comparing the output with the answer failed.
+    #[error("comparing `{output}` with `{answer}` failed: {source}")]
+    Compare {
+        /// The output file.
+        output: PathBuf,
+
+        /// The answer file.
+        answer: PathBuf,
+
+        /// The underlying I/O error.
+        #[source]
+        source: std::io::Error,
+    },
 
     /// The blocking execution task panicked.
     #[error("the execution task failed: {0}")]

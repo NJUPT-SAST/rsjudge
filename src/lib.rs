@@ -48,7 +48,8 @@ pub async fn async_main(args: Args) -> anyhow::Result<()> {
 
     if let Some(command) = &args.command {
         match command {
-            Command::Judge(judge) => judge::run(&config, judge).await?,
+            Command::Judge(judge) => judge::judge(&config, judge).await?,
+            Command::Run(run) => judge::run(&config, run).await?,
         }
     }
 
