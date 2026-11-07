@@ -1,0 +1,3 @@
+[submodule "schemas/test-cases-schema"]
+	path = schemas/test-cases-schema
+	url = https://github.com/NJUPT-SAST/rsjudge-test-cases-schema
