@@ -270,12 +270,12 @@ jobs:
     runs-on: ubuntu-latest
     container: fedora:41
     steps:
+      - name: Install dependencies
+        run: |
+          sudo dnf install -y git clang mold protobuf-compiler libseccomp-devel
       - uses: actions/checkout@v7
         with:
           submodules: true
-      - name: Install dependencies
-        run: |
-          sudo dnf install -y clang mold protobuf-compiler libseccomp-devel
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
