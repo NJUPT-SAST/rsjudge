@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [workspace]
+exclude = ["schemas/test-cases-schema"]
 members = [
     "crates/rsjudge-amqp",
     "crates/rsjudge-grpc",

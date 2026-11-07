@@ -22,6 +22,12 @@ pub enum Verdict {
 
     /// The program reached its memory limit.
     MemoryLimitExceeded,
+
+    /// The output did not match the answer.
+    WrongAnswer,
+
+    /// The output matched the answer but not its presentation.
+    PresentationError,
 }
 
 impl Verdict {
@@ -34,6 +40,8 @@ impl Verdict {
             Self::RuntimeError => "runtime error",
             Self::TimeLimitExceeded => "time limit exceeded",
             Self::MemoryLimitExceeded => "memory limit exceeded",
+            Self::WrongAnswer => "wrong answer",
+            Self::PresentationError => "presentation error",
         }
     }
 }
@@ -134,4 +142,69 @@ pub struct CaseOutcome {
     /// What the run used, when it ran at all.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub execution: Option<ExecutionReport>,
+}
+
+/// The result of one submission against a whole problem.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProblemOutcome {
+    /// The verdict of the submission.
+    pub verdict: Verdict,
+
+    /// What the compile or check step produced, when the language has one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compile: Option<CompileReport>,
+
+    /// The result of every case, in run order.
+    pub cases: Vec<CaseResult>,
+
+    /// The result of every subtask, when the problem uses subtasks.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub subtasks: Vec<SubtaskResult>,
+
+    /// The score the submission earned.
+    pub score: u32,
+
+    /// The score a fully accepted submission earns.
+    pub total_score: u32,
+}
+
+/// The result of one case.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseResult {
+    /// The one-based position of the case in the run order.
+    pub index: usize,
+
+    /// The verdict of the case.
+    pub verdict: Verdict,
+
+    /// The score the case earned.
+    pub score: u32,
+
+    /// The score the case can earn. It is zero for a case inside a subtask,
+    /// whose score belongs to the subtask.
+    pub max_score: u32,
+
+    /// What the case run used, when it ran at all.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub execution: Option<ExecutionReport>,
+}
+
+/// The result of one subtask.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SubtaskResult {
+    /// The one-based position of the subtask.
+    pub index: usize,
+
+    /// The verdict of the subtask: accepted when every case passed, otherwise
+    /// the verdict of the first failing case.
+    pub verdict: Verdict,
+
+    /// The score the subtask earned.
+    pub score: u32,
+
+    /// The score the subtask can earn.
+    pub max_score: u32,
 }

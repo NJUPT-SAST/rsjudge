@@ -5,13 +5,17 @@
 
 use std::collections::HashMap;
 use std::num::NonZeroU64;
+use std::path::PathBuf;
 use std::process::Command;
 use std::time::Duration;
 
-use rsjudge_judger::pipeline::{CaseOutcome, Pipeline, RunRequest, Verdict};
+use rsjudge_judger::pipeline::{
+    CaseOutcome, Pipeline, PipelineError, Problem, RunRequest, Verdict,
+};
 use rsjudge_runner::SeccompConfig;
 use rsjudge_traits::language::config::LanguageDef;
 use serde_json::json;
+use tempfile::TempDir;
 
 /// How long a compiler may take in these tests.
 const COMPILE_TIMEOUT: Duration = Duration::from_secs(20);
@@ -98,8 +102,8 @@ fn request(source: String) -> RunRequest {
         language: "C".to_owned(),
         source,
         stdin: None,
-        time_limit: TIME_LIMIT,
-        elapsed_limit: ELAPSED_LIMIT,
+        time_limit: Some(TIME_LIMIT),
+        elapsed_limit: Some(ELAPSED_LIMIT),
         memory_limit: Some(MEMORY_LIMIT),
     }
 }
@@ -164,6 +168,31 @@ async fn a_hello_world_compiles_runs_and_reports() {
 }
 
 #[tokio::test]
+async fn an_unlimited_run_still_reports() {
+    if !gcc_available() {
+        eprintln!("skipping: gcc is not available");
+        return;
+    }
+
+    let mut request = request(fixture("hello.c"));
+    request.stdin = Some("rsjudge\n".to_owned());
+    request.time_limit = None;
+    request.elapsed_limit = None;
+    request.memory_limit = None;
+
+    let outcome = pipeline(permissive_seccomp())
+        .run(request)
+        .await
+        .expect("the unlimited run failed");
+
+    assert_eq!(outcome.verdict, Verdict::Accepted);
+    assert_eq!(
+        outcome.execution.expect("no execution report").stdout,
+        "hello, rsjudge\n"
+    );
+}
+
+#[tokio::test]
 async fn a_compile_error_reports_the_compiler_output() {
     if !gcc_available() {
         eprintln!("skipping: gcc is not available");
@@ -217,8 +246,8 @@ async fn a_spinning_program_hits_the_elapsed_limit() {
     }
 
     let mut request = request(fixture("spin.c"));
-    request.time_limit = Duration::from_secs(10);
-    request.elapsed_limit = Duration::from_millis(300);
+    request.time_limit = Some(Duration::from_secs(10));
+    request.elapsed_limit = Some(Duration::from_millis(300));
 
     let outcome = pipeline(permissive_seccomp())
         .run(request)
@@ -229,4 +258,353 @@ async fn a_spinning_program_hits_the_elapsed_limit() {
 
     let execution = outcome.execution.expect("no execution report");
     assert!(execution.timed_out, "the supervisor did not stop the run");
+}
+
+fn python_available() -> bool {
+    Command::new("python3")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+}
+
+const SIMPLE_PROBLEM: &str = r#"
+score = 100
+
+[judge]
+judgeType = "classic"
+
+[resourceLimits]
+time = 1000
+memory = 256
+
+[task]
+taskType = "simple"
+
+[[task.cases]]
+input = "1.in"
+answer = "1.ans"
+
+[[task.cases]]
+input = "2.in"
+answer = "2.ans"
+"#;
+
+fn write_archive(dir: &TempDir, name: &str, files: &[(&str, &str)]) -> PathBuf {
+    let path = dir.path().join(name);
+    let file = std::fs::File::create(&path).expect("failed to create the problem archive");
+    let encoder =
+        zstd::stream::write::Encoder::new(file, 0).expect("failed to start the compressor");
+    let mut archive = tar::Builder::new(encoder);
+
+    for (entry_name, contents) in files {
+        let mut header = tar::Header::new_gnu();
+        header.set_size(u64::try_from(contents.len()).expect("the entry fits in a tar header"));
+        header.set_mode(0o644);
+        header.set_cksum();
+        archive
+            .append_data(&mut header, entry_name, contents.as_bytes())
+            .expect("failed to append an archive entry");
+    }
+
+    let encoder = archive.into_inner().expect("failed to finish the archive");
+    encoder.finish().expect("failed to finish the compression");
+
+    path
+}
+
+fn simple_problem(dir: &TempDir) -> PathBuf {
+    write_archive(
+        dir,
+        "problem.tar.zst",
+        &[
+            ("problem.toml", SIMPLE_PROBLEM),
+            ("1.in", "rsjudge\n"),
+            ("1.ans", "hello, rsjudge\n"),
+            ("2.in", "rsjudge\n"),
+            ("2.ans", "goodbye, rsjudge\n"),
+        ],
+    )
+}
+
+#[tokio::test]
+async fn a_problem_runs_every_case_and_scores_the_submission() {
+    if !gcc_available() {
+        eprintln!("skipping: gcc is not available");
+        return;
+    }
+
+    let dir = TempDir::new().expect("failed to create the problem directory");
+    let archive = simple_problem(&dir);
+
+    let problem = Problem::load(&archive).expect("failed to load the problem");
+    let outcome = pipeline(permissive_seccomp())
+        .judge_problem(&problem, "C", &fixture("hello.c"))
+        .await
+        .expect("the problem run failed");
+
+    assert_eq!(outcome.verdict, Verdict::WrongAnswer);
+    assert_eq!(outcome.score, 50);
+    assert_eq!(outcome.total_score, 100);
+    assert_eq!(outcome.cases.len(), 2);
+
+    assert_eq!(outcome.cases[0].index, 1);
+    assert_eq!(outcome.cases[0].verdict, Verdict::Accepted);
+    assert_eq!(outcome.cases[0].score, 50);
+    assert_eq!(outcome.cases[0].max_score, 50);
+
+    assert_eq!(outcome.cases[1].index, 2);
+    assert_eq!(outcome.cases[1].verdict, Verdict::WrongAnswer);
+    assert_eq!(outcome.cases[1].score, 0);
+    assert!(outcome.subtasks.is_empty());
+}
+
+#[tokio::test]
+async fn a_failed_case_zeroes_its_subtask() {
+    if !gcc_available() {
+        eprintln!("skipping: gcc is not available");
+        return;
+    }
+
+    let dir = TempDir::new().expect("failed to create the problem directory");
+    let archive = write_archive(
+        &dir,
+        "problem.tar.zst",
+        &[
+            (
+                "problem.toml",
+                r#"
+score = 100
+
+[judge]
+judgeType = "classic"
+
+[resourceLimits]
+time = 1000
+memory = 256
+
+[task]
+taskType = "subtask"
+
+[[task.subtasks]]
+score = 100
+
+[[task.subtasks.cases]]
+input = "1.in"
+answer = "1.ans"
+
+[[task.subtasks.cases]]
+input = "2.in"
+answer = "2.ans"
+"#,
+            ),
+            ("1.in", "rsjudge\n"),
+            ("1.ans", "hello, rsjudge\n"),
+            ("2.in", "rsjudge\n"),
+            ("2.ans", "goodbye, rsjudge\n"),
+        ],
+    );
+
+    let problem = Problem::load(&archive).expect("failed to load the problem");
+    let outcome = pipeline(permissive_seccomp())
+        .judge_problem(&problem, "C", &fixture("hello.c"))
+        .await
+        .expect("the problem run failed");
+
+    assert_eq!(outcome.verdict, Verdict::WrongAnswer);
+    assert_eq!(outcome.score, 0);
+    assert_eq!(outcome.cases.len(), 2);
+    assert_eq!(outcome.cases[0].verdict, Verdict::Accepted);
+    assert_eq!(outcome.cases[1].verdict, Verdict::WrongAnswer);
+
+    assert_eq!(outcome.subtasks.len(), 1);
+    assert_eq!(outcome.subtasks[0].verdict, Verdict::WrongAnswer);
+    assert_eq!(outcome.subtasks[0].score, 0);
+    assert_eq!(outcome.subtasks[0].max_score, 100);
+}
+
+#[tokio::test]
+async fn a_broken_submission_scores_zero_without_running() {
+    if !gcc_available() {
+        eprintln!("skipping: gcc is not available");
+        return;
+    }
+
+    let dir = TempDir::new().expect("failed to create the problem directory");
+    let archive = simple_problem(&dir);
+
+    let problem = Problem::load(&archive).expect("failed to load the problem");
+    let outcome = pipeline(permissive_seccomp())
+        .judge_problem(&problem, "C", &fixture("broken.c.invalid"))
+        .await
+        .expect("the problem run failed");
+
+    assert_eq!(outcome.verdict, Verdict::CompileError);
+    assert_eq!(outcome.score, 0);
+    assert!(outcome.cases.is_empty(), "a broken submission ran a case");
+}
+
+#[tokio::test]
+async fn a_source_code_language_checks_and_runs_the_source() {
+    if !python_available() {
+        eprintln!("skipping: python3 is not available");
+        return;
+    }
+
+    let dir = TempDir::new().expect("failed to create the problem directory");
+    let archive = write_archive(
+        &dir,
+        "problem.tar.zst",
+        &[
+            (
+                "problem.toml",
+                r#"
+score = 100
+
+[judge]
+judgeType = "classic"
+
+[resourceLimits]
+time = 1000
+memory = 256
+
+[task]
+taskType = "simple"
+
+[[task.cases]]
+input = "1.in"
+answer = "1.ans"
+"#,
+            ),
+            ("1.in", "rsjudge\n"),
+            ("1.ans", "hello, rsjudge\n"),
+        ],
+    );
+
+    let problem = Problem::load(&archive).expect("failed to load the problem");
+    let source = "name = input()\nprint(f\"hello, {name}\")\n";
+    let outcome = pipeline(permissive_seccomp())
+        .judge_problem(&problem, "Python", source)
+        .await
+        .expect("the problem run failed");
+
+    assert_eq!(outcome.verdict, Verdict::Accepted);
+    assert_eq!(outcome.score, 100);
+    assert_eq!(outcome.cases.len(), 1);
+    assert_eq!(outcome.cases[0].verdict, Verdict::Accepted);
+
+    let compile = outcome.compile.expect("no check report");
+    assert!(compile.success, "the check failed: {}", compile.stderr);
+}
+
+#[tokio::test]
+async fn a_byte_code_language_compiles_then_runs_the_runtime() {
+    let dir = TempDir::new().expect("failed to create the problem directory");
+    let archive = write_archive(
+        &dir,
+        "problem.tar.zst",
+        &[
+            (
+                "problem.toml",
+                r#"
+score = 100
+
+[judge]
+judgeType = "classic"
+
+[resourceLimits]
+time = 1000
+memory = 256
+
+[task]
+taskType = "simple"
+
+[[task.cases]]
+input = "1.in"
+answer = "1.ans"
+"#,
+            ),
+            ("1.in", "rsjudge\n"),
+            ("1.ans", "rsjudge\n"),
+        ],
+    );
+
+    let mut executors = executors();
+    let def: LanguageDef = toml::from_str(
+        r#"
+exec_type = "byte_code"
+compile = "cp {src_file} {out_file}"
+execute = "sh {out_file}"
+out_extension = "sh"
+"#,
+    )
+    .expect("invalid language definition");
+    executors.insert("ByteCodeTest".to_owned(), def);
+
+    let problem = Problem::load(&archive).expect("failed to load the problem");
+    let pipeline = Pipeline::new(executors, permissive_seccomp());
+    let outcome = pipeline
+        .judge_problem(&problem, "ByteCodeTest", "cat\n")
+        .await
+        .expect("the problem run failed");
+
+    assert_eq!(outcome.verdict, Verdict::Accepted);
+    assert_eq!(outcome.score, 100);
+
+    let compile = outcome.compile.expect("no compile report");
+    assert!(compile.success, "the compile failed: {}", compile.stderr);
+}
+
+#[tokio::test]
+async fn a_missing_runtime_is_a_configuration_error() {
+    let dir = TempDir::new().expect("failed to create the problem directory");
+    let archive = write_archive(
+        &dir,
+        "problem.tar.zst",
+        &[
+            (
+                "problem.toml",
+                r#"
+score = 100
+
+[judge]
+judgeType = "classic"
+
+[resourceLimits]
+time = 1000
+memory = 256
+
+[task]
+taskType = "simple"
+
+[[task.cases]]
+input = "1.in"
+answer = "1.ans"
+"#,
+            ),
+            ("1.in", ""),
+            ("1.ans", ""),
+        ],
+    );
+
+    let mut executors = executors();
+    let def: LanguageDef = toml::from_str(
+        r#"
+exec_type = "source_code"
+execute = "rsjudge-missing-runtime-xyz {src_file}"
+"#,
+    )
+    .expect("invalid language definition");
+    executors.insert("Missing".to_owned(), def);
+
+    let problem = Problem::load(&archive).expect("failed to load the problem");
+    let pipeline = Pipeline::new(executors, permissive_seccomp());
+    let error = pipeline
+        .judge_problem(&problem, "Missing", "print(1)")
+        .await
+        .expect_err("a missing runtime was accepted");
+
+    assert!(
+        matches!(error, PipelineError::MissingRuntime { .. }),
+        "the pipeline returned another error: {error}"
+    );
 }

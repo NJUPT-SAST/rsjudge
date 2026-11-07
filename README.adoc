@@ -152,18 +152,22 @@ cargo xtask dist deb
 
 The `.deb` package will be generated in `target/debian`.
 
-== Run one submission (preview)
+== Run a submission or judge a problem (preview)
 
-The `judge` command compiles one submission, runs it once under the seccomp
-profile and the ptrace supervisor of `config-demo/seccomp.toml`, and prints
-what the run used:
+The `run` command compiles one submission and runs it once under the seccomp
+profile and the ptrace supervisor of `config-demo/seccomp.toml`:
 
 [,bash]
 ----
 cargo run --no-default-features -- \
   --config-dir config-demo \
-  judge --language C --source solution.c --stdin input.txt
+  run --language C --source solution.c --stdin input.txt \
+  --time-limit-ms 1000 --memory-limit-kb 262144
 ----
+
+`--language` and `--source` are required. `--time-limit-ms`,
+`--elapsed-limit-ms` and `--memory-limit-kb` are optional; leaving one out or
+setting it to `0` leaves that limit unbounded.
 
 The report lists the compile result, the exit status, the total elapsed
 time and the CPU time, the peak resident set size, and the file-access
@@ -183,12 +187,78 @@ stdout:
 hello, world
 ----
 
-This is the first vertical slice of the judge, and it is deliberately
-limited:
+The `judge` command compiles the submission once, runs every case of a
+`.tar.zst` problem archive, compares each output with its answer, and prints
+the per-case verdicts and the total score:
 
-* it runs a single case: there is no scoring and no comparison with an
-  answer yet;
-* only languages with a `binary` execution type are run;
+[,bash]
+----
+cargo run --no-default-features -- \
+  --config-dir config-demo \
+  judge --problem problems/sum.tar.zst --source solution.c --language C++
+----
+
+The archive root holds `problem.toml` and the resources it names:
+
+----
+sum.tar.zst
+├── problem.toml
+├── 1.in
+├── 1.ans
+├── 2.in
+└── 2.ans
+----
+
+A `problem.toml` describes the cases and their scoring:
+
+[,toml]
+----
+score = 100
+
+[judge]
+judgeType = "classic"
+
+[resourceLimits]
+time = 1000
+memory = 256
+
+[task]
+taskType = "simple"
+
+[[task.cases]]
+input = "1.in"
+answer = "1.ans"
+
+[[task.cases]]
+input = "2.in"
+answer = "2.ans"
+----
+
+`time` is the CPU limit in milliseconds and `memory` is the address-space
+limit in megabytes; `0` leaves that limit unbounded. A case may carry its own
+`score`; when no case does, the problem's total score is divided evenly. A
+`taskType = "subtask"` task declares `[[task.subtasks]]` entries instead, each
+with its own `score` and `[[task.subtasks.cases]]`; a subtask earns its score
+only when every case passes. The schema and its serde implementation live in
+the `schemas/test-cases-schema` submodule.
+
+The output lists every case and the total score:
+
+----
+verdict: wrong answer
+compile: ok in 48 ms
+case 1: accepted (score 50/50)
+run: exit 0, elapsed 85 ms, cpu 2 ms, peak rss 2620 KiB
+case 2: wrong answer (score 0/50)
+run: exit 0, elapsed 85 ms, cpu 2 ms, peak rss 2656 KiB
+score: 50/100
+----
+
+This preview is still limited:
+
+* special judge and interactive judging are not wired in yet;
+* `binary`, `byte_code` and `source_code` languages reach the pipeline; a
+  missing runtime is reported as a configuration error;
 * the submission runs as the invoking user, because the three-user model and
   `run_as` are not wired in yet;
 * the syscall table covers the path-taking syscalls the supervisor stops on;
@@ -196,8 +266,9 @@ limited:
 * a profile cannot constrain the arguments of a syscall the file policy
   traces: libseccomp would drop the condition, so the filter refuses the
   combination instead;
-* the run directory lives under the system temporary directory, which the
-  demo `filePolicy` allows; the per-run layout of #548 replaces it.
+* the run directory and the extracted problem archive live under the system
+  temporary directory, which the demo `filePolicy` allows; the per-run layout
+  of #548 replaces both and keeps the answers out of the submission's reach.
 
 == Licensing
 

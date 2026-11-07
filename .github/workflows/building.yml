@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
         with:
@@ -36,6 +38,8 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -87,6 +91,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -129,6 +135,8 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -176,6 +184,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -214,6 +224,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Optimize APT
         run: |
           sudo apt-mark hold firefox
@@ -259,6 +271,8 @@ jobs:
     container: fedora:41
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - name: Install dependencies
         run: |
           sudo dnf install -y clang mold protobuf-compiler libseccomp-devel

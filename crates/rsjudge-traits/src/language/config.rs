@@ -13,6 +13,18 @@ pub struct LanguageDef {
     #[serde(flatten)]
     exec_type: ExecType,
 
+    /// The name the submission source takes inside the run directory.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    src_rename: Option<String>,
+
+    /// The name the compiled artifact takes inside the run directory.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    out_rename: Option<String>,
+
+    /// The extension appended to the default artifact name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    out_extension: Option<String>,
+
     #[serde(default)]
     options: IndexMap<String, ConfigDef>,
     version: Option<String>,
@@ -74,6 +86,24 @@ impl LanguageDef {
     #[must_use]
     pub fn exec_type(&self) -> &ExecType {
         &self.exec_type
+    }
+
+    /// The name the submission source takes inside the run directory.
+    #[must_use]
+    pub fn src_rename(&self) -> Option<&str> {
+        self.src_rename.as_deref()
+    }
+
+    /// The name the compiled artifact takes inside the run directory.
+    #[must_use]
+    pub fn out_rename(&self) -> Option<&str> {
+        self.out_rename.as_deref()
+    }
+
+    /// The extension appended to the default artifact name.
+    #[must_use]
+    pub fn out_extension(&self) -> Option<&str> {
+        self.out_extension.as_deref()
     }
 
     /// The options the language exposes to its users.
@@ -191,6 +221,10 @@ mod tests {
             exec_type: ExecType::Binary {
                 compile: "gcc {...flags} -o {out_file} {src_file}".into(),
             },
+
+            src_rename: None,
+            out_rename: None,
+            out_extension: None,
 
             options: indexmap! {
                 "O2".into() => ConfigDef::Bool {

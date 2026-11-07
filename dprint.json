@@ -17,7 +17,7 @@
       }
     ]
   },
-  "excludes": ["/firedbg", "/target", "**/*.lock", "**/*-lock.json"],
+  "excludes": ["/firedbg", "/schemas/test-cases-schema", "/target", "**/*.lock", "**/*-lock.json"],
   "plugins": [
     "npm:@dprint/dockerfile@0.7.0",
     "npm:@dprint/exec@0.8.0/plugin.json@9d6234ea05810c775f388c2a4cce82b9116b69294b65e0e1e9d64f1446283ef3",
