@@ -12,8 +12,9 @@ rust-version.workspace = true
 [dependencies]
 indexmap = { version = "2.14.2", features = ["serde"] }
 serde.workspace = true
-tokio = { workspace = true, features = ["process"] }
+# Unused: Judger hands back std::process::Output rather than a tokio type.
+# tokio = { workspace = true, features = ["process"] }
 
 [dev-dependencies]
 serde_json = "1.0.154"
-toml = { version = "1.1.8", features = ["preserve_order"] }
+toml = { version = "1.2.1", features = ["preserve_order"] }

@@ -10,7 +10,6 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-log.workspace = true
 shell-words = "1.1.1"
 thiserror = "2.0.21"
 tokio = { workspace = true, features = [
@@ -20,4 +19,7 @@ tokio = { workspace = true, features = [
 ] }
 
 [dev-dependencies]
+# The log_if_error! macro expands to ::log::error! in the caller crate, so a
+# doctest that exercises the macro needs the logging facade for itself.
 anyhow = "1.0.104"
+log.workspace = true
