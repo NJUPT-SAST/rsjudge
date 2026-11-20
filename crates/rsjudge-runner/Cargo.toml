@@ -14,7 +14,7 @@ description = "Command runner for rsjudge"
 capctl = "0.2.4"
 libseccomp = { version = "0.4.0", features = ["const-syscall"] }
 log.workspace = true
-nix = { version = "0.31.3", features = [
+nix = { version = "0.32.0", features = [
     "user",
     "resource",
     "process",
@@ -30,11 +30,11 @@ rsjudge-utils.workspace = true
 serde.workspace = true
 thiserror = "2.0.21"
 tokio = { workspace = true, features = ["process", "sync", "time", "signal"] }
-tokio-util = "0.7.20"
 uzers = "0.12.2"
 
 # Unused dependencies
 # libcgroups = "0.4.1"
+# tokio-util = "0.7.20"
 
 [dev-dependencies]
 anyhow = "1.0.104"

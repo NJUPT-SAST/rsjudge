@@ -11,21 +11,22 @@ rust-version.workspace = true
 description = "gRPC server for rsjudge"
 
 [package.metadata.cargo-machete]
-ignored = ["prost", "prost-types"]
+ignored = ["prost"]
 
 [dependencies]
-anyhow = "1.0.104"
-futures = "0.3.34"
+# Unused: the server and its build script do not need them.
+# anyhow = "1.0.104"
+# futures = "0.3.34"
+# prost-types = "0.14.4"
 log.workspace = true
-prost = "0.14.4"
-prost-types = "0.14.4"
+prost = "0.14.6"
 tokio = { workspace = true, features = ["net"] }
 tokio-stream = "0.1.19"
 tonic = "0.14.9"
 tonic-prost = "0.14.9"
 
 # Optional dependencies
-rsjudge-traits.workspace = true
+rsjudge-traits = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 
 [build-dependencies]
@@ -39,4 +40,4 @@ tokio = { workspace = true, features = [
 tonic-prost-build = "0.14.9"
 
 [features]
-serde = ["dep:serde"]
+serde = ["dep:rsjudge-traits", "dep:serde"]

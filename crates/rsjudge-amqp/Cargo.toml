@@ -14,8 +14,8 @@ amqprs = { version = "2.1.5", features = ["urispec"] }
 thiserror = "2.0.21"
 tokio.workspace = true
 
-rsjudge-traits.workspace = true
+rsjudge-traits = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 
 [features]
-serde = ["dep:serde"]
+serde = ["dep:rsjudge-traits", "dep:serde"]

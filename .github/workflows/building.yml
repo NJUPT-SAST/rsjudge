@@ -42,13 +42,11 @@ jobs:
           submodules: true
       - name: Optimize APT
         run: |
-          sudo apt-mark hold firefox
           echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get upgrade -y
           sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
@@ -95,13 +93,11 @@ jobs:
           submodules: true
       - name: Optimize APT
         run: |
-          sudo apt-mark hold firefox
           echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get upgrade -y
           sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
@@ -139,13 +135,11 @@ jobs:
           submodules: true
       - name: Optimize APT
         run: |
-          sudo apt-mark hold firefox
           echo 'set man-db/auto-update false' | sudo debconf-communicate > /dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get upgrade -y
           sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
@@ -188,13 +182,11 @@ jobs:
           submodules: true
       - name: Optimize APT
         run: |
-          sudo apt-mark hold firefox
           echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get upgrade -y
           sudo apt-get install -y wget clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1
@@ -228,13 +220,11 @@ jobs:
           submodules: true
       - name: Optimize APT
         run: |
-          sudo apt-mark hold firefox
           echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
           sudo dpkg-reconfigure man-db
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get upgrade -y
           sudo apt-get install -y wget lintian clang libseccomp-dev
       - name: Setup Rust toolchain
         uses: moonrepo/setup-rust@v1

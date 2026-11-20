@@ -2,7 +2,6 @@
 
 use std::io::Write as _;
 
-use chrono::{Local, SubsecRound};
 use env_logger::fmt::style::{AnsiColor, Style};
 use env_logger::{Builder, Env};
 
@@ -19,7 +18,7 @@ pub(crate) fn setup_logger() {
         writeln!(
             f,
             "{SUBTLE}[{SUBTLE:#}{} {level_style}{level:<5}{level_style:#} {}{SUBTLE}]{SUBTLE:#} {}",
-            Local::now().trunc_subsecs(3),
+            jiff::ZonedDateTime::now().strftime("%Y-%m-%d %H:%M:%S%.3f %:z"),
             record.target(),
             record.args()
         )
