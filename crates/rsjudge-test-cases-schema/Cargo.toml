@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "rsjudge-test-cases-schema"
+version.workspace = true
+categories.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
+rust-version.workspace = true
+description = "The problem package format and the problem.toml configuration schema of rsjudge"
+
+[dependencies]
+serde.workspace = true
+
+[dev-dependencies]
+serde_json = "1.0.154"
+toml = "1.2.2"

@@ -223,8 +223,9 @@ answer = "2.ans"
 `time` 是毫秒为单位的 CPU 限制，`memory` 是兆字节为单位的内存限制；取 `0`
 表示该项不限。测试点可以自带 `score`；当所有测试点都不写时，题目总分平均分配。
 `taskType = "subtask"` 使用 `[[task.subtasks]]`，每个子任务有自己的 `score`
-和 `[[task.subtasks.cases]]`；子任务只有在全部测试点通过时才得分。字段定义与
-serde 实现位于 `schemas/test-cases-schema` 子模块。
+和 `[[task.subtasks.cases]]`；子任务只有在全部测试点通过时才得分。schema 的
+serde 实现位于 `crates/rsjudge-test-cases-schema`；`schemas/test-cases-schema`
+子模块保留 TypeScript 定义，以及该 crate 用于测试的参考配置样例。
 
 输出会列出每个测试点与总分：
 
