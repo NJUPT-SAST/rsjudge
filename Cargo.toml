@@ -8,6 +8,7 @@ members = [
     "crates/rsjudge-judger",
     "crates/rsjudge-rest",
     "crates/rsjudge-runner",
+    "crates/rsjudge-test-cases-schema",
     "crates/rsjudge-traits",
     "crates/rsjudge-utils",
     "xtask",
@@ -20,7 +21,7 @@ edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/NJUPT-SAST/rsjudge"
 # MSRV is set to N - 2, where N is the current stable version.
-rust-version = "1.97"
+rust-version = "1.98"
 
 [workspace.dependencies]
 log = "0.4.35"
@@ -54,10 +55,10 @@ rsjudge-rest = { path = "crates/rsjudge-rest", version = "0.1.0", optional = tru
 
 anyhow = "1.0.104"
 clap = { version = "4.6.9", features = ["derive"] }
-env_logger = { version = "0.11.11", default-features = false, features = [
+env_logger = { version = "0.11.12", default-features = false, features = [
     "auto-color",
 ] }
-jiff = { version = "1.0.1", default-features = false, features = [
+jiff = { version = "1.0.2", default-features = false, features = [
     "std",
     "tz-system",
 ] }
@@ -72,7 +73,7 @@ tokio = { workspace = true, features = [
     "process",
     "rt-multi-thread",
 ] }
-toml = "1.2.1"
+toml = "1.2.2"
 
 # Unused for now:
 # nix = { version = "0.29.0", features = ["fs"] }

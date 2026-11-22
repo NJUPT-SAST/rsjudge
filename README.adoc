@@ -239,8 +239,10 @@ limit in megabytes; `0` leaves that limit unbounded. A case may carry its own
 `score`; when no case does, the problem's total score is divided evenly. A
 `taskType = "subtask"` task declares `[[task.subtasks]]` entries instead, each
 with its own `score` and `[[task.subtasks.cases]]`; a subtask earns its score
-only when every case passes. The schema and its serde implementation live in
-the `schemas/test-cases-schema` submodule.
+only when every case passes. The serde implementation of the schema lives in
+`crates/rsjudge-test-cases-schema`; the `schemas/test-cases-schema` submodule
+keeps the TypeScript definitions and the reference fixtures the crate is tested
+against.
 
 The output lists every case and the total score:
 
